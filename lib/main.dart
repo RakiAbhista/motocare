@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
-import 'widgets/main_wrapper.dart';
+// Import file LoginScreen
+import 'package:motocare/features/auth/login/screens/login_screen.dart'; 
 
 void main() {
   runApp(const MyApp());
@@ -9,39 +9,22 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Motocare',
+      debugShowCheckedModeBanner: false, // Menghilangkan pita "Debug"
+      title: 'MotoCare',
+      
+      // Pengaturan Tema Global
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        // Menyesuaikan warna utama aplikasi dengan tombol biru MotoCare
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF119CFF)),
         useMaterial3: true,
+        fontFamily: 'Poppins', // Opsional: jika kamu memakai font Poppins
       ),
-      home: const HomeEntryScreen(),
-    );
-  }
-}
 
-class HomeEntryScreen extends StatelessWidget {
-  const HomeEntryScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Motocare'),
-      ),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const MainWrapper()),
-            );
-          },
-          child: const Text('Masuk ke Customer Home'),
-        ),
-      ),
+      // PINTU MASUK: Diarahkan ke LoginScreen
+      home: const LoginScreen(), 
     );
   }
 }
