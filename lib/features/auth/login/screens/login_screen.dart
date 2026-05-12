@@ -3,9 +3,7 @@ import '../../../../widgets/auth_wrapper.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../register/screens/register_screen.dart';
 import '../../forgot-password/screens/forgot_password_screen.dart';
-// Import halaman tujuan setelah login
-import '../../../admin/dashboard/screens/dashboard_screen.dart'; 
-// import '../../home/screens/home_screen.dart'; // Aktifkan jika sudah ada file HomeScreen
+import '../../../customer/home/screens/beranda_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -52,21 +50,24 @@ class _LoginScreenState extends State<LoginScreen> {
     if (result['success']) {
       final String role = result['role'] ?? 'customer';
 
-      if (role == 'admin') {
+      if (role == 'customer') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const DashboardAdminScreen()),
+          MaterialPageRoute(builder: (context) => const BerandaScreen()),
+        );
+      } else if (role == 'mechanic') {
+        // TODO: Navigasi ke Mechanic Home Screen
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login Berhasil (Mechanic)!')),
+        );
+      } else if (role == 'cs') {
+        // TODO: Navigasi ke CS Home Screen
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login Berhasil (CS)!')),
         );
       } else {
-        // Arahkan ke HomeScreen untuk role customer atau lainnya
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => const HomeScreen()),
-        // );
-        
-        // Sementara kasih pesan sukses jika HomeScreen belum dibuat
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login Berhasil (Customer)!')),
+          const SnackBar(content: Text('Role tidak dikenali')),
         );
       }
     } else {

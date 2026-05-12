@@ -28,7 +28,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
     
     final result = await AuthService().resetPassword({
       'email': widget.email,
-      'token': widget.otp,
+      'otp': widget.otp,
       'password': _passController.text,
       'password_confirmation': _confirmController.text,
     });

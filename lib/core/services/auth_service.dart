@@ -2,7 +2,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AuthService {
-  final String baseUrl = 'http://localhost:8000/api/v1';
+  // Untuk Android Emulator gunakan 10.0.2.2, untuk device gunakan IP mesin development
+  // Contoh: 'http://192.168.1.X:8000/api/v1' atau 'http://10.0.2.2:8000/api/v1'
+  final String baseUrl = 'http://10.0.2.2:8000/api/v1';
+  String? _accessToken;
+
+  String? get accessToken => _accessToken;
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
@@ -14,9 +19,15 @@ class AuthService {
       
       final data = jsonDecode(response.body);
       
+      if (response.statusCode == 200) {
+        _accessToken = data['access_token'];
+      }
+      
       return {
         'success': response.statusCode == 200,
-        'role': data['user']?['role'], // AMBIL ROLE DARI SINI
+        'role': data['user']?['role'],
+        'access_token': data['access_token'],
+        'user': data['user'],
         'message': data['message']
       };
     } catch (e) {
@@ -32,7 +43,17 @@ class AuthService {
         body: data,
       );
       final body = jsonDecode(response.body);
-      return {'success': response.statusCode == 201, 'message': body['message'] ?? 'Berhasil'};
+      
+      if (response.statusCode == 201) {
+        _accessToken = body['access_token'];
+      }
+      
+      return {
+        'success': response.statusCode == 201,
+        'access_token': body['access_token'],
+        'user': body['user'],
+        'message': body['message'] ?? 'Berhasil'
+      };
     } catch (e) {
       return {'success': false, 'message': 'Koneksi ke server gagal'};
     }
@@ -60,7 +81,15 @@ class AuthService {
         body: data,
       );
       final body = jsonDecode(response.body);
-      return {'success': response.statusCode == 200, 'message': body['message']};
+      
+      if (response.statusCode == 200) {
+        _accessToken = body['access_token'];
+      }
+      
+      return {
+        'success': response.statusCode == 200,
+        'message': body['message']
+      };
     } catch (e) {
       return {'success': false, 'message': 'Koneksi ke server gagal'};
     }
@@ -71,12 +100,36 @@ class AuthService {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/verify-otp'),
         headers: {'Accept': 'application/json'},
-        body: {'email': email, 'token': otp},
+        body: {'email': email, 'otp': otp},
       );
       final body = jsonDecode(response.body);
       return {'success': response.statusCode == 200, 'message': body['message']};
     } catch (e) {
       return {'success': false, 'message': 'Koneksi gagal'};
+    }
+  }
+
+  Future<Map<String, dynamic>> logout() async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/logout'),
+        headers: {
+          'Accept': 'application/json',
+          if (_accessToken != null) 'Authorization': 'Bearer $_accessToken',
+        },
+      );
+      
+      if (response.statusCode == 200) {
+        _accessToken = null;
+      }
+      
+      final body = jsonDecode(response.body);
+      return {
+        'success': response.statusCode == 200,
+        'message': body['message'] ?? 'Logout berhasil'
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Koneksi ke server gagal'};
     }
   }
 }

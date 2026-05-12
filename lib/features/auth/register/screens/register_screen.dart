@@ -13,9 +13,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isObscure1 = true;
   bool _isObscure2 = true;
   bool _isLoading = false;
-  String _selectedRole = 'customer';
 
   final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
@@ -24,10 +24,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
     final result = await AuthService().register({
       'name': _nameController.text,
+      'phone_number': _phoneController.text,
       'email': _emailController.text,
       'password': _passwordController.text,
       'password_confirmation': _confirmController.text,
-      'role': _selectedRole,
     });
     setState(() => _isLoading = false);
 
@@ -43,22 +43,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         children: [
           const Text('Daftar Akun', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           _buildField('Nama Lengkap', _nameController, 'Masukkan nama'),
+          _buildField('Nomor Telepon', _phoneController, '0812345678'),
           _buildField('Email', _emailController, 'email@gmail.com'),
-          
-          const Padding(
-            padding: EdgeInsets.only(top: 16, bottom: 8),
-            child: Text('Daftar Sebagai', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-          ),
-          DropdownButtonFormField<String>(
-            value: _selectedRole,
-            items: const [
-              DropdownMenuItem(value: 'customer', child: Text('Customer')),
-              DropdownMenuItem(value: 'mechanic', child: Text('Mechanic')),
-            ],
-            onChanged: (v) => setState(() => _selectedRole = v!),
-            decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-          ),
-
           _buildField('Password', _passwordController, '••••••••', isPass: true, obs: _isObscure1, 
               onToggle: () => setState(() => _isObscure1 = !_isObscure1)),
           _buildField('Konfirmasi Password', _confirmController, '••••••••', isPass: true, obs: _isObscure2, 
