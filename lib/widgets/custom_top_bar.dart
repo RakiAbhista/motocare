@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class CustomTopBar extends StatelessWidget {
-  const CustomTopBar({super.key});
+  final VoidCallback? onNotificationTap;
+  const CustomTopBar({super.key, this.onNotificationTap});
 
   @override
   Widget build(BuildContext context) {
@@ -59,10 +60,13 @@ class CustomTopBar extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(
-                Icons.notifications,
-                color: Colors.white,
-                size: 26,
+              GestureDetector(
+                onTap: onNotificationTap,
+                child: const Icon(
+                  Icons.notifications,
+                  color: Colors.white,
+                  size: 26,
+                ),
               ),
             ],
           ),
