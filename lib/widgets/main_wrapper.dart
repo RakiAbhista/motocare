@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/features/customer/home/screens/beranda_screen.dart';
 
 class MainWrapper extends StatefulWidget {
@@ -27,7 +27,7 @@ class _MainWrapperState extends State<MainWrapper> {
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.blue,
+        selectedItemColor: AppColors.primary,
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
         items: const [
