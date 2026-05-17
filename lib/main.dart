@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'widgets/main_wrapper.dart';
 
+/// IMPORT DENGAN ALIAS
+import 'package:motocare/features/customer/home/screens/beranda_screen.dart'
+as customer;
+
+import 'package:motocare/features/cs/home/screens/beranda_screen.dart'
+as cs;
+
 void main() {
   runApp(const MyApp());
 }
@@ -9,7 +16,6 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -33,13 +39,36 @@ class HomeEntryScreen extends StatelessWidget {
         title: const Text('Motocare'),
       ),
       body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const MainWrapper()),
-            );
-          },
-          child: const Text('Masuk ke Customer Home'),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+
+            /// CUSTOMER
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const customer.BerandaScreen(),
+                  ),
+                );
+              },
+              child: const Text('Masuk Customer'),
+            ),
+
+            const SizedBox(height: 20),
+
+            /// CS
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const cs.BerandaScreen(),
+                  ),
+                );
+              },
+              child: const Text('Masuk CS'),
+            ),
+          ],
         ),
       ),
     );
