@@ -3,7 +3,8 @@ import '../../../../widgets/auth_wrapper.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../register/screens/register_screen.dart';
 import '../../forgot-password/screens/forgot_password_screen.dart';
-import '../../../customer/home/screens/beranda_screen.dart';
+import '../../../customer/home/screens/beranda_screen.dart' as customer;
+import '../../../mechanic/home/screens/beranda_screen.dart' as mechanic;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -53,12 +54,12 @@ class _LoginScreenState extends State<LoginScreen> {
       if (role == 'customer') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const BerandaScreen()),
+          MaterialPageRoute(builder: (context) => const customer.BerandaScreen()),
         );
       } else if (role == 'mechanic') {
-        // TODO: Navigasi ke Mechanic Home Screen
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login Berhasil (Mechanic)!')),
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const mechanic.MechanicDashboard()),
         );
       } else if (role == 'cs') {
         // TODO: Navigasi ke CS Home Screen
