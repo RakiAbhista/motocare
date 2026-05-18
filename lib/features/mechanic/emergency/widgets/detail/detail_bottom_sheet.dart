@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:motocare/core/theme/app_colors.dart';
+import '../../screens/emergency_invoice_screen.dart';
 
 class DetailBottomSheet extends StatelessWidget {
   const DetailBottomSheet({super.key});
@@ -27,11 +28,9 @@ class DetailBottomSheet extends StatelessWidget {
             ],
           ),
           child: ListView(
-            controller: scrollController, // Wajib dipasang agar sheet bisa di-drag
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24,
-              vertical: 16,
-            ),
+            controller:
+                scrollController, // Wajib dipasang agar sheet bisa di-drag
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             children: [
               // Garis Indikator Drag
               Center(
@@ -318,7 +317,14 @@ class DetailBottomSheet extends StatelessWidget {
                   color: Colors.transparent,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(9999),
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const EmergencyInvoiceScreen(),
+                        ),
+                      );
+                    },
                     child: const Center(
                       child: Text(
                         'Sudah Sampai',

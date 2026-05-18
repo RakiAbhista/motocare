@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../widgets/custom_top_bar.dart';
 import '../widgets/emergency_bottom_nav.dart';
 import '../widgets/emergency_active_alert.dart';
+import '../widgets/emergency_empty_alert.dart';
 
 class MechanicEmergencyScreen extends StatelessWidget {
   const MechanicEmergencyScreen({super.key});
