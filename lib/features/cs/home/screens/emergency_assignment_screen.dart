@@ -1,10 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 
-class EmergencyAssignmentScreen extends StatelessWidget {
+class EmergencyAssignmentScreen extends StatefulWidget {
   const EmergencyAssignmentScreen({super.key});
 
   @override
+  State<EmergencyAssignmentScreen> createState() =>
+      _EmergencyAssignmentScreenState();
+}
+
+class _EmergencyAssignmentScreenState
+    extends State<EmergencyAssignmentScreen> {
+
+  final MapController mapController = MapController(
+    initPosition: GeoPoint(
+      latitude: -7.052312315405609,
+      longitude: 110.43440956674928,
+    ),
+  );
+
+  @override
+  void dispose() {
+    mapController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FB),
 
@@ -14,6 +37,7 @@ class EmergencyAssignmentScreen extends StatelessWidget {
 
           child: Column(
             children: [
+
               /// =========================
               /// HEADER
               /// =========================
@@ -71,6 +95,7 @@ class EmergencyAssignmentScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
 
                   children: [
+
                     /// LABEL
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -133,8 +158,9 @@ class EmergencyAssignmentScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(22),
                       ),
 
-                      child: Column(
-                        children: const [
+                      child: const Column(
+                        children: [
+
                           Text(
                             "RESPONSETARGET",
                             style: TextStyle(
@@ -176,6 +202,7 @@ class EmergencyAssignmentScreen extends StatelessWidget {
                       MainAxisAlignment.spaceBetween,
 
                       children: [
+
                         Text(
                           "LIVE LOCATION",
                           style: TextStyle(
@@ -184,8 +211,9 @@ class EmergencyAssignmentScreen extends StatelessWidget {
                           ),
                         ),
 
-                        Row(
-                          children: const [
+                        const Row(
+                          children: [
+
                             Icon(
                               Icons.location_searching,
                               size: 14,
@@ -209,57 +237,108 @@ class EmergencyAssignmentScreen extends StatelessWidget {
 
                     const SizedBox(height: 14),
 
-                    /// MAP
+                    /// =========================
+                    /// OSM MAP
+                    /// =========================
                     ClipRRect(
                       borderRadius: BorderRadius.circular(20),
 
-                      child: Stack(
-                        children: [
-                          Image.asset(
-                            "assets/images/map_dummy.png",
-                            width: double.infinity,
-                            height: 180,
-                            fit: BoxFit.cover,
-                          ),
+                      child: SizedBox(
+                        height: 220,
 
-                          Positioned(
-                            top: 14,
-                            left: 14,
+                        child: Stack(
+                          children: [
 
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 10,
+                            /// MAP
+                            OSMFlutter(
+                              controller: mapController,
+
+                              osmOption: OSMOption(
+                                zoomOption: const ZoomOption(
+                                  initZoom: 15,
+                                  minZoomLevel: 3,
+                                  maxZoomLevel: 19,
+                                ),
+
+                                userTrackingOption: const UserTrackingOption(
+                                  enableTracking: false,
+                                  unFollowUser: true,
+                                ),
                               ),
 
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius:
-                                BorderRadius.circular(14),
-                              ),
+                              onMapIsReady: (isReady) async {
 
-                              child: Row(
-                                children: const [
-                                  Icon(
-                                    Icons.location_on,
-                                    color: Colors.blue,
-                                    size: 18,
-                                  ),
+                                if (isReady) {
 
-                                  SizedBox(width: 6),
-
-                                  Text(
-                                    "Jalan Raya Menteng, No. 42, Central Jakarta",
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500,
+                                  await mapController.addMarker(
+                                    GeoPoint(
+                                      latitude: -6.200000,
+                                      longitude: 106.816666,
                                     ),
-                                  ),
-                                ],
+
+                                    markerIcon: const MarkerIcon(
+                                      icon: Icon(
+                                        Icons.location_on,
+                                        color: Colors.red,
+                                        size: 50,
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                            /// ADDRESS CARD
+                            Positioned(
+                              top: 14,
+                              left: 14,
+                              right: 14,
+
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
+
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius:
+                                  BorderRadius.circular(14),
+
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                      Colors.black.withOpacity(0.08),
+                                      blurRadius: 8,
+                                    ),
+                                  ],
+                                ),
+
+                                child: const Row(
+                                  children: [
+
+                                    Icon(
+                                      Icons.location_on,
+                                      color: Colors.blue,
+                                      size: 18,
+                                    ),
+
+                                    SizedBox(width: 6),
+
+                                    Expanded(
+                                      child: Text(
+                                        "Jalan Raya Menteng, No. 42, Central Jakarta",
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
 
@@ -286,8 +365,9 @@ class EmergencyAssignmentScreen extends StatelessWidget {
 
                       child: Row(
                         children: [
+
                           /// IMAGE
-                          CircleAvatar(
+                          const CircleAvatar(
                             radius: 28,
                             backgroundImage: AssetImage(
                               "assets/images/profile.jpg",
@@ -303,6 +383,7 @@ class EmergencyAssignmentScreen extends StatelessWidget {
                               CrossAxisAlignment.start,
 
                               children: [
+
                                 const Text(
                                   "Aditya Pratama",
                                   style: TextStyle(
@@ -324,6 +405,7 @@ class EmergencyAssignmentScreen extends StatelessWidget {
 
                                 Row(
                                   children: [
+
                                     Container(
                                       padding:
                                       const EdgeInsets.symmetric(
@@ -381,7 +463,7 @@ class EmergencyAssignmentScreen extends StatelessWidget {
                             width: 44,
                             height: 44,
 
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               color: Colors.white,
                               shape: BoxShape.circle,
                             ),
@@ -418,6 +500,7 @@ class EmergencyAssignmentScreen extends StatelessWidget {
                         CrossAxisAlignment.start,
 
                         children: [
+
                           Text(
                             "INITIAL REPORT",
                             style: TextStyle(
