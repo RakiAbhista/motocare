@@ -6,7 +6,14 @@ import 'package:motocare/features/customer/profil/screens/profil_screen.dart';
 import 'package:motocare/features/customer/riwayat/screens/riwayat_screen.dart';
 
 class MainWrapper extends StatefulWidget {
-  const MainWrapper({super.key});
+  final bool hasActiveBooking;
+  final String? daruratType;
+
+  const MainWrapper({
+    super.key,
+    this.hasActiveBooking = false,
+    this.daruratType,
+  });
 
   @override
   State<MainWrapper> createState() => _MainWrapperState();
@@ -15,17 +22,20 @@ class MainWrapper extends StatefulWidget {
 class _MainWrapperState extends State<MainWrapper> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    BerandaScreen(),
-    RiwayatScreen(),
-    TerdekatScreen(),
-    ProfilScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final List<Widget> screens = [
+      BerandaScreen(
+        hasActiveBooking: widget.hasActiveBooking,
+        daruratType: widget.daruratType,
+      ),
+      const RiwayatScreen(),
+      const TerdekatScreen(),
+      const ProfilScreen(),
+    ];
+
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: screens[_currentIndex],
       bottomNavigationBar: _CustomBottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),

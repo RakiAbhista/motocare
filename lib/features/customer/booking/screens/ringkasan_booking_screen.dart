@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../home/screens/beranda_screen.dart';
+import '../../../../widgets/main_wrapper.dart';
 
 class RingkasanBookingScreen extends StatelessWidget {
   const RingkasanBookingScreen({super.key});
@@ -321,7 +321,7 @@ class RingkasanBookingScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () => Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => const BerandaScreen(hasActiveBooking: true)),
+              MaterialPageRoute(builder: (context) => const MainWrapper(hasActiveBooking: true)),
               (route) => false,
             ),
             style: ElevatedButton.styleFrom(
