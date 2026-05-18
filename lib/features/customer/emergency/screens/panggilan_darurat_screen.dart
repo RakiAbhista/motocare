@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../home/screens/beranda_screen.dart';
+import '../../../../widgets/main_wrapper.dart';
 
 class PanggilanDaruratScreen extends StatefulWidget {
   const PanggilanDaruratScreen({super.key});
@@ -145,7 +145,7 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
               child: ElevatedButton(
                 onPressed: () => Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => const BerandaScreen(daruratType: 'mekanik')),
+                  MaterialPageRoute(builder: (context) => const MainWrapper(daruratType: 'mekanik')),
                   (route) => false,
                 ),
                 style: ElevatedButton.styleFrom(
@@ -163,7 +163,7 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
               child: TextButton(
                 onPressed: () => Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => const BerandaScreen(daruratType: 'towing')),
+                  MaterialPageRoute(builder: (context) => const MainWrapper(daruratType: 'towing')),
                   (route) => false,
                 ),
                 child: const Text('Panggil Towing', style: TextStyle(color: Color(0xFFC62828), fontWeight: FontWeight.bold)),

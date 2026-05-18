@@ -3,7 +3,7 @@ import '../../../../widgets/auth_wrapper.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../register/screens/register_screen.dart';
 import '../../forgot-password/screens/forgot_password_screen.dart';
-import '../../../customer/home/screens/beranda_screen.dart' as customer;
+import '../../../../widgets/main_wrapper.dart';
 import '../../../mechanic/home/screens/beranda_screen.dart' as mechanic;
 
 class LoginScreen extends StatefulWidget {
@@ -54,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (role == 'customer') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const customer.BerandaScreen()),
+          MaterialPageRoute(builder: (context) => const MainWrapper()),
         );
       } else if (role == 'mechanic') {
         Navigator.pushReplacement(
