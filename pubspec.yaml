@@ -47,7 +47,7 @@ dependencies:
   http: ^1.6.0
   fl_chart: ^1.2.0
   google_fonts: ^8.1.0
-  flutter_osm_plugin: ^1.4.3
+
 
 dev_dependencies:
   flutter_test:
@@ -65,8 +65,6 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-  assets:
-    - lib/features/cs/assets_dummy/
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
