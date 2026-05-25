@@ -5,6 +5,7 @@ import '../../register/screens/register_screen.dart';
 import '../../forgot-password/screens/forgot_password_screen.dart';
 import '../../../../widgets/main_wrapper.dart';
 import '../../../mechanic/home/screens/beranda_screen.dart' as mechanic;
+import '../../../cs/home/screens/beranda_screen.dart' as cs;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -61,10 +62,10 @@ class _LoginScreenState extends State<LoginScreen> {
           context,
           MaterialPageRoute(builder: (context) => const mechanic.MechanicDashboard()),
         );
-      } else if (role == 'cs') {
-        // TODO: Navigasi ke CS Home Screen
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login Berhasil (CS)!')),
+      } else if (role == 'customer_service') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const cs.BerandaScreen()),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

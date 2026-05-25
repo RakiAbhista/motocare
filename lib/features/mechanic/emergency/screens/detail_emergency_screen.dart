@@ -21,13 +21,9 @@ class _DetailEmergencyScreenState extends State<DetailEmergencyScreen> {
         'wqvsLL2FCdRtoX4DSOBM9T5MEZefn5HlwFMNB4ywlOS3r2M62s6Va1FVPVGVqb64';
 
     mapController = MapController.customLayer(
-      initPosition: GeoPoint(latitude: -6.9932, longitude: 110.4203),
-      // Batasi area peta hanya di sekitar Indonesia
-      areaLimit: const BoundingBox(
-        north: 6.5,    // Sabang (ujung utara)
-        south: -11.5,  // Rote (ujung selatan)
-        west: 94.5,    // Sabang (ujung barat)
-        east: 141.5,   // Merauke (ujung timur)
+      initMapWithUserPosition: const UserTrackingOption(
+        enableTracking: true,
+        unFollowUser: false, // Tetap ikuti pergerakan mekanik
       ),
       customTile: CustomTile(
         sourceName: 'jawg-terrain',
@@ -57,9 +53,7 @@ class _DetailEmergencyScreenState extends State<DetailEmergencyScreen> {
             child: OSMFlutter(
               controller: mapController,
               osmOption: OSMOption(
-                zoomOption: const ZoomOption(
-                  initZoom: 15,
-                ),
+                zoomOption: const ZoomOption(initZoom: 15),
                 showZoomController: false,
                 enableRotationByGesture: false, // Nonaktifkan rotasi peta
                 userLocationMarker: UserLocationMaker(
@@ -107,6 +101,37 @@ class _DetailEmergencyScreenState extends State<DetailEmergencyScreen> {
 
           // 4. Glassmorphism Floating Map UI (Jarak & Waktu)
           const FloatingMapUI(),
+
+          // Tombol Recenter Lokasi Mekanik
+          Positioned(
+            top: 210, // Sesuaikan jaraknya biar nggak nabrak UI Glassmorphism
+            right: 24,
+            child: InkWell(
+              onTap: () async {
+                // Perintah untuk memusatkan kembali peta ke lokasi GPS saat ini
+                await mapController.currentLocation();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.my_location,
+                  color: Color(0xFF104BAA),
+                  size: 24,
+                ),
+              ),
+            ),
+          ),
 
           // 5. Draggable Bottom Sheet (Bisa di-slide)
           const DetailBottomSheet(),
