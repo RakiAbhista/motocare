@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:motocare/core/theme/app_colors.dart';
 
 import 'beranda_content.dart';
-import 'darurat_screen.dart';
-import 'profile_screen.dart';
+import '../../emergency/screens/darurat_screen.dart';
+import '../../profile/screens/profile_screen.dart';
 
 class BerandaScreen extends StatefulWidget {
   const BerandaScreen({super.key});
@@ -24,6 +25,8 @@ class _BerandaScreenState extends State<BerandaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
+      
 
       /// ISI HALAMAN
       body: pages[currentIndex],

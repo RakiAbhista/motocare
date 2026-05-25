@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motocare/features/cs/home/screens/darurat_content.dart';
-import 'package:motocare/features/cs/home/screens/profile_content.dart';
-
-import 'profile_screen.dart';
+import 'profile_content.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

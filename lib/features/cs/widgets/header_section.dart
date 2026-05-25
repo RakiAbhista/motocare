@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:motocare/core/theme/app_colors.dart';
+import 'package:motocare/features/cs/home/screens/notification_screen.dart';
 
 class HeaderSection extends StatelessWidget {
 
@@ -12,9 +14,7 @@ class HeaderSection extends StatelessWidget {
       height: 140,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF2D9CDB), Color(0xFF1C7ED6)],
-        ),
+        color: AppColors.primary,
         borderRadius: BorderRadius.vertical(
           bottom: Radius.circular(30),
         ),
@@ -31,7 +31,17 @@ class HeaderSection extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const Icon(Icons.notifications, color: Colors.white),
+            IconButton(
+              icon: const Icon(Icons.notifications, color: Colors.white),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => NotificationScreen(),
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),

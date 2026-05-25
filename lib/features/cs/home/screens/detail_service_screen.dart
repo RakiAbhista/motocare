@@ -3,6 +3,7 @@ import 'package:motocare/features/cs/home/screens/payment_service_screen.dart';
 import 'package:motocare/features/cs/widgets/complaint_card.dart';
 
 import '../../enums/service_status.dart';
+import '../../widgets/add_item_bottom_sheet.dart';
 import '../../widgets/add_item_button.dart';
 import '../../widgets/additional_service_chip.dart';
 import '../../widgets/damage_photo_section.dart';
@@ -203,32 +204,46 @@ class DetailServiceScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
-                children: const [
-                  Text(
+                children: [
+                  const Text(
                     "Line Items",
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-
-                  Icon(Icons.add, color: Colors.black, size: 22),
+                  if (status == ServiceStatus.inProgress)
+                    IconButton(
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) =>  AddItemBottomSheet(),
+                        );
+                      },
+                      icon: const Icon(Icons.add, color: Colors.black, size: 28),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
                 ],
               ),
             ),
 
             const SizedBox(height: 20),
 
-            if (status == ServiceStatus.inProgress) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+            // if (status == ServiceStatus.inProgress) ...[
+            //   Padding(
+            //     padding: const EdgeInsets.symmetric(horizontal: 20),
 
-                child: AddItemButton(
-                  onPressed: () {
-                    print("ADD ITEM");
-                  },
-                ),
-              ),
+            //     child: AddItemButton(
+            //       onPressed: () {
+            //         print("ADD ITEM");
+            //       },
+            //     ),
+            //   ),
 
-              const SizedBox(height: 20),
-            ],
+            //   const SizedBox(height: 20),
+            // ],
+
+            ///Items
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
 
