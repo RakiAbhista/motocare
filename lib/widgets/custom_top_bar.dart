@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:motocare/core/theme/app_colors.dart';
 
 class CustomTopBar extends StatelessWidget {
-  const CustomTopBar({super.key});
+  final VoidCallback? onNotificationTap;
+  const CustomTopBar({super.key, this.onNotificationTap});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
-        color: Colors.blue,
+        color: AppColors.primary,
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(30),
           bottomRight: Radius.circular(30),
@@ -30,7 +32,7 @@ class CustomTopBar extends StatelessWidget {
                 ),
                 child: const Icon(
                   Icons.location_on,
-                  color: Colors.blue,
+                  color: AppColors.primary,
                 ),
               ),
               const SizedBox(width: 12),
@@ -59,10 +61,13 @@ class CustomTopBar extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(
-                Icons.notifications,
-                color: Colors.white,
-                size: 26,
+              GestureDetector(
+                onTap: onNotificationTap,
+                child: const Icon(
+                  Icons.notifications,
+                  color: Colors.white,
+                  size: 26,
+                ),
               ),
             ],
           ),
