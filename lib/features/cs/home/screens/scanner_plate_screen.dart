@@ -7,7 +7,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:motocare/features/cs/home/screens/service_registration_screen.dart';
 
-import '../../services/plate_ocr_service.dart';
+import '../../shared/services/plate_ocr_service.dart';
 
 class ScannerPlateScreen extends StatefulWidget {
   const ScannerPlateScreen({super.key});

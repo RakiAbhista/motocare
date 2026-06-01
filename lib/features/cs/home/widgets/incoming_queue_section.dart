@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:motocare/features/cs/widgets/queue_card.dart';
+import 'package:motocare/features/cs/home/widgets/queue_card.dart';
 
-import '../enums/service_status.dart';
-import '../home/screens/detail_service_screen.dart';
+import '../../shared/enums/service_status.dart';
+import '../screens/detail_service_screen.dart';
 
 class IncomingQueueSection extends StatelessWidget {
   final bool showCompletedOnly;
@@ -26,7 +26,7 @@ class IncomingQueueSection extends StatelessWidget {
             plate: "B 1234 XYZ",
             status: ServiceStatus.waitingPayment,
             buttonText: "Pembayaran",
-              imagePath: "lib/features/cs/assets_dummy/motorcycle_1.jpg",
+              imagePath: "lib/features/cs/shared/assets_dummy/motorcycle_1.jpg",
             onTap: () {
               Navigator.push(
                 context,
@@ -51,7 +51,7 @@ class IncomingQueueSection extends StatelessWidget {
             plate: "AD 5678 JK",
             status: ServiceStatus.inProgress,
             buttonText: "Detail",
-            imagePath: "lib/features/cs/assets_dummy/motorcycle_2.png",
+            imagePath: "lib/features/cs/shared/assets_dummy/motorcycle_2.png",
 
 
             onTap: () {
@@ -77,7 +77,7 @@ class IncomingQueueSection extends StatelessWidget {
           plate: "L 9901 QR",
           status: ServiceStatus.completed,
           buttonText: "Detail",
-          imagePath: "lib/features/cs/assets_dummy/motorcycle_3.jpg",
+          imagePath: "lib/features/cs/shared/assets_dummy/motorcycle_3.jpg",
 
 
           onTap: () {

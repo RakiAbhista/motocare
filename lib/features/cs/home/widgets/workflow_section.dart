@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:motocare/features/cs/widgets/workflow_card.dart';
+import 'package:motocare/features/cs/home/widgets/workflow_card.dart';
 
 class WorkflowSection extends StatelessWidget {
   const WorkflowSection({super.key});

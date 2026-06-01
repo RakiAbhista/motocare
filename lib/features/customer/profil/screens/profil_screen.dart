@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:motocare/features/customer/kendaraan/screens/tambah_kendaraan_screen.dart';
 import 'package:motocare/features/customer/kendaraan/widgets/detail_motor_bottom_sheet.dart';
+import '../widgets/profile_dialogs.dart';
 
 class ProfilScreen extends StatelessWidget {
   const ProfilScreen({super.key});
@@ -36,6 +37,66 @@ class _HeaderWithOverlapCard extends StatelessWidget {
       children: [
         const _ProfileHeader(),
         const _PointsAndVoucherCard(),
+        /// SETTINGS BUTTON - TOP RIGHT (titik tiga)
+        Positioned(
+          top: 12,
+          right: 12,
+          child: PopupMenuButton<String>(
+            icon: const Icon(
+              Icons.more_vert,
+              color: Colors.white,
+              size: 28,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            color: Colors.white,
+            elevation: 8,
+            offset: const Offset(0, 45),
+            onSelected: (value) {
+              if (value == 'edit_profile') {
+                showEditPhoneDialog(context);
+              } else if (value == 'logout') {
+                showLogoutDialog(context);
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'edit_profile',
+                child: Row(
+                  children: const [
+                    Icon(Icons.edit, color: Colors.blue, size: 20),
+                    SizedBox(width: 10),
+                    Text(
+                      'Edit Profile',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: const [
+                    Icon(Icons.logout, color: Colors.red, size: 20),
+                    SizedBox(width: 10),
+                    Text(
+                      'Logout',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }

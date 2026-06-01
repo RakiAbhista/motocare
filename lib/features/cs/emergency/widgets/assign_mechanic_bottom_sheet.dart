@@ -29,19 +29,19 @@ class _AssignMechanicBottomSheetState
       id: '1',
       name: 'Andi Saputra',
       rating: 4.9,
-      imagePath: 'lib/features/cs/assets_dummy/person.jpeg',
+      imagePath: 'lib/features/cs/shared/assets_dummy/person.jpeg',
     ),
     MechanicModel(
       id: '2',
       name: 'Budi Santoso',
       rating: 4.8,
-      imagePath: 'lib/features/cs/assets_dummy/person.jpeg',
+      imagePath: 'lib/features/cs/shared/assets_dummy/person.jpeg',
     ),
     MechanicModel(
       id: '3',
       name: 'Hendra Wijaya',
       rating: 4.7,
-      imagePath: 'lib/features/cs/assets_dummy/person.jpeg',
+      imagePath: 'lib/features/cs/shared/assets_dummy/person.jpeg',
     ),
   ];
 

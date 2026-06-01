@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../../widgets/emergency_card.dart';
-import '../../widgets/header_section.dart';
+import '../../emergency/widgets/emergency_card.dart';
+import '../../shared/widgets/header_section.dart';
 
 class DaruratContent extends StatelessWidget {
   const DaruratContent({super.key});

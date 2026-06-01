@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:motocare/features/cs/home/screens/payment_service_screen.dart';
-import 'package:motocare/features/cs/widgets/complaint_card.dart';
+import 'package:motocare/features/cs/home/widgets/complaint_card.dart';
 
-import '../../enums/service_status.dart';
-import '../../widgets/add_item_button.dart';
-import '../../widgets/additional_service_chip.dart';
-import '../../widgets/damage_photo_section.dart';
-import '../../widgets/incoming_queue_section.dart';
-import '../../widgets/line_item_card.dart';
-import '../../widgets/service_summary_section.dart';
-import '../../widgets/wehicle_card.dart';
+import '../../shared/enums/service_status.dart';
+import '../../home/widgets/add_item_button.dart';
+import '../../home/widgets/additional_service_chip.dart';
+import '../../home/widgets/damage_photo_section.dart';
+import '../../home/widgets/incoming_queue_section.dart';
+import '../../home/widgets/line_item_card.dart';
+import '../../home/widgets/service_summary_section.dart';
+import '../../home/widgets/wehicle_card.dart';
 
 class WorkHistoryScreen extends StatelessWidget {
   final ServiceStatus status;

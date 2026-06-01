@@ -1,12 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:motocare/features/cs/home/screens/scanner_plate_screen.dart';
-import 'package:motocare/features/cs/widgets/header_section.dart';
+import 'package:motocare/features/cs/shared/widgets/header_section.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 
-import '../../widgets/incoming_queue_section.dart';
-import '../../widgets/welcome_card.dart';
-import '../../widgets/workflow_section.dart';
+import '../../home/widgets/incoming_queue_section.dart';
+import '../../home/widgets/welcome_card.dart';
+import '../../home/widgets/workflow_section.dart';
 
 class HomeContent extends StatelessWidget {
   const HomeContent({super.key});

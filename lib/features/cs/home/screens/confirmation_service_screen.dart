@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../widgets/wehicle_card.dart';
+import '../../home/widgets/wehicle_card.dart';
 
 class ConfirmationServiceScreen extends StatelessWidget {
 

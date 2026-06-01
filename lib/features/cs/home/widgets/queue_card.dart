@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../enums/service_status.dart';
+import '../../shared/enums/service_status.dart';
 
 class QueueCard extends StatelessWidget {
   final String customerName;

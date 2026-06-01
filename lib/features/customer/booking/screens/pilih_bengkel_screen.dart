@@ -1,15 +1,54 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:motocare/core/services/booking_service.dart';
+import 'package:motocare/features/customer/booking/models/booking_models.dart';
 import 'ringkasan_booking_screen.dart';
 
 class PilihBengkelScreen extends StatefulWidget {
-  const PilihBengkelScreen({super.key});
+  final Vehicle selectedVehicle;
+  final List<ServiceModel> selectedServices;
+  final String complaint;
+  final File? damagePhoto;
+
+  const PilihBengkelScreen({
+    super.key,
+    required this.selectedVehicle,
+    required this.selectedServices,
+    required this.complaint,
+    this.damagePhoto,
+  });
 
   @override
   State<PilihBengkelScreen> createState() => _PilihBengkelScreenState();
 }
 
 class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
-  int selectedIndex = 0;
+  final _service = BookingService();
+  List<Workshop> _workshops = [];
+  Workshop? _selectedWorkshop;
+  bool _isLoading = true;
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWorkshops();
+  }
+
+  Future<void> _loadWorkshops() async {
+    final workshops = await _service.getWorkshops();
+    if (mounted) {
+      setState(() {
+        _workshops = workshops;
+        _isLoading = false;
+      });
+    }
+  }
+
+  List<Workshop> get _filteredWorkshops => _workshops
+      .where((w) =>
+          w.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+      .toList();
 
   @override
   Widget build(BuildContext context) {
@@ -40,12 +79,15 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
                   const SizedBox(height: 40),
                   const Text(
                     'Pilih Bengkel',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 18),
                   ),
                   const SizedBox(height: 16),
                   _buildSearchBar(),
                   const SizedBox(height: 24),
-                  _buildBengkelList(),
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _buildBengkelList(),
                 ],
               ),
             ),
@@ -55,8 +97,6 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
       ),
     );
   }
-
-  // --- STEPPER ---
 
   Widget _buildStepper() {
     return Row(
@@ -77,19 +117,15 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.lightBlue,
-          ),
+              shape: BoxShape.circle, color: Colors.lightBlue),
           child: Icon(icon, color: Colors.white),
         ),
         const SizedBox(height: 8),
         SizedBox(
           width: 80,
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 10, color: Colors.grey),
-          ),
+          child: Text(label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 10, color: Colors.grey)),
         ),
       ],
     );
@@ -109,15 +145,12 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
         const SizedBox(height: 8),
         SizedBox(
           width: 80,
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 10,
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          child: Text(label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontSize: 10,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold)),
         ),
       ],
     );
@@ -137,26 +170,24 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
         const SizedBox(height: 8),
         SizedBox(
           width: 80,
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 10, color: Colors.grey),
-          ),
+          child: Text(label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 10, color: Colors.grey)),
         ),
       ],
     );
   }
-
-  // --- SEARCH BAR ---
 
   Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade200),
       ),
-      child: const TextField(
-        decoration: InputDecoration(
+      child: TextField(
+        onChanged: (value) => setState(() => _searchQuery = value),
+        decoration: const InputDecoration(
           hintText: 'Cari Bengkel',
           hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
           prefixIcon: Icon(Icons.search, color: Colors.grey),
@@ -167,94 +198,75 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
     );
   }
 
-  // --- LIST BENGKEL ---
-
   Widget _buildBengkelList() {
+    final list = _filteredWorkshops;
+    if (list.isEmpty) {
+      return const Center(
+        child: Text('Tidak ada bengkel ditemukan.',
+            style: TextStyle(color: Colors.grey)),
+      );
+    }
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: 5,
+      itemCount: list.length,
       itemBuilder: (context, index) {
-        return _buildBengkelItem(index);
-      },
-    );
-  }
-
-  Widget _buildBengkelItem(int index) {
-    bool isSelected = selectedIndex == index;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedIndex = index;
-        });
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? Colors.lightBlue : Colors.transparent,
-            width: 1.5,
+        final workshop = list[index];
+        final isSelected = _selectedWorkshop?.id == workshop.id;
+        return GestureDetector(
+          onTap: () => setState(() => _selectedWorkshop = workshop),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: isSelected ? Colors.lightBlue : Colors.transparent,
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? Colors.lightBlue.shade100
+                        : Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.build,
+                      color: isSelected
+                          ? Colors.lightBlue
+                          : Colors.black54),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    workshop.name,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                ),
+                Icon(
+                  isSelected ? Icons.check_circle : Icons.circle_outlined,
+                  color: isSelected ? Colors.lightBlue : Colors.grey.shade300,
+                ),
+              ],
+            ),
           ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color:
-                    isSelected ? Colors.lightBlue.shade100 : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.build, color: Colors.black87),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'BENGKEL 123',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(Icons.star, color: Colors.amber.shade700, size: 14),
-                      const SizedBox(width: 4),
-                      Text(
-                        '4.8 (120 Penilaian)',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Text(
-              '50m',
-              style: TextStyle(
-                color: Colors.grey.shade800,
-                fontSize: 12,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Icon(
-              isSelected ? Icons.check_circle : Icons.circle,
-              color: isSelected ? Colors.lightBlue : Colors.grey.shade300,
-            ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
-
-  // --- BOTTOM BUTTONS ---
 
   Widget _buildBottomButtons() {
     return Padding(
@@ -267,45 +279,42 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.grey.shade400,
               elevation: 0,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 14,
-              ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+                  borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text(
-              'Kembali',
-              style: TextStyle(color: Colors.white),
-            ),
+            child: const Text('Kembali',
+                style: TextStyle(color: Colors.white)),
           ),
           const SizedBox(width: 12),
           ElevatedButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const RingkasanBookingScreen(),
-              ),
-            ),
+            onPressed: _selectedWorkshop == null
+                ? null
+                : () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RingkasanBookingScreen(
+                          selectedVehicle: widget.selectedVehicle,
+                          selectedServices: widget.selectedServices,
+                          selectedWorkshop: _selectedWorkshop!,
+                          complaint: widget.complaint,
+                          damagePhoto: widget.damagePhoto,
+                        ),
+                      ),
+                    ),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.lightBlue,
+              disabledBackgroundColor: Colors.grey.shade300,
               elevation: 0,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 14,
-              ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+                  borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text(
-              'Berikutnya',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: const Text('Berikutnya',
+                style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

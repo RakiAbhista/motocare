@@ -35,7 +35,7 @@ class ProfileHeader extends StatelessWidget {
                 ),
                 child: ClipOval(
                   child: Image.asset(
-                    "lib/features/cs/assets_dummy/person.jpeg",
+                    "lib/features/cs/shared/assets_dummy/person.jpeg",
                     fit: BoxFit.cover,
                   ),
                 ),

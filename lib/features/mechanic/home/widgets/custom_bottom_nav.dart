@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../emergency/screens/emergency_screen.dart';
-import '../../profile/profil.dart';
+import '../../profile/screens/profil_screen.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 
 class CustomBottomNav extends StatelessWidget {

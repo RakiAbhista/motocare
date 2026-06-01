@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:motocare/core/theme/app_colors.dart';
-import 'widgets/profile_header_card.dart';
-import 'widgets/vehicle_list_section.dart';
-import 'widgets/help_support_text.dart';
-import 'widgets/profile_bottom_nav.dart';
+import '../widgets/profile_header_card.dart';
+import '../widgets/vehicle_list_section.dart';
+import '../widgets/help_support_text.dart';
+import '../widgets/profile_bottom_nav.dart';
 
 class ProfilScreen extends StatelessWidget {
   const ProfilScreen({super.key});

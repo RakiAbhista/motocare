@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:motocare/core/theme/app_colors.dart';
-import 'package:motocare/features/cs/widgets/stat_box.dart';
+import 'package:motocare/features/cs/home/widgets/stat_box.dart';
 
 class WelcomeCard extends StatelessWidget {
   const WelcomeCard({super.key});
