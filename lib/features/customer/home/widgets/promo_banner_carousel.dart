@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class PromoBannerCarousel extends StatefulWidget {
-  const PromoBannerCarousel({super.key});
+  final List<dynamic>? banners;
+  const PromoBannerCarousel({super.key, this.banners});
 
   @override
   State<PromoBannerCarousel> createState() => _PromoBannerCarouselState();
@@ -11,12 +12,6 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<Color> _bannerColors = [
-    Colors.lightBlue,
-    Colors.orange,
-    Colors.grey,
-  ];
-
   @override
   void dispose() {
     _pageController.dispose();
@@ -25,32 +20,54 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
 
   @override
   Widget build(BuildContext context) {
+    final banners = widget.banners ?? [];
+    
+    if (banners.isEmpty) {
+      return Container(
+        height: 150,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Center(child: Text('Tidak ada promo saat ini')),
+      );
+    }
+
     return Column(
       children: [
         SizedBox(
           height: 150,
           child: PageView.builder(
             controller: _pageController,
-            itemCount: _bannerColors.length,
+            itemCount: banners.length,
             onPageChanged: (index) => setState(() => _currentPage = index),
             itemBuilder: (context, index) {
+              final banner = banners[index];
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: _bannerColors[index],
                     borderRadius: BorderRadius.circular(16),
+                    image: banner['image_url'] != null
+                        ? DecorationImage(
+                            image: NetworkImage(banner['image_url']),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                    color: Colors.lightBlue,
                   ),
-                  child: Center(
-                    child: Text(
-                      'Promo Banner ${index + 1}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+                  child: banner['image_url'] == null 
+                      ? Center(
+                          child: Text(
+                            banner['title'] ?? 'Promo Banner',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ) 
+                      : null,
                 ),
               );
             },
@@ -60,7 +77,7 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
-            _bannerColors.length,
+            banners.length,
             (index) => AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               margin: const EdgeInsets.symmetric(horizontal: 4),

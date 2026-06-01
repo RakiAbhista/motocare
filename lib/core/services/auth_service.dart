@@ -2,6 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AuthService {
+  static final AuthService _instance = AuthService._internal();
+  factory AuthService() => _instance;
+  AuthService._internal();
+
   // Untuk Android Emulator gunakan 10.0.2.2, untuk device gunakan IP mesin development
   // Contoh: 'http://192.168.1.X:8000/api/v1' atau 'http://10.0.2.2:8000/api/v1'
   final String baseUrl = 'http://10.0.2.2:8000/api/v1';

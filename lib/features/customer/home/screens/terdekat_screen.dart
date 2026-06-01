@@ -1,7 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 
-class TerdekatScreen extends StatelessWidget {
+class TerdekatScreen extends StatefulWidget {
   const TerdekatScreen({super.key});
+
+  @override
+  State<TerdekatScreen> createState() => _TerdekatScreenState();
+}
+
+class _TerdekatScreenState extends State<TerdekatScreen> {
+  late MapController mapController;
+
+  @override
+  void initState() {
+    super.initState();
+    const jawgAccessToken =
+        'wqvsLL2FCdRtoX4DSOBM9T5MEZefn5HlwFMNB4ywlOS3r2M62s6Va1FVPVGVqb64';
+
+    mapController = MapController.customLayer(
+      initMapWithUserPosition: const UserTrackingOption(
+        enableTracking: true,
+        unFollowUser: false,
+      ),
+      customTile: CustomTile(
+        sourceName: 'jawg-terrain',
+        tileExtension: '.png?access-token=$jawgAccessToken',
+        tileSize: 256,
+        urlsServers: [
+          TileURLs(url: 'https://tile.jawg.io/jawg-terrain/', subdomains: []),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    mapController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -9,21 +45,59 @@ class TerdekatScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFE7F2FF),
       body: Stack(
         children: [
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            color: const Color(0xFFE7F2FF),
-            child: Stack(
-              children: [
-                _buildGradientMapMarker(top: 75, left: 42, isActive: true),
-                _buildGradientMapMarker(top: 71, left: 308, isActive: true),
-                _buildGradientMapMarker(top: 229, left: 91, isActive: true),
-                Positioned(
-                  top: 245,
-                  left: MediaQuery.of(context).size.width / 2 - 30,
-                  child: const Icon(Icons.my_location, size: 59, color: Colors.black),
+          Positioned.fill(
+            child: OSMFlutter(
+              controller: mapController,
+              osmOption: OSMOption(
+                zoomOption: const ZoomOption(initZoom: 15),
+                showZoomController: false,
+                enableRotationByGesture: false,
+                userLocationMarker: UserLocationMaker(
+                  personMarker: const MarkerIcon(
+                    icon: Icon(
+                      Icons.my_location,
+                      color: Color(0xFF104BAA),
+                      size: 48,
+                    ),
+                  ),
+                  directionArrowMarker: const MarkerIcon(
+                    icon: Icon(
+                      Icons.navigation,
+                      color: Color(0xFF104BAA),
+                      size: 48,
+                    ),
+                  ),
                 ),
-              ],
+              ),
+            ),
+          ),
+          
+          Positioned(
+            top: 50,
+            right: 20,
+            child: InkWell(
+              onTap: () async {
+                await mapController.currentLocation();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.my_location,
+                  color: Color(0xFF104BAA),
+                  size: 24,
+                ),
+              ),
             ),
           ),
 

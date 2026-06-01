@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/services/customer_home_service.dart';
 import '../../../../widgets/custom_top_bar.dart';
 import '../widgets/promo_banner_carousel.dart';
 import '../../emergency/screens/panggilan_darurat_screen.dart';
@@ -7,10 +8,47 @@ import 'notifikasi_screen.dart';
 import '../../kendaraan/widgets/detail_motor_bottom_sheet.dart';
 import '../../booking/screens/booking_servis_screen.dart';
 
-class BerandaScreen extends StatelessWidget {
+class BerandaScreen extends StatefulWidget {
   final bool hasActiveBooking;
   final String? daruratType;
   const BerandaScreen({super.key, this.hasActiveBooking = false, this.daruratType});
+
+  @override
+  State<BerandaScreen> createState() => _BerandaScreenState();
+}
+
+class _BerandaScreenState extends State<BerandaScreen> {
+  Map<String, dynamic>? homeData;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final service = CustomerHomeService();
+    final data = await service.getHomeData();
+    if (mounted) {
+      if (data['success'] == true && data['data'] != null) {
+        setState(() {
+          homeData = data['data'];
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(data['message'] ?? 'Gagal memuat data dari server.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +68,9 @@ class BerandaScreen extends StatelessWidget {
         child: const Icon(Icons.warning_amber, color: Colors.black, size: 28),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: isLoading 
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -47,7 +87,7 @@ class BerandaScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const PromoBannerCarousel(),
+                        PromoBannerCarousel(banners: homeData?['banners']),
                         const SizedBox(height: 24),
 
                         // Points & Voucher Card
@@ -55,7 +95,7 @@ class BerandaScreen extends StatelessWidget {
                         const SizedBox(height: 20),
 
                         // Status Panggilan Darurat
-                        if (daruratType != null) ...[
+                        if (widget.daruratType != null) ...[
                           _buildStatusDarurat(),
                           const SizedBox(height: 24),
                         ],
@@ -95,6 +135,9 @@ class BerandaScreen extends StatelessWidget {
   }
 
   Widget _buildPointsVoucherCard(BuildContext context) {
+    final userSummary = homeData?['user_summary'];
+    final points = userSummary?['points'] ?? 0;
+    
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -124,18 +167,18 @@ class BerandaScreen extends StatelessWidget {
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
+                  children: [
+                    const Text(
                       'Poin Saya',
                       style: TextStyle(
                         color: Colors.grey,
                         fontSize: 12,
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      '36 Poin',
-                      style: TextStyle(
+                      '$points Poin',
+                      style: const TextStyle(
                         color: Colors.blue,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -176,6 +219,11 @@ class BerandaScreen extends StatelessWidget {
   }
 
   Widget _buildKendaraanCard(BuildContext context) {
+    final vehicles = homeData?['vehicles'] as List<dynamic>?;
+    final vehicle = (vehicles != null && vehicles.isNotEmpty) ? vehicles.first : null;
+    final vehicleName = vehicle != null ? '${vehicle['brand']} ${vehicle['model']}' : 'Belum ada kendaraan';
+    final plateNumber = vehicle?['plate_number'] ?? '-';
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -224,16 +272,16 @@ class BerandaScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Text(
-                      'Honda Beatrix',
-                      style: TextStyle(
+                    Text(
+                      vehicleName.toUpperCase(),
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
                     ),
-                    const Text(
-                      'H 1945 AGS',
-                      style: TextStyle(
+                    Text(
+                      plateNumber,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
@@ -263,7 +311,7 @@ class BerandaScreen extends StatelessWidget {
   }
 
   Widget _buildStatusDarurat() {
-    final isMekanik = daruratType == 'mekanik';
+    final isMekanik = widget.daruratType == 'mekanik';
     final title = isMekanik ? 'Bengkel 123' : 'Towing H 1234 HE';
     final step2Label = isMekanik ? 'Mekanik Menuju Lokasi' : 'Towing Menuju Lokasi';
 
@@ -312,6 +360,11 @@ class BerandaScreen extends StatelessWidget {
   }
 
   Widget _buildServiceSection(BuildContext context) {
+    final vehicles = homeData?['vehicles'] as List<dynamic>?;
+    final vehicle = (vehicles != null && vehicles.isNotEmpty) ? vehicles.first : null;
+    final vehicleName = vehicle != null ? '${vehicle['brand']} ${vehicle['model']}' : 'HONDA BEATRIX';
+    final plateNumber = vehicle?['plate_number'] ?? 'H 1945 AGS';
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -337,14 +390,14 @@ class BerandaScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          if (!hasActiveBooking) ...[
-            const Text(
-              'HONDA BEATRIX',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          if (!widget.hasActiveBooking) ...[
+            Text(
+              vehicleName.toUpperCase(),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
-            const Text(
-              'H 1945 AGS',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
+            Text(
+              plateNumber,
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
             ),
             const SizedBox(height: 16),
             SizedBox(
@@ -369,13 +422,13 @@ class BerandaScreen extends StatelessWidget {
               ),
             ),
           ] else ...[
-            const Text(
-              'HONDA BEATRIX',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            Text(
+              vehicleName.toUpperCase(),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
-            const Text(
-              'H 1945 AGS',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
+            Text(
+              plateNumber,
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
             ),
             const SizedBox(height: 16),
             Row(
