@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../home/screens/emergency_assignment_screen.dart';
+import '../emergency/screens/emergency_assignment_screen.dart';
 
 class EmergencyCard extends StatelessWidget {
 
