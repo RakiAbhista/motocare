@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/wehicle_card.dart';
 
 class ConfirmationServiceScreen extends StatelessWidget {
 
@@ -149,100 +150,11 @@ class ConfirmationServiceScreen extends StatelessWidget {
                   children: [
 
                     /// VEHICLE CARD
-                    Container(
-                      width: double.infinity,
-
-                      padding: const EdgeInsets.all(20),
-
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-
-                        borderRadius:
-                        BorderRadius.circular(24),
-
-                        boxShadow: [
-                          BoxShadow(
-                            color:
-                            Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                          ),
-                        ],
-                      ),
-
-                      child: Row(
-                        children: [
-
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
-
-                              children: [
-
-                                Container(
-                                  padding:
-                                  const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.shade50,
-                                    borderRadius:
-                                    BorderRadius.circular(10),
-                                  ),
-
-                                  child: Text(
-                                    plateNumber,
-
-                                    style: const TextStyle(
-                                      color: Colors.blue,
-                                      fontWeight:
-                                      FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-
-                                const SizedBox(height: 15),
-
-                                Text(
-                                  vehicleName,
-
-                                  style: const TextStyle(
-                                    fontSize: 28,
-                                    fontWeight:
-                                    FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 8),
-
-                                Text(
-                                  "Owner: $ownerName",
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(width: 15),
-
-                          ClipRRect(
-                            borderRadius:
-                            BorderRadius.circular(18),
-
-                            child: Image.asset(
-                              "assets/images/motor.png",
-                              width: 100,
-                              height: 100,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ],
-                      ),
+                    VehicleCard(
+                      vehicleName: vehicleName,
+                      ownerName: ownerName,
+                      plateNumber: plateNumber,
+                      imagePath: "assets/images/motor.png",
                     ),
 
                     const SizedBox(height: 20),

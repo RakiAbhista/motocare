@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
+import 'package:motocare/core/theme/app_colors.dart';
 
 class EmergencyAssignmentScreen extends StatefulWidget {
   const EmergencyAssignmentScreen({super.key});
@@ -148,11 +149,8 @@ class _EmergencyAssignmentScreenState
                       padding: const EdgeInsets.symmetric(vertical: 24),
 
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFF2196F3),
-                            Color(0xFF42A5F5),
-                          ],
+                        gradient: LinearGradient(
+                          colors: [AppColors.primary, AppColors.primaryLight],
                         ),
 
                         borderRadius: BorderRadius.circular(22),

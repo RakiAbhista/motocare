@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motocare/features/cs/home/screens/darurat_content.dart';
+import 'darurat_content.dart';
 
 class DaruratScreen extends StatefulWidget {
   const DaruratScreen({super.key});

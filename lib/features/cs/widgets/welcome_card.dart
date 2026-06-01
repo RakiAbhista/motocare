@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/features/cs/widgets/stat_box.dart';
 
 class WelcomeCard extends StatelessWidget {
@@ -10,9 +11,7 @@ class WelcomeCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF56CCF2), Color(0xFF2F80ED)],
-        ),
+        color: AppColors.primary,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(

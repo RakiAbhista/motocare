@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:motocare/features/cs/home/screens/scanner_plate_screen.dart';
 import 'package:motocare/features/cs/widgets/header_section.dart';
+import 'package:motocare/core/theme/app_colors.dart';
 
 import '../../widgets/incoming_queue_section.dart';
 import '../../widgets/welcome_card.dart';
@@ -75,8 +76,8 @@ class HomeContent extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const ScannerPlateScreen()),
               );
             },
-            backgroundColor: Colors.blue,
-            child: const Icon(Icons.add),
+            backgroundColor: AppColors.secondary,
+            child: const Icon(Icons.add, color: Colors.white),
           ),
         ),
       ],

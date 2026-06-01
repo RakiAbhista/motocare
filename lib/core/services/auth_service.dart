@@ -8,12 +8,15 @@ class AuthService {
 
   // Untuk Android Emulator gunakan 10.0.2.2, untuk device gunakan IP mesin development
   // Contoh: 'http://192.168.1.X:8000/api/v1' atau 'http://10.0.2.2:8000/api/v1'
-  final String baseUrl = 'http://10.0.2.2:8000/api/v1';
+  //final String baseUrl = 'http://10.0.2.2:8000/api/v1';
+  final String baseUrl = 'http://192.168.100.11:8000/api/v1';
+
   String? _accessToken;
 
   String? get accessToken => _accessToken;
 
   Future<Map<String, dynamic>> login(String email, String password) async {
+    print('baseUrl: $baseUrl');
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/login'),
@@ -34,10 +37,16 @@ class AuthService {
         'user': data['user'],
         'message': data['message']
       };
-    } catch (e) {
-      return {'success': false, 'message': 'Gagal terhubung ke server'};
-    }
-  }
+    } 
+catch (e, stackTrace) {
+  print('ERROR: $e');
+  print(stackTrace);
+  return {
+    'success': false,
+    'message': 'Gagal terhubung ke server'
+  };
+}  
+}
 
   Future<Map<String, dynamic>> register(Map<String, String> data) async {
     try {

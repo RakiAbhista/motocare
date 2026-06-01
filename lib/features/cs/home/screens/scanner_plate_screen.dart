@@ -194,10 +194,18 @@ class _ScannerPlateScreenState extends State<ScannerPlateScreen> {
                         children: [
                           /// CAMERA PREVIEW
                           if (isCameraReady && selectedImage == null)
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(30),
-
-                              child: CameraPreview(controller!),
+                            Positioned.fill(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(30),
+                                child: FittedBox(
+                                  fit: BoxFit.cover,
+                                  child: SizedBox(
+                                    width: 100,
+                                    height: 100 * controller!.value.aspectRatio,
+                                    child: CameraPreview(controller!),
+                                  ),
+                                ),
+                              ),
                             ),
 
                           /// IMAGE RESULT
@@ -418,7 +426,9 @@ class _ScannerPlateScreenState extends State<ScannerPlateScreen> {
   }
 
   Future<void> showManualPlateDialog() async {
-    final controller = TextEditingController();
+    final controller1 = TextEditingController();
+    final controller2 = TextEditingController();
+    final controller3 = TextEditingController();
 
     await showDialog(
       context: context,
@@ -431,14 +441,59 @@ class _ScannerPlateScreenState extends State<ScannerPlateScreen> {
 
           title: const Text("Input License Plate"),
 
-          content: TextField(
-            controller: controller,
-            textCapitalization: TextCapitalization.characters,
-
-            decoration: const InputDecoration(
-              hintText: "B 1234 XYZ",
-              border: OutlineInputBorder(),
-            ),
+          content: Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: TextField(
+                  controller: controller1,
+                  textCapitalization: TextCapitalization.characters,
+                  textAlign: TextAlign.center,
+                  maxLength: 2,
+                  decoration: const InputDecoration(
+                    hintText: "B",
+                    counterText: "",
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (val) {
+                    if (val.length >= 2) FocusScope.of(context).nextFocus();
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 3,
+                child: TextField(
+                  controller: controller2,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  maxLength: 4,
+                  decoration: const InputDecoration(
+                    hintText: "1234",
+                    counterText: "",
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (val) {
+                    if (val.length >= 4) FocusScope.of(context).nextFocus();
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: TextField(
+                  controller: controller3,
+                  textCapitalization: TextCapitalization.characters,
+                  textAlign: TextAlign.center,
+                  maxLength: 3,
+                  decoration: const InputDecoration(
+                    hintText: "XYZ",
+                    counterText: "",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+            ],
           ),
 
           actions: [
@@ -452,13 +507,22 @@ class _ScannerPlateScreenState extends State<ScannerPlateScreen> {
 
             ElevatedButton(
               onPressed: () {
-                final plate = controller.text.trim().toUpperCase();
+                final part1 = controller1.text.trim().toUpperCase();
+                final part2 = controller2.text.trim();
+                final part3 = controller3.text.trim().toUpperCase();
 
-                final regex = RegExp(r'^[A-Z]{1,2}\s?\d{1,4}\s?[A-Z]{1,3}$');
+                if (part1.isEmpty || part2.isEmpty) {
+                  Fluttertoast.showToast(msg: "City code and number are required");
+                  return;
+                }
+
+                // e.g. "B 1234 XYZ" or "B 1234" (if no suffix)
+                final plate = part3.isEmpty ? "$part1 $part2" : "$part1 $part2 $part3";
+
+                final regex = RegExp(r'^[A-Z]{1,2}\s\d{1,4}(\s[A-Z]{1,3})?$');
 
                 if (!regex.hasMatch(plate)) {
                   Fluttertoast.showToast(msg: "Invalid plate format");
-
                   return;
                 }
 
