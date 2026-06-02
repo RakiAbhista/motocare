@@ -18,19 +18,30 @@ class BookingService {
 
   Future<List<Vehicle>> getVehicles() async {
     try {
+      print('🔵 [getVehicles] Fetching: $baseUrl/customer/booking/vehicles');
+      print('🔵 [getVehicles] Headers: ${_getHeaders()}');
+      
       final response = await http.get(
-        Uri.parse('$baseUrl/booking/vehicles'),
+        Uri.parse('$baseUrl/customer/booking/vehicles'),
         headers: _getHeaders(),
       );
 
+      print('🔵 [getVehicles] Status: ${response.statusCode}');
+      print('🔵 [getVehicles] Response: ${response.body}');
+
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
+        print('🔵 [getVehicles] Decoded body: $body');
         final data = body['data'] as List? ?? [];
-        return data.map((e) => Vehicle.fromJson(e)).toList();
+        print('🔵 [getVehicles] Data list: $data');
+        final result = data.map((e) => Vehicle.fromJson(e)).toList();
+        print('🔵 [getVehicles] Mapped result: ${result.length} vehicles');
+        return result;
       }
+      print('❌ [getVehicles] Failed with status ${response.statusCode}');
       return [];
     } catch (e) {
-      print('Error getVehicles: $e');
+      print('❌ [getVehicles] Error: $e');
       return [];
     }
   }
@@ -38,7 +49,7 @@ class BookingService {
   Future<List<ServiceModel>> getServices() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/booking/services'),
+        Uri.parse('$baseUrl/customer/booking/services'),
         headers: _getHeaders(),
       );
 
@@ -57,7 +68,7 @@ class BookingService {
   Future<List<Workshop>> getWorkshops() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/booking/workshops'),
+        Uri.parse('$baseUrl/customer/booking/workshops'),
         headers: _getHeaders(),
       );
 
@@ -80,16 +91,24 @@ class BookingService {
     bool isTowing = false,
   }) async {
     try {
+      final payload = {
+        'vehicle_id': vehicleId,
+        'workshop_id': workshopId,
+        'service_ids': serviceIds,
+        'is_towing': isTowing,
+        'booking_date': DateTime.now().add(const Duration(days: 1)).toIso8601String().split('T')[0],
+      };
+      
+      print('🔵 [getSummary] Payload: $payload');
+      
       final response = await http.post(
-        Uri.parse('$baseUrl/booking/summary'),
+        Uri.parse('$baseUrl/customer/booking/summary'),
         headers: _getHeaders(),
-        body: jsonEncode({
-          'vehicle_id': vehicleId,
-          'workshop_id': workshopId,
-          'services': serviceIds,
-          'is_towing': isTowing,
-        }),
+        body: jsonEncode(payload),
       );
+
+      print('🔵 [getSummary] Status: ${response.statusCode}');
+      print('🔵 [getSummary] Response: ${response.body}');
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
@@ -97,10 +116,10 @@ class BookingService {
           return BookingSummary.fromJson(body['data']);
         }
       }
-      print('Error getSummary: ${response.statusCode} - ${response.body}');
+      print('❌ [getSummary] Failed: ${response.statusCode} - ${response.body}');
       return null;
     } catch (e) {
-      print('Error getSummary: $e');
+      print('❌ [getSummary] Error: $e');
       return null;
     }
   }
@@ -115,9 +134,11 @@ class BookingService {
     bool isTowing = false,
   }) async {
     try {
+      print('🔵 [createBooking] Starting with photo: ${damagePhoto != null}');
+      
       if (damagePhoto != null) {
         // Multipart request if photo exists
-        var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/booking'));
+        var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/customer/booking'));
         
         final token = AuthService().accessToken;
         request.headers.addAll({
@@ -130,34 +151,49 @@ class BookingService {
         request.fields['complaint'] = complaint;
         request.fields['total_price'] = totalPrice.toString();
         request.fields['is_towing'] = isTowing ? '1' : '0';
+        request.fields['booking_date'] = DateTime.now().add(const Duration(days: 1)).toIso8601String().split('T')[0];
         
-        // Add array of services
+        
+        // Add array of services with correct field name
         for (int i = 0; i < serviceIds.length; i++) {
-          request.fields['services[$i]'] = serviceIds[i].toString();
+          request.fields['service_ids[$i]'] = serviceIds[i].toString();
         }
         
         request.files.add(
           await http.MultipartFile.fromPath('damage_photo', damagePhoto.path),
         );
         
+        print('🔵 [createBooking] Multipart fields: ${request.fields}');
+        
         final streamedResponse = await request.send();
         final response = await http.Response.fromStream(streamedResponse);
+        
+        print('🔵 [createBooking] Status: ${response.statusCode}');
+        print('🔵 [createBooking] Response: ${response.body}');
         
         return jsonDecode(response.body);
       } else {
         // Normal JSON post
+        final payload = {
+          'vehicle_id': vehicleId,
+          'workshop_id': workshopId,
+          'service_ids': serviceIds,
+          'complaint': complaint,
+          'total_price': totalPrice,
+          'is_towing': isTowing,
+          'booking_date': DateTime.now().add(const Duration(days: 1)).toIso8601String().split('T')[0],
+        };
+        
+        print('🔵 [createBooking] JSON Payload: $payload');
+        
         final response = await http.post(
-          Uri.parse('$baseUrl/booking'),
+          Uri.parse('$baseUrl/customer/booking'),
           headers: _getHeaders(),
-          body: jsonEncode({
-            'vehicle_id': vehicleId,
-            'workshop_id': workshopId,
-            'services': serviceIds,
-            'complaint': complaint,
-            'total_price': totalPrice,
-            'is_towing': isTowing,
-          }),
+          body: jsonEncode(payload),
         );
+        
+        print('🔵 [createBooking] Status: ${response.statusCode}');
+        print('🔵 [createBooking] Response: ${response.body}');
         
         return jsonDecode(response.body);
       }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 import '../../../../core/services/customer_home_service.dart';
 import '../../../../widgets/custom_top_bar.dart';
@@ -20,6 +21,7 @@ class BerandaScreen extends StatefulWidget {
 class _BerandaScreenState extends State<BerandaScreen> {
   Map<String, dynamic>? homeData;
   bool isLoading = true;
+  final _service = CustomerHomeService();
 
   @override
   void initState() {
@@ -27,9 +29,13 @@ class _BerandaScreenState extends State<BerandaScreen> {
     _loadData();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   Future<void> _loadData() async {
-    final service = CustomerHomeService();
-    final data = await service.getHomeData();
+    final data = await _service.getHomeData();
     if (mounted) {
       if (data['success'] == true && data['data'] != null) {
         setState(() {
@@ -40,6 +46,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
         setState(() {
           isLoading = false;
         });
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(data['message'] ?? 'Gagal memuat data dari server.'),
@@ -110,9 +117,11 @@ class _BerandaScreenState extends State<BerandaScreen> {
                         _buildServiceSection(context),
                         const SizedBox(height: 24),
 
-                        // Riwayat Service Terbaru
-                        _buildRecentServiceHistory(),
-                        const SizedBox(height: 100),
+                        // Riwayat Service Terbaru (hanya tampil jika tidak ada active order)
+                        if (homeData?['active_order'] == null) ...[
+                          _buildRecentServiceHistory(),
+                          const SizedBox(height: 100),
+                        ],
                       ],
                     ),
                   ),
@@ -364,6 +373,10 @@ class _BerandaScreenState extends State<BerandaScreen> {
     final vehicle = (vehicles != null && vehicles.isNotEmpty) ? vehicles.first : null;
     final vehicleName = vehicle != null ? '${vehicle['brand']} ${vehicle['model']}' : 'HONDA BEATRIX';
     final plateNumber = vehicle?['plate_number'] ?? 'H 1945 AGS';
+    
+    // Check if there's an active order
+    final activeOrder = homeData?['active_order'] as Map<String, dynamic>?;
+    final hasActiveOrder = activeOrder != null;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -390,7 +403,8 @@ class _BerandaScreenState extends State<BerandaScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          if (!widget.hasActiveBooking) ...[
+          if (!hasActiveOrder) ...[
+            // ✅ Default view: No active order
             Text(
               vehicleName.toUpperCase(),
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
@@ -422,6 +436,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
               ),
             ),
           ] else ...[
+            // ✅ Active order view with status tracker
             Text(
               vehicleName.toUpperCase(),
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
@@ -430,34 +445,118 @@ class _BerandaScreenState extends State<BerandaScreen> {
               plateNumber,
               style: const TextStyle(color: Colors.grey, fontSize: 12),
             ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildTrackerNode(true, 'Sedang\nDitinjau'),
-                _buildTrackerLine(false),
-                _buildTrackerNode(false, 'Servis\nDimulai'),
-                _buildTrackerLine(false),
-                _buildTrackerNode(false, 'Menunggu\nPembayaran'),
-                _buildTrackerLine(false),
-                _buildTrackerNode(false, 'Servis\nSelesai'),
-              ],
+            const SizedBox(height: 12),
+            
+            // Status badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: _getStatusColor(activeOrder['status']).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                _getStatusLabel(activeOrder['status']),
+                style: TextStyle(
+                  color: _getStatusColor(activeOrder['status']),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
             ),
             const SizedBox(height: 16),
-            const Center(
-              child: Text(
-                'Wait for review',
-                style: TextStyle(
-                  color: Colors.lightBlue,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
+            
+            // Status tracker
+            _buildTrackerWithStatus(activeOrder['status']),
+            const SizedBox(height: 16),
+            
+            // Services info
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Layanan yang dipesan:',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                  const SizedBox(height: 8),
+                  ...(activeOrder['services'] as List<dynamic>?)?.map((service) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        '• ${service['service_name']}',
+                        style: const TextStyle(fontSize: 11, color: Colors.grey),
+                      ),
+                    );
+                  }).toList() ?? [],
+                ],
               ),
             ),
           ],
         ],
       ),
+    );
+  }
+
+  String _getStatusLabel(String? status) {
+    switch (status) {
+      case 'pending':
+        return 'Sedang Ditinjau';
+      case 'process':
+        return 'Servis Dimulai';
+      case 'payment':
+        return 'Menunggu Pembayaran';
+      default:
+        return 'Status Tidak Diketahui';
+    }
+  }
+
+  Color _getStatusColor(String? status) {
+    switch (status) {
+      case 'pending':
+        return Colors.orange;
+      case 'process':
+        return Colors.blue;
+      case 'payment':
+        return Colors.purple;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  int _getStatusStep(String? status) {
+    switch (status) {
+      case 'pending':
+        return 0;
+      case 'process':
+        return 1;
+      case 'payment':
+        return 2;
+      default:
+        return -1;
+    }
+  }
+
+  Widget _buildTrackerWithStatus(String? status) {
+    final steps = ['Ditinjau', 'Dimulai', 'Pembayaran'];
+    final currentStep = _getStatusStep(status);
+    
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: List.generate(steps.length, (index) {
+        return Row(
+          children: [
+            _buildTrackerNode(index <= currentStep, steps[index]),
+            if (index < steps.length - 1)
+              _buildTrackerLine(index < currentStep),
+          ],
+        );
+      }),
     );
   }
 

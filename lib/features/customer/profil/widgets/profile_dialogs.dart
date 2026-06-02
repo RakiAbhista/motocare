@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:motocare/core/services/auth_service.dart';
+import 'package:motocare/features/auth/login/screens/login_screen.dart';
 
 /// Dialog untuk edit nomor telepon
 void showEditPhoneDialog(BuildContext context) {
@@ -6,36 +8,32 @@ void showEditPhoneDialog(BuildContext context) {
 
   showDialog(
     context: context,
-    builder: (context) {
+    builder: (dialogContext) {
       return AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: const Text(
-          "Edit Phone Number",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text("Edit Phone Number",
+            style: TextStyle(fontWeight: FontWeight.bold)),
         content: TextField(
           controller: phoneController,
           keyboardType: TextInputType.phone,
           decoration: InputDecoration(
             hintText: "Enter your phone number",
             prefixIcon: const Icon(Icons.phone),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
           ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+            onPressed: () => Navigator.pop(dialogContext),
+            child:
+                const Text("Cancel", style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
             onPressed: () {
               final newPhone = phoneController.text.trim();
               if (newPhone.isNotEmpty) {
-                Navigator.pop(context);
+                Navigator.pop(dialogContext);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text("Phone number updated to $newPhone"),
@@ -48,10 +46,10 @@ void showEditPhoneDialog(BuildContext context) {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+                  borderRadius: BorderRadius.circular(10)),
             ),
-            child: const Text("Save", style: TextStyle(color: Colors.white)),
+            child:
+                const Text("Save", style: TextStyle(color: Colors.white)),
           ),
         ],
       );
@@ -61,44 +59,59 @@ void showEditPhoneDialog(BuildContext context) {
 
 /// Dialog konfirmasi logout
 void showLogoutDialog(BuildContext context) {
+  // ← simpan pageContext di sini, sebelum masuk builder
+  final pageContext = context;
+
   showDialog(
-    context: context,
-    builder: (context) {
+    context: pageContext,
+    builder: (dialogContext) {
       return AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: const Text(
-          "Confirm Logout",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text("Confirm Logout",
+            style: TextStyle(fontWeight: FontWeight.bold)),
         content: const Text(
-          "Are you sure you want to end your current session?",
-        ),
+            "Are you sure you want to end your current session?"),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+            onPressed: () => Navigator.pop(dialogContext),
+            child:
+                const Text("Cancel", style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Nanti logika proses logout (misal clear token & pindah halaman) taruh disini
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Logged out successfully"),
-                  behavior: SnackBarBehavior.floating,
-                  backgroundColor: Colors.red,
-                ),
+            onPressed: () async {
+              // Tutup confirm dialog
+              Navigator.pop(dialogContext);
+
+              // Tampilkan loading pakai pageContext
+              showDialog(
+                context: pageContext,
+                barrierDismissible: false,
+                builder: (_) =>
+                    const Center(child: CircularProgressIndicator()),
               );
+
+              // Proses logout (error diabaikan, token tetap dihapus)
+              try {
+                await AuthService().logout();
+              } catch (_) {}
+
+              // Navigasi ke login pakai pageContext
+              if (pageContext.mounted) {
+                Navigator.of(pageContext).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                      builder: (_) => const LoginScreen()),
+                  (route) => false,
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+                  borderRadius: BorderRadius.circular(10)),
             ),
-            child: const Text("Logout", style: TextStyle(color: Colors.white)),
+            child: const Text("Logout",
+                style: TextStyle(color: Colors.white)),
           ),
         ],
       );

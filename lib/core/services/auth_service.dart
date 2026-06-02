@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
@@ -15,8 +16,41 @@ class AuthService {
 
   String? get accessToken => _accessToken;
 
+  /// Load token dari SharedPreferences saat app dimulai
+  Future<void> loadTokenFromStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _accessToken = prefs.getString('access_token');
+      print('🔵 [AuthService] Loaded token from storage: ${_accessToken != null ? 'SUCCESS' : 'EMPTY'}');
+    } catch (e) {
+      print('❌ [AuthService] Error loading token: $e');
+    }
+  }
+
+  /// Save token ke SharedPreferences
+  Future<void> _saveTokenToStorage(String token) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('access_token', token);
+      print('🔵 [AuthService] Token saved to storage');
+    } catch (e) {
+      print('❌ [AuthService] Error saving token: $e');
+    }
+  }
+
+  /// Clear semua data dari storage
+  Future<void> _clearStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('access_token');
+      print('🔵 [AuthService] Storage cleared');
+    } catch (e) {
+      print('❌ [AuthService] Error clearing storage: $e');
+    }
+  }
+
   Future<Map<String, dynamic>> login(String email, String password) async {
-    print('baseUrl: $baseUrl');
+    print('🔵 [Login] Attempting login for: $email');
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/login'),
@@ -25,9 +59,12 @@ class AuthService {
       );
       
       final data = jsonDecode(response.body);
+      print('🔵 [Login] Status: ${response.statusCode}');
+      print('🔵 [Login] Response: ${response.body}');
       
       if (response.statusCode == 200) {
         _accessToken = data['access_token'];
+        await _saveTokenToStorage(_accessToken!);
       }
       
       return {
@@ -39,7 +76,7 @@ class AuthService {
       };
     } 
 catch (e, stackTrace) {
-  print('ERROR: $e');
+  print('❌ [Login] ERROR: $e');
   print(stackTrace);
   return {
     'success': false,
@@ -97,6 +134,7 @@ catch (e, stackTrace) {
       
       if (response.statusCode == 200) {
         _accessToken = body['access_token'];
+        await _saveTokenToStorage(_accessToken!);
       }
       
       return {
@@ -123,6 +161,7 @@ catch (e, stackTrace) {
   }
 
   Future<Map<String, dynamic>> logout() async {
+    print('🔵 [Logout] Starting logout...');
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/logout'),
@@ -132,9 +171,12 @@ catch (e, stackTrace) {
         },
       );
       
-      if (response.statusCode == 200) {
-        _accessToken = null;
-      }
+      print('🔵 [Logout] Status: ${response.statusCode}');
+      print('🔵 [Logout] Response: ${response.body}');
+      
+      // Clear token dan storage regardless of response
+      _accessToken = null;
+      await _clearStorage();
       
       final body = jsonDecode(response.body);
       return {
@@ -142,7 +184,11 @@ catch (e, stackTrace) {
         'message': body['message'] ?? 'Logout berhasil'
       };
     } catch (e) {
-      return {'success': false, 'message': 'Koneksi ke server gagal'};
+      print('❌ [Logout] Error: $e');
+      // Still clear token even if request fails
+      _accessToken = null;
+      await _clearStorage();
+      return {'success': false, 'message': 'Logout berhasil (offline mode)'};
     }
   }
 }
