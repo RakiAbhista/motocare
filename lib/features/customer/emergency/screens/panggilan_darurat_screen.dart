@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../../widgets/main_wrapper.dart';
+import 'package:motocare/core/theme/app_colors.dart';
+import 'package:motocare/core/theme/app_theme.dart';
+import 'package:motocare/core/theme/app_background.dart';
+import 'package:motocare/widgets/main_wrapper.dart';
+import 'package:motocare/widgets/custom_text_field.dart';
+import 'package:motocare/widgets/custom_card.dart';
 
 class PanggilanDaruratScreen extends StatefulWidget {
   const PanggilanDaruratScreen({super.key});
@@ -9,197 +14,226 @@ class PanggilanDaruratScreen extends StatefulWidget {
 }
 
 class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
-  // State untuk pura-pura loading upload foto
   bool isUploaded = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
+        title: const Text('Panggilan Darurat'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.lightBlue),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Panggilan Darurat', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-        centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 1. LOKASI SAAT INI
-            const Text('Lokasi Saat Ini', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                const Icon(Icons.location_on, color: Colors.lightBlue, size: 28),
-                const SizedBox(width: 12),
-                Expanded(child: Text('Jl. Banjarsari No. 212, Tembalang, Semarang', style: TextStyle(color: Colors.grey.shade700, fontSize: 12))),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // 2. BENGKEL TERDEKAT
-            const Text('Bengkel Terdekat', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(color: Colors.lightBlue.shade200, borderRadius: BorderRadius.circular(8)),
-                  child: const Icon(Icons.build, color: Colors.black87),
+      body: BengkelBackground(
+        child: SingleChildScrollView(
+          padding: AppTheme.pagePadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildLocationSection(),
+              const SizedBox(height: 24),
+              _buildNearbyWorkshop(),
+              const SizedBox(height: 28),
+              const Text(
+                'Detail Kendaraan',
+                style: TextStyle(
+                  color: AppColors.danger,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('BENGKEL 123', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                      Row(
-                        children: const [
-                          Icon(Icons.star, color: Colors.yellow, size: 14),
-                          SizedBox(width: 4),
-                          Text('4.8 (120 Penilaian)', style: TextStyle(color: Colors.grey, fontSize: 10)),
-                        ],
-                      ),
-                    ],
+              ),
+              const SizedBox(height: 16),
+              CustomTextField(
+                label: 'Merk Kendaraan',
+                hint: 'Masukkan merk kendaraan',
+                isRequired: true,
+              ),
+              CustomTextField(
+                label: 'Tipe Kendaraan',
+                hint: 'Masukkan tipe kendaraan',
+                isRequired: true,
+              ),
+              CustomTextField(
+                label: 'Nomor Plat',
+                hint: 'Masukkan nomor plat',
+                isRequired: true,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Foto Kerusakan Fisik',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF1A1A1A),
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Pastikan gambar terlihat jelas.',
+                style: AppTheme.bodySmall,
+              ),
+              const SizedBox(height: 12),
+              _buildPhotoUpload(),
+              const SizedBox(height: 40),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            const MainWrapper(daruratType: 'mekanik')),
+                    (route) => false,
+                  ),
+                  icon: const Icon(Icons.build_rounded, size: 18),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.dangerDark,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  label: const Text('Panggil Mekanik'),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Center(
+                child: TextButton.icon(
+                  onPressed: () => Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            const MainWrapper(daruratType: 'towing')),
+                    (route) => false,
+                  ),
+                  icon: const Icon(Icons.local_shipping, color: AppColors.dangerDark),
+                  label: const Text(
+                    'Panggil Towing',
+                    style: TextStyle(color: AppColors.dangerDark),
                   ),
                 ),
-                const Text('50m', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-              ],
-            ),
-            const SizedBox(height: 32),
-
-            // 3. DETAIL KENDARAAN (Dinamis: Kosong / Terisi)
-            RichText(
-              text: const TextSpan(
-                text: 'Detail Kendaraan', style: TextStyle(color: Colors.grey, fontSize: 14),
-                children: [TextSpan(text: '*', style: TextStyle(color: Colors.red))],
               ),
-            ),
-            const SizedBox(height: 16),
-            _buildInputField('Merk Kendaraan :'),
-            _buildInputField('Tipe Kendaraan :'),
-            _buildInputField('Nomor Plat :'),
-            const SizedBox(height: 24),
-
-            // 4. FOTO KERUSAKAN FISIK (Interaktif)
-            const Text('Foto Kerusakan Fisik', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            const Text('Pastikan gambar terlihat jelas.', style: TextStyle(color: Colors.grey, fontSize: 10)),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                // Thumbnail Foto (Muncul kalau isUploaded = true)
-                if (isUploaded)
-                  Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Container(
-                        width: 80, height: 80,
-                        margin: const EdgeInsets.only(right: 12),
-                        decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(8)),
-                        child: const Icon(Icons.motorcycle, color: Colors.grey, size: 40), // Placeholder motor hijau
-                      ),
-                      Positioned(
-                        top: -8, right: 4,
-                        child: GestureDetector(
-                          onTap: () => setState(() => isUploaded = false), // Hapus foto
-                          child: Container(
-                            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                            child: const Icon(Icons.cancel, color: Colors.red, size: 20),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                // Tombol Upload
-                GestureDetector(
-                  onTap: () => setState(() => isUploaded = true), // Simulasi upload
-                  child: Container(
-                    width: 80, height: 80,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.upload_file, color: Colors.black87),
-                        SizedBox(height: 4),
-                        Text('Tambah', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 48),
-
-            // 5. TOMBOL PANGGIL MEKANIK & TOWING
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const MainWrapper(daruratType: 'mekanik')),
-                  (route) => false,
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFC62828),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                child: const Text('Panggil Mekanik', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Center(child: Text('atau', style: TextStyle(color: Colors.grey))),
-            const SizedBox(height: 16),
-            Center(
-              child: TextButton(
-                onPressed: () => Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const MainWrapper(daruratType: 'towing')),
-                  (route) => false,
-                ),
-                child: const Text('Panggil Towing', style: TextStyle(color: Color(0xFFC62828), fontWeight: FontWeight.bold)),
-              ),
-            ),
-            const SizedBox(height: 40),
-          ],
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildInputField(String label) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+  Widget _buildLocationSection() {
+    return CustomCard(
+      accentColor: AppColors.danger,
       child: Row(
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              style: const TextStyle(fontSize: 12),
-              decoration: InputDecoration(
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
-                ),
-                focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.lightBlue, width: 1),
-                ),
-              ),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+            ),
+            child: const Icon(Icons.location_on, color: AppColors.primary, size: 22),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'Jl. Banjarsari No. 212, Tembalang, Semarang',
+              style: AppTheme.bodyMedium,
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildNearbyWorkshop() {
+    return CustomCard(
+      accentColor: AppColors.secondary,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+            ),
+            child: const Icon(Icons.build_rounded, color: AppColors.primary, size: 24),
+          ),
+          const SizedBox(width: 16),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('BENGKEL 123', style: AppTheme.titleMedium),
+                SizedBox(height: 2),
+                Text('4.8 (120 Penilaian)', style: AppTheme.bodySmall),
+              ],
+            ),
+          ),
+          const Text('50m',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: AppColors.primary,
+              )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhotoUpload() {
+    return Row(
+      children: [
+        if (isUploaded)
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                margin: const EdgeInsets.only(right: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                ),
+                child: const Icon(Icons.image, color: Colors.grey, size: 40),
+              ),
+              Positioned(
+                top: -8,
+                right: 4,
+                child: GestureDetector(
+                  onTap: () => setState(() => isUploaded = false),
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.cancel, color: AppColors.danger, size: 22),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        GestureDetector(
+          onTap: () => setState(() => isUploaded = true),
+          child: Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+              border: Border.all(color: AppColors.border, width: 2),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(Icons.cloud_upload_outlined, color: Colors.grey, size: 32),
+                SizedBox(height: 4),
+                Text('Tambah', style: TextStyle(fontSize: 12, color: Colors.grey)),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

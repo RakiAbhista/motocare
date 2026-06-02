@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:motocare/core/theme/app_colors.dart';
+import 'package:motocare/core/theme/app_theme.dart';
 import 'ringkasan_booking_screen.dart';
 
 class PilihBengkelScreen extends StatefulWidget {
@@ -14,34 +16,24 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
+        title: const Text('Booking Servis'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.lightBlue),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Booking Servis',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
       ),
       body: Column(
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
+              padding: AppTheme.pagePadding,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildStepper(),
-                  const SizedBox(height: 40),
-                  const Text(
-                    'Pilih Bengkel',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
+                  const SizedBox(height: 32),
+                  const Text('Pilih Bengkel', style: AppTheme.headlineSmall),
                   const SizedBox(height: 16),
                   _buildSearchBar(),
                   const SizedBox(height: 24),
@@ -56,18 +48,25 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
     );
   }
 
-  // --- STEPPER ---
-
   Widget _buildStepper() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _buildStepCompleted(Icons.motorcycle, 'Pilih\nKendaraan'),
-        Container(width: 40, height: 2, color: Colors.blue),
+        _buildConnector(true),
         _buildStepActive(Icons.location_on, 'Pilih\nBengkel'),
-        Container(width: 40, height: 2, color: Colors.grey.shade300),
+        _buildConnector(false),
         _buildStepInactive(Icons.receipt_long, 'Ringkasan &\nKonfirmasi'),
       ],
+    );
+  }
+
+  Widget _buildConnector(bool isActive) {
+    return Container(
+      width: 40,
+      height: 2,
+      color: isActive ? AppColors.primary : Colors.grey.shade300,
+      margin: const EdgeInsets.only(bottom: 28),
     );
   }
 
@@ -78,18 +77,14 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
           padding: const EdgeInsets.all(12),
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.lightBlue,
+            color: AppColors.primary,
           ),
-          child: Icon(icon, color: Colors.white),
+          child: Icon(icon, color: Colors.white, size: 22),
         ),
         const SizedBox(height: 8),
         SizedBox(
           width: 80,
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 10, color: Colors.grey),
-          ),
+          child: Text(label, textAlign: TextAlign.center, style: AppTheme.bodySmall),
         ),
       ],
     );
@@ -102,9 +97,9 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.lightBlue, width: 2),
+            border: Border.all(color: AppColors.primary, width: 2),
           ),
-          child: Icon(icon, color: Colors.lightBlue),
+          child: Icon(icon, color: AppColors.primary, size: 22),
         ),
         const SizedBox(height: 8),
         SizedBox(
@@ -114,7 +109,7 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 10,
-              color: Colors.black,
+              color: AppColors.textBody,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -132,33 +127,28 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
             shape: BoxShape.circle,
             border: Border.all(color: Colors.grey, width: 2),
           ),
-          child: Icon(icon, color: Colors.grey),
+          child: Icon(icon, color: Colors.grey, size: 22),
         ),
         const SizedBox(height: 8),
         SizedBox(
           width: 80,
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 10, color: Colors.grey),
-          ),
+          child: Text(label, textAlign: TextAlign.center, style: AppTheme.bodySmall),
         ),
       ],
     );
   }
 
-  // --- SEARCH BAR ---
-
   Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+        border: Border.all(color: AppColors.border),
       ),
       child: const TextField(
         decoration: InputDecoration(
           hintText: 'Cari Bengkel',
-          hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+          hintStyle: TextStyle(color: AppColors.textHint, fontSize: 14),
           prefixIcon: Icon(Icons.search, color: Colors.grey),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(vertical: 12),
@@ -167,86 +157,73 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
     );
   }
 
-  // --- LIST BENGKEL ---
-
   Widget _buildBengkelList() {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: 5,
-      itemBuilder: (context, index) {
-        return _buildBengkelItem(index);
-      },
+      itemBuilder: (context, index) => _buildBengkelItem(index),
     );
   }
 
   Widget _buildBengkelItem(int index) {
     bool isSelected = selectedIndex == index;
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedIndex = index;
-        });
-      },
+      onTap: () => setState(() => selectedIndex = index),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
           border: Border.all(
-            color: isSelected ? Colors.lightBlue : Colors.transparent,
-            width: 1.5,
+            color: isSelected ? AppColors.primary : AppColors.divider,
+            width: isSelected ? 1.5 : 1,
           ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : [],
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color:
-                    isSelected ? Colors.lightBlue.shade100 : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
+                color: isSelected ? AppColors.primaryLight : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
               ),
-              child: const Icon(Icons.build, color: Colors.black87),
+              child: Icon(Icons.build_rounded,
+                  color: isSelected ? AppColors.primary : Colors.grey, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'BENGKEL 123',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  const SizedBox(height: 4),
+                  Text('BENGKEL 123', style: AppTheme.titleMedium),
+                  const SizedBox(height: 2),
                   Row(
                     children: [
                       Icon(Icons.star, color: Colors.amber.shade700, size: 14),
                       const SizedBox(width: 4),
-                      Text(
-                        '4.8 (120 Penilaian)',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 10,
-                        ),
-                      ),
+                      const Text('4.8 (120 Penilaian)', style: AppTheme.bodySmall),
                     ],
                   ),
                 ],
               ),
             ),
-            Text(
-              '50m',
-              style: TextStyle(
-                color: Colors.grey.shade800,
-                fontSize: 12,
-              ),
-            ),
-            const SizedBox(width: 16),
+            const Text('50m', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+            const SizedBox(width: 12),
             Icon(
-              isSelected ? Icons.check_circle : Icons.circle,
-              color: isSelected ? Colors.lightBlue : Colors.grey.shade300,
+              isSelected ? Icons.check_circle : Icons.circle_outlined,
+              color: isSelected ? AppColors.primary : Colors.grey.shade300,
+              size: 22,
             ),
           ],
         ),
@@ -254,31 +231,25 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
     );
   }
 
-  // --- BOTTOM BUTTONS ---
-
   Widget _buildBottomButtons() {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
+    return Container(
+      padding: AppTheme.pagePadding,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          ElevatedButton(
+          OutlinedButton(
             onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.grey.shade400,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 14,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              'Kembali',
-              style: TextStyle(color: Colors.white),
-            ),
+            child: const Text('Kembali'),
           ),
           const SizedBox(width: 12),
           ElevatedButton(
@@ -288,24 +259,7 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
                 builder: (context) => const RingkasanBookingScreen(),
               ),
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.lightBlue,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 14,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              'Berikutnya',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: const Text('Berikutnya'),
           ),
         ],
       ),

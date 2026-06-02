@@ -40,30 +40,46 @@ class PilihLayananBottomSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
+          const Text(
+            'Pilih Layanan',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          const SizedBox(height: 8),
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: layananList.length,
             itemBuilder: (context, index) {
               return InkWell(
-                onTap: () {
-                  Navigator.pop(context);
-                },
+                onTap: () => Navigator.pop(context),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                   decoration: BoxDecoration(
                     border: Border(
                       bottom: BorderSide(color: Colors.grey.shade200),
                     ),
                   ),
-                  child: Center(
-                    child: Text(
-                      layananList[index],
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.check_circle_outline,
+                        color: Colors.grey.shade400,
+                        size: 20,
                       ),
-                    ),
+                      const SizedBox(width: 12),
+                      Text(
+                        layananList[index],
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               );

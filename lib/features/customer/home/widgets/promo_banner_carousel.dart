@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:motocare/core/theme/app_colors.dart';
+import 'package:motocare/core/theme/app_theme.dart';
 
 class PromoBannerCarousel extends StatefulWidget {
   const PromoBannerCarousel({super.key});
@@ -11,10 +13,10 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<Color> _bannerColors = [
-    Colors.lightBlue,
-    Colors.orange,
-    Colors.grey,
+  final List<_BannerItem> _banners = [
+    _BannerItem(color: AppColors.primary, label: 'Promo Spesial Servis Hemat!'),
+    _BannerItem(color: AppColors.warning, label: 'Diskon Oli hingga 20%'),
+    _BannerItem(color: AppColors.secondary, label: 'Free Checkup Berkala'),
   ];
 
   @override
@@ -31,24 +33,34 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
           height: 150,
           child: PageView.builder(
             controller: _pageController,
-            itemCount: _bannerColors.length,
+            itemCount: _banners.length,
             onPageChanged: (index) => setState(() => _currentPage = index),
             itemBuilder: (context, index) {
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: _bannerColors[index],
-                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      colors: [
+                        _banners[index].color,
+                        _banners[index].color.withValues(alpha: 0.7),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _banners[index].color.withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Center(
                     child: Text(
-                      'Promo Banner ${index + 1}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      _banners[index].label,
+                      style: AppTheme.headlineSmall.copyWith(color: Colors.white),
                     ),
                   ),
                 ),
@@ -60,15 +72,15 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
-            _bannerColors.length,
+            _banners.length,
             (index) => AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               margin: const EdgeInsets.symmetric(horizontal: 4),
-              width: _currentPage == index ? 12 : 8,
-              height: _currentPage == index ? 12 : 8,
+              width: _currentPage == index ? 24 : 8,
+              height: 8,
               decoration: BoxDecoration(
-                color: _currentPage == index ? Colors.blue : Colors.grey.shade300,
-                shape: BoxShape.circle,
+                color: _currentPage == index ? AppColors.primary : Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(4),
               ),
             ),
           ),
@@ -76,4 +88,10 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
       ],
     );
   }
+}
+
+class _BannerItem {
+  final Color color;
+  final String label;
+  const _BannerItem({required this.color, required this.label});
 }

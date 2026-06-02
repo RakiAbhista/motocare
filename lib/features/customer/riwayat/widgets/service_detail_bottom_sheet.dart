@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:motocare/core/theme/app_colors.dart';
+import 'package:motocare/core/theme/app_theme.dart';
 
 class ServiceDetailBottomSheet extends StatelessWidget {
   const ServiceDetailBottomSheet({super.key});
@@ -40,13 +42,13 @@ class ServiceDetailBottomSheet extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  _ServiceCostCard(),
-                  SizedBox(height: 16),
-                  _DocumentationCard(),
-                  SizedBox(height: 16),
-                  _ReceiptCard(),
-                  SizedBox(height: 40),
+                children: [
+                  const _ServiceCostCard(),
+                  const SizedBox(height: 16),
+                  const _DocumentationCard(),
+                  const SizedBox(height: 16),
+                  const _ReceiptCard(),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),
@@ -66,27 +68,35 @@ class _ServiceCostCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
       ),
       child: Column(
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.manage_history, size: 40, color: Colors.black87),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                ),
+                child: const Icon(Icons.manage_history, size: 28, color: AppColors.primary),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Ganti Oli', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                    const Text('19 Maret 2025', style: TextStyle(color: Colors.black87, fontSize: 12, fontWeight: FontWeight.bold)),
+                    const Text('Ganti Oli', style: AppTheme.titleLarge),
+                    const SizedBox(height: 2),
+                    const Text('19 Maret 2025', style: AppTheme.bodySmall),
                     const SizedBox(height: 4),
                     Row(
-                      children: const [
-                        Icon(Icons.location_on, size: 14, color: Colors.black54),
-                        SizedBox(width: 4),
-                        Text('Bengkel Semarang Barat', style: TextStyle(color: Colors.black54, fontSize: 12)),
+                      children: [
+                        Icon(Icons.location_on, size: 14, color: Colors.grey.shade600),
+                        const SizedBox(width: 4),
+                        const Text('Bengkel Semarang Barat', style: AppTheme.bodySmall),
                       ],
                     ),
                   ],
@@ -95,35 +105,39 @@ class _ServiceCostCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Divider(color: Colors.grey.shade200, thickness: 1),
+          const Divider(),
           const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text('Spare parts Oli', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-              Text('Rp 55.000', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text('Biaya Jasa', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-              Text('Rp 50.000', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-            ],
-          ),
+          _buildCostRow('Spare parts Oli', 'Rp 55.000'),
           const SizedBox(height: 8),
-          Divider(color: Colors.grey.shade200, thickness: 1),
+          _buildCostRow('Biaya Jasa', 'Rp 50.000'),
           const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text('Total Biaya', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-              Text('Rp 105.000', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            ],
-          ),
+          const Divider(),
+          const SizedBox(height: 8),
+          _buildTotalRow('Total Biaya', 'Rp 105.000'),
         ],
       ),
+    );
+  }
+
+  Widget _buildCostRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: AppTheme.bodyMedium),
+        Text(value, style: AppTheme.titleMedium),
+      ],
+    );
+  }
+
+  Widget _buildTotalRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: AppTheme.titleLarge),
+        Text(value,
+            style:
+                const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary)),
+      ],
     );
   }
 }
@@ -137,19 +151,19 @@ class _DocumentationCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Dokumentasi Service', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const Text('Dokumentasi Service', style: AppTheme.titleLarge),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(width: 85, height: 85, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(8))),
-              Container(width: 85, height: 85, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(8))),
-              Container(width: 85, height: 85, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(8))),
+              _buildDocPlaceholder(),
+              _buildDocPlaceholder(),
+              _buildDocPlaceholder(),
             ],
           ),
           const SizedBox(height: 16),
@@ -157,13 +171,25 @@ class _DocumentationCard extends StatelessWidget {
             children: [
               Expanded(child: Divider(color: Colors.grey.shade300)),
               const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12.0),
-                child: Text('Lihat Semua Foto', style: TextStyle(color: Colors.grey, fontSize: 10)),
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Text('Lihat Semua Foto',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 10)),
               ),
               Expanded(child: Divider(color: Colors.grey.shade300)),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDocPlaceholder() {
+    return Container(
+      width: 85,
+      height: 85,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade300,
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
       ),
     );
   }
@@ -179,13 +205,14 @@ class _ReceiptCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text('Recipt', style: TextStyle(color: Color(0xFF1565C0), fontWeight: FontWeight.bold, fontSize: 16)),
-          SizedBox(height: 120),
+        children: [
+          const Text('Receipt',
+              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 120),
         ],
       ),
     );

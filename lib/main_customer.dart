@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:motocare/features/auth/login/screens/login_screen.dart';
 import 'package:motocare/core/theme/app_theme.dart';
+import 'package:motocare/widgets/main_wrapper.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const CustomerApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class CustomerApp extends StatelessWidget {
+  const CustomerApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'MotoCare',
+      title: 'MotoCare - Customer',
       theme: AppTheme.lightTheme,
-      home: const LoginScreen(),
+      home: const MainWrapper(),
     );
   }
 }

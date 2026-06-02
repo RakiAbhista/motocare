@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:motocare/core/theme/app_colors.dart';
+import 'package:motocare/core/theme/app_theme.dart';
 
 class PilihKendaraanBottomSheet extends StatelessWidget {
   const PilihKendaraanBottomSheet({super.key});
@@ -32,6 +34,20 @@ class PilihKendaraanBottomSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                const Text('Pilih Kendaraan', style: AppTheme.titleLarge),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(Icons.close, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -42,7 +58,7 @@ class PilihKendaraanBottomSheet extends StatelessWidget {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                   ),
                   child: Row(
                     children: [
@@ -50,50 +66,28 @@ class PilihKendaraanBottomSheet extends StatelessWidget {
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppColors.primaryLight,
+                          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                         ),
-                        child: const Icon(Icons.motorcycle, color: Colors.grey),
+                        child: const Icon(Icons.motorcycle, color: AppColors.primary),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Honad Beatrix',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            const Text(
-                              'H 1945 AGS',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            ElevatedButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.lightBlue,
-                                minimumSize: const Size(70, 30),
-                                padding: EdgeInsets.zero,
-                              ),
-                              child: const Text(
-                                'Pilih',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
+                            const Text('Honda Beatrix', style: AppTheme.titleMedium),
+                            const Text('H 1945 AGS', style: AppTheme.bodySmall),
                           ],
                         ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(70, 32),
+                          padding: EdgeInsets.zero,
+                        ),
+                        child: const Text('Pilih', style: TextStyle(fontSize: 12)),
                       ),
                     ],
                   ),
