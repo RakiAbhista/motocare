@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:motocare/core/theme/app_colors.dart';
 import '../../home/screens/beranda_screen.dart';
 import '../../emergency/screens/emergency_screen.dart';
+import 'package:motocare/core/theme/app_colors.dart';
 
 class ProfileBottomNav extends StatelessWidget {
   const ProfileBottomNav({super.key});
@@ -27,7 +27,7 @@ class ProfileBottomNav extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _navItem(Icons.home_filled, 'Beranda', onTap: () {
+          _navItem(Icons.home_filled, 'Beranda', false, const Color(0xFFC3C7CC), onTap: () {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
@@ -35,7 +35,7 @@ class ProfileBottomNav extends StatelessWidget {
               ),
             );
           }),
-          _navItem(Icons.report_gmailerrorred_rounded, 'Darurat', onTap: () {
+          _navItem(Icons.report_gmailerrorred_rounded, 'Darurat', false, const Color(0xFFC3C7CC), onTap: () {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
@@ -43,16 +43,13 @@ class ProfileBottomNav extends StatelessWidget {
               ),
             );
           }),
-          _navItem(Icons.person, 'Profil', isSelected: true),
+          _navItem(Icons.person, 'Profil', true, AppColors.primary),
         ],
       ),
     );
   }
 
-  Widget _navItem(IconData icon, String label, {bool isSelected = false, VoidCallback? onTap}) {
-    final color = isSelected
-        ? AppColors.primary
-        : const Color(0xFFC3C7CC);
+  Widget _navItem(IconData icon, String label, bool isSelected, Color color, {VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
