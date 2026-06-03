@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../home/screens/beranda_screen.dart';
-import '../../profile/profil.dart';
+import '../../profile/screens/profil_screen.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 
 class EmergencyBottomNav extends StatelessWidget {
