@@ -10,6 +10,7 @@ class QueueItem extends StatelessWidget {
       buttonType,
       fontFamily;
   final Color statusBg, statusText;
+  final VoidCallback? onTap;
 
   const QueueItem({
     super.key,
@@ -22,22 +23,25 @@ class QueueItem extends StatelessWidget {
     required this.buttonLabel,
     required this.buttonType,
     required this.fontFamily,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    bool isQueued = status == 'QUEUED';
+    bool isQueued = status == 'QUEUED' || status.toUpperCase() == 'PENDING';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration:
-          BoxDecoration(
-            color: AppColors.primaryLight,
-            borderRadius: BorderRadius.circular(12),
-          ).copyWith(
-            color: AppColors.primaryLight.withOpacity(isQueued ? 0.8 : 1.0),
-          ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration:
+            BoxDecoration(
+              color: AppColors.primaryLight,
+              borderRadius: BorderRadius.circular(12),
+            ).copyWith(
+              color: AppColors.primaryLight.withOpacity(isQueued ? 0.8 : 1.0),
+            ),
       child: Row(
         children: [
           // Thumbnail Kendaraan (Placeholder Icon)
@@ -144,8 +148,9 @@ class QueueItem extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildActionButton() {
     if (buttonType == 'gradient') {

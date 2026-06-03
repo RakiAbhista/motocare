@@ -2,18 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 
 class StatsGrid extends StatelessWidget {
-  const StatsGrid({super.key});
+  final Map<String, dynamic>? stats;
+
+  const StatsGrid({
+    super.key,
+    this.stats,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final pending = (stats?['total_pending'] ?? 0).toString();
+    final completed = (stats?['total_completed'] ?? 0).toString();
+
     return Row(
       children: [
-        Expanded(child: _buildStatCard('QUEUE', '12', 'Vehicles waiting')),
+        Expanded(
+          child: _buildStatCard(
+            'QUEUE',
+            pending.padLeft(2, '0'),
+            'Vehicles waiting',
+          ),
+        ),
         const SizedBox(width: 16),
         Expanded(
           child: _buildStatCard(
             'COMPLETED',
-            '08',
+            completed.padLeft(2, '0'),
             "Today's goal: 10",
             isCompleted: true,
           ),
@@ -39,20 +53,30 @@ class StatsGrid extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 10, color: Color(0xFF1E293B)),
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF64748B),
+              fontFamily: 'Mulish',
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: isCompleted ? AppColors.primary : AppColors.primary,
+              color: AppColors.primary,
+              fontFamily: 'Mulish',
             ),
           ),
           Text(
             sub,
-            style: const TextStyle(fontSize: 10, color: Color(0xFF1E293B)),
+            style: const TextStyle(
+              fontSize: 10,
+              color: Color(0xFF64748B),
+              fontFamily: 'Mulish',
+            ),
           ),
         ],
       ),
