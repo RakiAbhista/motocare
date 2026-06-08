@@ -14,9 +14,24 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
   int _currentPage = 0;
 
   final List<_BannerItem> _banners = [
-    _BannerItem(color: AppColors.primary, label: 'Promo Spesial Servis Hemat!'),
-    _BannerItem(color: AppColors.warning, label: 'Diskon Oli hingga 20%'),
-    _BannerItem(color: AppColors.secondary, label: 'Free Checkup Berkala'),
+    _BannerItem(
+      color: AppColors.primary,
+      label: 'Promo Spesial Servis Hemat!',
+      subtitle: 'Dapatkan diskon hingga 30%',
+      icon: Icons.build_circle_outlined,
+    ),
+    _BannerItem(
+      color: AppColors.warning,
+      label: 'Diskon Oli hingga 20%',
+      subtitle: 'Periode terbatas, jangan lewatkan!',
+      icon: Icons.oil_barrel_rounded,
+    ),
+    _BannerItem(
+      color: AppColors.secondary,
+      label: 'Free Checkup Berkala',
+      subtitle: 'Cek motor Anda secara gratis',
+      icon: Icons.miscellaneous_services_rounded,
+    ),
   ];
 
   @override
@@ -52,15 +67,56 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
                     boxShadow: [
                       BoxShadow(
                         color: _banners[index].color.withValues(alpha: 0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 5),
                       ),
                     ],
                   ),
-                  child: Center(
-                    child: Text(
-                      _banners[index].label,
-                      style: AppTheme.headlineSmall.copyWith(color: Colors.white),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          right: -10,
+                          bottom: -10,
+                          child: Icon(
+                            _banners[index].icon,
+                            size: 80,
+                            color: Colors.white.withValues(alpha: 0.12),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                _banners[index].icon,
+                                size: 28,
+                                color: Colors.white.withValues(alpha: 0.9),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _banners[index].label,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _banners[index].subtitle,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.85),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -68,19 +124,32 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
             },
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
             _banners.length,
             (index) => AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 250),
               margin: const EdgeInsets.symmetric(horizontal: 4),
-              width: _currentPage == index ? 24 : 8,
+              width: _currentPage == index ? 28 : 8,
               height: 8,
               decoration: BoxDecoration(
-                color: _currentPage == index ? AppColors.primary : Colors.grey.shade300,
+                gradient: _currentPage == index
+                    ? const LinearGradient(
+                        colors: [AppColors.primary, AppColors.secondary],
+                      )
+                    : null,
+                color: _currentPage == index ? null : Colors.grey.shade300,
                 borderRadius: BorderRadius.circular(4),
+                boxShadow: _currentPage == index
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          blurRadius: 4,
+                        ),
+                      ]
+                    : null,
               ),
             ),
           ),
@@ -93,5 +162,12 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
 class _BannerItem {
   final Color color;
   final String label;
-  const _BannerItem({required this.color, required this.label});
+  final String subtitle;
+  final IconData icon;
+  const _BannerItem({
+    required this.color,
+    required this.label,
+    required this.subtitle,
+    required this.icon,
+  });
 }

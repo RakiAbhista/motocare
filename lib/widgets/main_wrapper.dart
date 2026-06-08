@@ -4,6 +4,7 @@ import 'package:motocare/features/customer/home/screens/beranda_screen.dart';
 import 'package:motocare/features/customer/home/screens/terdekat_screen.dart';
 import 'package:motocare/features/customer/profil/screens/profil_screen.dart';
 import 'package:motocare/features/customer/riwayat/screens/riwayat_screen.dart';
+import 'package:motocare/features/customer/emergency/screens/panggilan_darurat_screen.dart';
 
 class MainWrapper extends StatefulWidget {
   final bool hasActiveBooking;
@@ -20,90 +21,57 @@ class MainWrapper extends StatefulWidget {
 }
 
 class _MainWrapperState extends State<MainWrapper> {
-  int _currentIndex = 0;
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _buildCurrentScreen(_currentIndex),
-      bottomNavigationBar: _CustomBottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-      ),
-    );
-  }
-
-  Widget _buildCurrentScreen(int index) {
-    switch (index) {
-      case 0:
-        return BerandaScreen(
-          hasActiveBooking: widget.hasActiveBooking,
-          daruratType: widget.daruratType,
-        );
-      case 1:
-        return const RiwayatScreen();
-      case 2:
-        return const TerdekatScreen();
-      case 3:
-        return const ProfilScreen();
-      default:
-        return const BerandaScreen();
-    }
-  }
-}
-
-class _CustomBottomNavigationBar extends StatelessWidget {
-  final int currentIndex;
-  final Function(int) onTap;
-
-  const _CustomBottomNavigationBar({
-    required this.currentIndex,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          BerandaScreen(
+            hasActiveBooking: widget.hasActiveBooking,
+            daruratType: widget.daruratType,
           ),
+          const RiwayatScreen(),
+          const TerdekatScreen(),
+          const ProfilScreen(),
         ],
       ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFFEF4444),
+        shape: const CircleBorder(),
+        elevation: 4.0,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const PanggilanDaruratScreen()),
+          );
+        },
+        child: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 28),
+      ),
+
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+
+      bottomNavigationBar: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 8.0,
+        clipBehavior: Clip.antiAlias,
+        color: Colors.white,
+        elevation: 8.0,
+        child: SizedBox(
+          height: 60.0,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(
-                index: 0,
-                icon: Icons.home_rounded,
-                label: 'Beranda',
-                isSelected: currentIndex == 0,
-              ),
-              _buildNavItem(
-                index: 1,
-                icon: Icons.receipt_long_rounded,
-                label: 'Riwayat',
-                isSelected: currentIndex == 1,
-              ),
-              _buildNavItem(
-                index: 2,
-                icon: Icons.location_on_rounded,
-                label: 'Terdekat',
-                isSelected: currentIndex == 2,
-              ),
-              _buildNavItem(
-                index: 3,
-                icon: Icons.person_outline_rounded,
-                label: 'Profil',
-                isSelected: currentIndex == 3,
-              ),
+              _buildNavItem(icon: Icons.home, label: "Beranda", isActive: _selectedIndex == 0, index: 0),
+              _buildNavItem(icon: Icons.receipt_long, label: "Riwayat", isActive: _selectedIndex == 1, index: 1),
+
+              const SizedBox(width: 40),
+
+              _buildNavItem(icon: Icons.location_on, label: "Terdekat", isActive: _selectedIndex == 2, index: 2),
+              _buildNavItem(icon: Icons.person, label: "Profil", isActive: _selectedIndex == 3, index: 3),
             ],
           ),
         ),
@@ -112,29 +80,30 @@ class _CustomBottomNavigationBar extends StatelessWidget {
   }
 
   Widget _buildNavItem({
-    required int index,
     required IconData icon,
     required String label,
-    required bool isSelected,
+    required bool isActive,
+    required int index,
   }) {
     return GestureDetector(
-      onTap: () => onTap(index),
+      onTap: () => setState(() => _selectedIndex = index),
       behavior: HitTestBehavior.opaque,
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
             icon,
-            size: 26,
-            color: isSelected ? AppColors.primary : Colors.grey,
+            size: 24,
+            color: isActive ? AppColors.primary : Colors.grey,
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              color: isSelected ? AppColors.primary : Colors.grey,
+              fontSize: 11,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+              color: isActive ? AppColors.primary : Colors.grey,
             ),
           ),
         ],

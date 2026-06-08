@@ -42,12 +42,27 @@ class _TambahKendaraanScreenState extends State<TambahKendaraanScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Isi Data Kendaraan',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.12)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline, color: AppColors.primary, size: 20),
+                  SizedBox(width: 10),
+                  Text(
+                    'Isi Data Kendaraan',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 24),
@@ -132,26 +147,29 @@ class _TambahKendaraanScreenState extends State<TambahKendaraanScreen> {
           style: AppTheme.bodySmall,
         ),
         const SizedBox(height: 8),
-        InkWell(
-          onTap: () {
-            // TODO: Implement file picker
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
-              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.cloud_upload_outlined, color: AppColors.textSecondary, size: 20),
-                SizedBox(width: 8),
-                Text('Tambahkan File', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
-              ],
+          InkWell(
+            onTap: () {
+              // TODO: Implement file picker
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1.5),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                color: AppColors.primary.withValues(alpha: 0.04),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.cloud_upload_outlined, color: AppColors.primary, size: 20),
+                  SizedBox(width: 8),
+                  Text('Tambahkan File', style: TextStyle(color: AppColors.primary, fontSize: 14, fontWeight: FontWeight.w500)),
+                  SizedBox(width: 8),
+                  Icon(Icons.arrow_upward, color: AppColors.primary, size: 16),
+                ],
+              ),
             ),
           ),
-        ),
       ],
     );
   }

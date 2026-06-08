@@ -21,6 +21,8 @@ class NotifikasiScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildDateLabel('Hari Ini'),
+            const SizedBox(height: 12),
             _buildNotificationCard(
               icon: Icons.build_rounded,
               iconBg: AppColors.primaryLight,
@@ -36,7 +38,11 @@ class NotifikasiScreen extends StatelessWidget {
                       const SnackBar(content: Text('Notifikasi diabaikan')),
                     );
                   },
-                  child: const Text('Abaikan'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    side: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  child: const Text('Abaikan', style: TextStyle(fontSize: 12)),
                 ),
                 const SizedBox(width: 12),
                 ElevatedButton(
@@ -45,30 +51,29 @@ class NotifikasiScreen extends StatelessWidget {
                     MaterialPageRoute(
                         builder: (context) => const BookingServisScreen()),
                   ),
-                  child: const Text('Jadwalkan'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  ),
+                  child: const Text('Jadwalkan', style: TextStyle(fontSize: 12)),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             _buildNotificationCard(
               icon: Icons.local_offer_rounded,
-              iconBg: Colors.green.shade100,
+              iconBg: Colors.green.shade50,
               iconColor: Colors.green,
               title: 'Penawaran Terbaik',
               time: '5 Jam yang lalu',
               description:
                   'Get 20% off on your next oil change with our partner workshops.',
             ),
-            const SizedBox(height: 28),
-            const Text('Kemarin',
-                style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14)),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
+            _buildDateLabel('Kemarin'),
+            const SizedBox(height: 12),
             _buildNotificationCard(
               icon: Icons.check_circle_outline,
-              iconBg: Colors.grey.shade200,
+              iconBg: Colors.grey.shade100,
               iconColor: Colors.grey,
               title: 'Servis Selesai',
               time: 'Kemarin',
@@ -76,6 +81,24 @@ class NotifikasiScreen extends StatelessWidget {
                   'Servis #id_servis telah berhasil diselesaikan. Sepeda Motor Anda siap untuk diambil.',
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateLabel(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: AppColors.primary,
+          fontWeight: FontWeight.bold,
+          fontSize: 13,
         ),
       ),
     );
@@ -95,7 +118,7 @@ class NotifikasiScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: Colors.grey.shade100),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -126,10 +149,17 @@ class NotifikasiScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(title, style: AppTheme.titleMedium),
-                        Text(time, style: AppTheme.labelSmall),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(time, style: AppTheme.labelSmall),
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
                     Text(description, style: AppTheme.bodySmall),
                   ],
                 ),

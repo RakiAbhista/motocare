@@ -32,17 +32,59 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.danger.withValues(alpha: 0.08),
+                      AppColors.danger.withValues(alpha: 0.02),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  border: Border.all(color: AppColors.danger.withValues(alpha: 0.15)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.danger.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                      ),
+                      child: const Icon(Icons.warning_amber_rounded, color: AppColors.danger, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text(
+                        'Isi data dengan benar agar kami dapat membantu Anda',
+                        style: TextStyle(color: AppColors.danger, fontSize: 12, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
               _buildLocationSection(),
               const SizedBox(height: 24),
               _buildNearbyWorkshop(),
               const SizedBox(height: 28),
-              const Text(
-                'Detail Kendaraan',
-                style: TextStyle(
-                  color: AppColors.danger,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+              const Row(
+                children: [
+                  Icon(Icons.motorcycle, color: AppColors.danger, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Detail Kendaraan',
+                    style: TextStyle(
+                      color: AppColors.danger,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               CustomTextField(
@@ -61,13 +103,19 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
                 isRequired: true,
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Foto Kerusakan Fisik',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF1A1A1A),
-                ),
+              const Row(
+                children: [
+                  Icon(Icons.camera_alt_outlined, color: AppColors.textBody, size: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    'Foto Kerusakan Fisik',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF1A1A1A),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 4),
               const Text(
@@ -76,7 +124,7 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
               ),
               const SizedBox(height: 12),
               _buildPhotoUpload(),
-              const SizedBox(height: 40),
+              const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -91,13 +139,17 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.dangerDark,
                     padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                    ),
                   ),
                   label: const Text('Panggil Mekanik'),
                 ),
               ),
               const SizedBox(height: 16),
-              Center(
-                child: TextButton.icon(
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
                   onPressed: () => Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
@@ -106,9 +158,13 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
                     (route) => false,
                   ),
                   icon: const Icon(Icons.local_shipping, color: AppColors.dangerDark),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.dangerDark),
+                    foregroundColor: AppColors.dangerDark,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
                   label: const Text(
                     'Panggil Towing',
-                    style: TextStyle(color: AppColors.dangerDark),
                   ),
                 ),
               ),
@@ -146,36 +202,56 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
   }
 
   Widget _buildNearbyWorkshop() {
-    return CustomCard(
-      accentColor: AppColors.secondary,
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.primaryLight,
-              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: AppColors.secondary.withValues(alpha: 0.15)),
+        color: AppColors.secondary.withValues(alpha: 0.04),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+              ),
+              child: const Icon(Icons.build_rounded, color: AppColors.primary, size: 24),
             ),
-            child: const Icon(Icons.build_rounded, color: AppColors.primary, size: 24),
-          ),
-          const SizedBox(width: 16),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('BENGKEL 123', style: AppTheme.titleMedium),
-                SizedBox(height: 2),
-                Text('4.8 (120 Penilaian)', style: AppTheme.bodySmall),
-              ],
+            const SizedBox(width: 16),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('BENGKEL 123', style: AppTheme.titleMedium),
+                  SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Icon(Icons.star, size: 14, color: Color(0xFFF59E0B)),
+                      SizedBox(width: 4),
+                      Text('4.8 (120 Penilaian)', style: AppTheme.bodySmall),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Text('50m',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
                 color: AppColors.primary,
-              )),
-        ],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text('50m',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: Colors.white,
+                  )),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -194,6 +270,12 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
                 decoration: BoxDecoration(
                   color: Colors.grey.shade200,
                   borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 4,
+                    ),
+                  ],
                 ),
                 child: const Icon(Icons.image, color: Colors.grey, size: 40),
               ),
@@ -219,16 +301,16 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
             width: 100,
             height: 100,
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: Colors.grey.shade50,
               borderRadius: BorderRadius.circular(AppTheme.radiusSm),
               border: Border.all(color: AppColors.border, width: 2),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.cloud_upload_outlined, color: Colors.grey, size: 32),
-                SizedBox(height: 4),
-                Text('Tambah', style: TextStyle(fontSize: 12, color: Colors.grey)),
+              children: [
+                Icon(Icons.cloud_upload_outlined, color: Colors.grey.shade400, size: 32),
+                const SizedBox(height: 4),
+                const Text('Tambah', style: TextStyle(fontSize: 12, color: Colors.grey)),
               ],
             ),
           ),

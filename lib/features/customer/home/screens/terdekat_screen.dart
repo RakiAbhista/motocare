@@ -84,12 +84,12 @@ class _TerdekatScreenState extends State<TerdekatScreen> {
             child: Container(
               height: 50,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.9),
+                color: Colors.white.withValues(alpha: 0.95),
                 borderRadius: BorderRadius.circular(25),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 10,
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
                 ],
@@ -118,34 +118,45 @@ class _TerdekatScreenState extends State<TerdekatScreen> {
                     color: Colors.white,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 6,
-                        offset: const Offset(0, -4),
+                        color: Colors.black.withValues(alpha: 0.12),
+                        blurRadius: 10,
+                        offset: const Offset(0, -6),
                       ),
                     ],
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
                   ),
                   child: Column(
                     children: [
                       const SizedBox(height: 12),
                       Container(
-                        width: 50,
+                        width: 44,
                         height: 5,
                         decoration: BoxDecoration(
                           color: Colors.grey.shade300,
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 6),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Bengkel Terdekat', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            Text('4 ditemukan', style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 4),
                       Expanded(
                         child: ListView(
                           controller: scrollController,
                           padding: const EdgeInsets.symmetric(horizontal: 18),
                           children: [
-                            _buildBengkelItem("Bengkel 123", "50m", true),
-                            _buildBengkelItem("Bengkel 456", "150m", false),
-                            _buildBengkelItem("Bengkel 789", "250m", false),
-                            _buildBengkelItem("Bengkel 1234", "425m", false),
+                            _buildBengkelItem("Bengkel 123", "50m", "Jl. Banjarsari No. 212", 4.8, true),
+                            _buildBengkelItem("Bengkel 456", "150m", "Jl. Tembalang Raya No. 45", 4.6, false),
+                            _buildBengkelItem("Bengkel 789", "250m", "Jl. Bukit Permai No. 78", 4.5, false),
+                            _buildBengkelItem("Bengkel 1234", "425m", "Jl. Diponegoro No. 112", 4.3, false),
                           ],
                         ),
                       ),
@@ -160,50 +171,104 @@ class _TerdekatScreenState extends State<TerdekatScreen> {
     );
   }
 
-  Widget _buildBengkelItem(String nama, String jarak, bool isDark) {
+  Widget _buildBengkelItem(String nama, String jarak, String alamat, double rating, bool isDark) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.primaryLight : Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            ),
-            child: Icon(
-              Icons.build_rounded,
-              size: 30,
-              color: isDark ? AppColors.primary : AppColors.textSecondary,
-            ),
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.primary.withValues(alpha: 0.05) : Colors.white,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: isDark
+            ? Border.all(color: AppColors.primary.withValues(alpha: 0.2))
+            : Border.all(color: Colors.grey.shade100),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.04 : 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(nama,
-                    style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.black)),
-                const SizedBox(height: 4),
-                const Text("Lorem ipsum dolor sit amet, consectetur",
-                    style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 12,
-                        color: AppColors.textSecondary)),
-              ],
-            ),
-          ),
-          Text(jarak,
-              style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w900,
-                  fontSize: 18,
-                  color: Colors.black)),
         ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.primaryLight : Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                boxShadow: isDark
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          blurRadius: 4,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Icon(
+                Icons.build_rounded,
+                size: 28,
+                color: isDark ? AppColors.primary : AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(nama,
+                          style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: Colors.black)),
+                      const SizedBox(width: 8),
+                      Row(
+                        children: [
+                          Icon(Icons.star, color: Colors.amber.shade600, size: 14),
+                          const SizedBox(width: 2),
+                          Text(rating.toString(), style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, size: 12, color: Colors.grey.shade400),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(alamat,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 11,
+                                color: AppColors.textSecondary)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(jarak,
+                  style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                      color: Colors.white)),
+            ),
+          ],
+        ),
       ),
     );
   }

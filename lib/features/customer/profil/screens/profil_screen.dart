@@ -50,7 +50,7 @@ class _ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 36),
       decoration: const BoxDecoration(
         color: AppColors.primary,
         borderRadius: BorderRadius.only(
@@ -63,20 +63,23 @@ class _ProfileHeader extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              GestureDetector(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const NotifikasiScreen()),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
-                  Icons.notifications,
-                  color: Colors.white,
-                  size: 26,
+                child: GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const NotifikasiScreen()),
+                  ),
+                  child: const Icon(Icons.notifications, color: Colors.white, size: 22),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Container(
             width: 100,
             height: 100,
@@ -85,25 +88,32 @@ class _ProfileHeader extends StatelessWidget {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 10,
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: const Icon(Icons.person, size: 60, color: Colors.grey),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           const Text(
             'John Doe',
             style: AppTheme.headlineLarge,
           ),
           const SizedBox(height: 4),
-          Text(
-            'john.doe@email.com',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.8),
-              fontSize: 14,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              'john.doe@email.com',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.9),
+                fontSize: 13,
+              ),
             ),
           ),
         ],
@@ -117,30 +127,51 @@ class _PointsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomCard(
-      accentColor: AppColors.primary,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildPointItem(Icons.stars_rounded, '36 Poin'),
-          Container(height: 30, width: 1, color: AppColors.divider),
-          _buildPointItem(Icons.local_activity_rounded, '2 Voucher'),
-        ],
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withValues(alpha: 0.08),
+            AppColors.primary.withValues(alpha: 0.02),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.12)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildPointItem(Icons.stars_rounded, '36', 'Poin'),
+            Container(height: 40, width: 1, color: AppColors.primary.withValues(alpha: 0.15)),
+            _buildPointItem(Icons.local_activity_rounded, '2', 'Voucher'),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildPointItem(IconData icon, String label) {
-    return Row(
+  Widget _buildPointItem(IconData icon, String value, String label) {
+    return Column(
       children: [
         Icon(icon, color: AppColors.primary, size: 28),
-        const SizedBox(width: 8),
+        const SizedBox(height: 6),
         Text(
-          label,
+          value,
           style: const TextStyle(
             color: AppColors.primary,
             fontWeight: FontWeight.bold,
-            fontSize: 16,
+            fontSize: 22,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            color: AppColors.primary.withValues(alpha: 0.7),
+            fontSize: 12,
           ),
         ),
       ],
@@ -156,7 +187,13 @@ class _VehicleSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Kendaraan Anda', style: AppTheme.titleLarge),
+        const Row(
+          children: [
+            Icon(Icons.motorcycle, color: AppColors.primary, size: 20),
+            SizedBox(width: 8),
+            Text('Kendaraan Anda', style: AppTheme.titleLarge),
+          ],
+        ),
         const SizedBox(height: 16),
         _VehicleListItem(
           name: 'Honad Betarix',
@@ -174,12 +211,16 @@ class _VehicleSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text('Punya kendaraan lain?', style: AppTheme.titleMedium),
-            OutlinedButton(
+            ElevatedButton.icon(
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const TambahKendaraanScreen()),
               ),
-              child: const Text('Tambah'),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Tambah'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
             ),
           ],
         ),
@@ -212,6 +253,13 @@ class _VehicleListItem extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.primaryLight,
               borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.08),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: const Icon(Icons.motorcycle, size: 45, color: AppColors.primary),
           ),
@@ -222,12 +270,22 @@ class _VehicleListItem extends StatelessWidget {
               children: [
                 Text(name, style: AppTheme.titleLarge),
                 const SizedBox(height: 2),
-                Text(plate, style: AppTheme.bodySmall),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(plate, style: AppTheme.bodySmall.copyWith(color: AppColors.primary)),
+                ),
               ],
             ),
           ),
           OutlinedButton(
             onPressed: onTap,
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: AppColors.primary.withValues(alpha: 0.4)),
+            ),
             child: const Text('Detail'),
           ),
           const SizedBox(width: 4),
@@ -243,19 +301,27 @@ class _HelpAndSupport extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: RichText(
-        text: const TextSpan(
-          text: 'Butuh Bantuan? ',
-          style: AppTheme.bodySmall,
-          children: [
-            TextSpan(
-              text: 'Klik Disini!',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.bold,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
+        ),
+        child: RichText(
+          text: const TextSpan(
+            text: 'Butuh Bantuan? ',
+            style: AppTheme.bodySmall,
+            children: [
+              TextSpan(
+                text: 'Klik Disini!',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

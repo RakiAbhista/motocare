@@ -55,7 +55,10 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
                           builder: (context) => const PilihBengkelScreen(),
                         ),
                       ),
-                      child: const Text('Berikutnya'),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Text('Berikutnya'),
+                      ),
                     ),
                   ),
                 ],
@@ -68,15 +71,23 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
   }
 
   Widget _buildStepper() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildStep(Icons.motorcycle, 'Pilih\nKendaraan', true),
-        _buildConnector(false),
-        _buildStep(Icons.location_on, 'Pilih\nBengkel', false),
-        _buildConnector(false),
-        _buildStep(Icons.receipt_long, 'Ringkasan &\nKonfirmasi', false),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.08)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildStep(Icons.motorcycle, 'Pilih\nKendaraan', true),
+          _buildConnector(false),
+          _buildStep(Icons.location_on, 'Pilih\nBengkel', false),
+          _buildConnector(false),
+          _buildStep(Icons.receipt_long, 'Ringkasan &\nKonfirmasi', false),
+        ],
+      ),
     );
   }
 
@@ -84,21 +95,21 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: isActive ? AppColors.primary : Colors.transparent,
             border: Border.all(
-              color: isActive ? AppColors.primary : Colors.grey,
+              color: isActive ? AppColors.primary : Colors.grey.shade300,
               width: 2,
             ),
           ),
           child: Icon(icon,
-              color: isActive ? Colors.white : Colors.grey, size: 22),
+              color: isActive ? Colors.white : Colors.grey, size: 20),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         SizedBox(
-          width: 80,
+          width: 72,
           child: Text(
             label,
             textAlign: TextAlign.center,
@@ -115,10 +126,10 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
 
   Widget _buildConnector(bool isActive) {
     return Container(
-      width: 40,
+      width: 36,
       height: 2,
-      color: isActive ? AppColors.primary : Colors.grey.shade300,
-      margin: const EdgeInsets.only(bottom: 28),
+      color: isActive ? AppColors.primary : Colors.grey.shade200,
+      margin: const EdgeInsets.only(bottom: 24),
     );
   }
 
@@ -126,7 +137,13 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Pilih Kendaraan', style: AppTheme.titleMedium),
+        const Row(
+          children: [
+            Icon(Icons.motorcycle, color: AppColors.primary, size: 20),
+            SizedBox(width: 8),
+            Text('Pilih Kendaraan', style: AppTheme.titleMedium),
+          ],
+        ),
         const SizedBox(height: 12),
         InkWell(
           onTap: () => PilihKendaraanBottomSheet.show(context).then((value) {
@@ -138,14 +155,32 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(
+                color: isVehicleSelected ? AppColors.primary.withValues(alpha: 0.4) : AppColors.border,
+              ),
+              boxShadow: isVehicleSelected
+                  ? [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.06),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : [],
             ),
             child: Row(
               children: [
-                Icon(
-                  isVehicleSelected ? Icons.motorcycle : Icons.add_circle_outline,
-                  color: isVehicleSelected ? AppColors.primary : Colors.grey,
-                  size: 28,
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isVehicleSelected ? AppColors.primaryLight : Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                  ),
+                  child: Icon(
+                    isVehicleSelected ? Icons.motorcycle : Icons.add_circle_outline,
+                    color: isVehicleSelected ? AppColors.primary : Colors.grey,
+                    size: 24,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -153,11 +188,12 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
                     isVehicleSelected ? 'Honda Beatrix (H 1945 AGS)' : 'Pilih Kendaraan',
                     style: TextStyle(
                       color: isVehicleSelected ? AppColors.textBody : Colors.grey,
-                      fontSize: 16,
+                      fontSize: 14,
+                      fontWeight: isVehicleSelected ? FontWeight.w500 : FontWeight.normal,
                     ),
                   ),
                 ),
-                const Icon(Icons.chevron_right, color: Colors.grey),
+                Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 22),
               ],
             ),
           ),
@@ -170,8 +206,14 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Pilih Layanan Servis *',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+        const Row(
+          children: [
+            Icon(Icons.build_rounded, color: AppColors.primary, size: 18),
+            SizedBox(width: 8),
+            Text('Pilih Layanan Servis *',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+          ],
+        ),
         const SizedBox(height: 8),
         InkWell(
           onTap: () => PilihLayananBottomSheet.show(context),
@@ -203,8 +245,14 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Catatan Keluhan *',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+        const Row(
+          children: [
+            Icon(Icons.edit_note_rounded, color: AppColors.primary, size: 18),
+            SizedBox(width: 8),
+            Text('Catatan Keluhan *',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+          ],
+        ),
         const SizedBox(height: 8),
         TextFormField(
           initialValue: 'Ganti oli, Motor tidak bisa menyala',
@@ -227,14 +275,20 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.primary.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Detail Kendaraan', style: AppTheme.titleMedium),
+          const Row(
+            children: [
+              Icon(Icons.info_outline, color: AppColors.primary, size: 18),
+              SizedBox(width: 8),
+              Text('Detail Kendaraan', style: AppTheme.titleMedium),
+            ],
+          ),
           const SizedBox(height: 12),
           _buildAutoFillRow('Merk Kendaraan', 'Autofill'),
           _buildAutoFillRow('Tipe Kendaraan', 'Autofill'),
@@ -261,8 +315,14 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Foto Kerusakan Fisik',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+        const Row(
+          children: [
+            Icon(Icons.camera_alt_outlined, color: AppColors.textBody, size: 18),
+            SizedBox(width: 8),
+            Text('Foto Kerusakan Fisik',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+          ],
+        ),
         const SizedBox(height: 4),
         const Text('Pastikan gambar terlihat jelas.', style: AppTheme.bodySmall),
         const SizedBox(height: 12),
@@ -273,7 +333,7 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: Colors.grey.shade50,
                 borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 border: Border.all(color: AppColors.border, width: 2),
               ),
@@ -299,6 +359,12 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
                   color: Colors.grey.shade200,
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                   border: Border.all(color: AppColors.border),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 4,
+                    ),
+                  ],
                 ),
                 child: const Icon(Icons.image, color: Colors.grey, size: 50),
               ),

@@ -26,24 +26,37 @@ class RingkasanBookingScreen extends StatelessWidget {
                 children: [
                   _buildStepper(),
                   const SizedBox(height: 32),
-                  const Text('Ringkasan Booking', style: AppTheme.headlineSmall),
+                  const Row(
+                    children: [
+                      Icon(Icons.receipt_long_rounded, color: AppColors.primary, size: 22),
+                      SizedBox(width: 8),
+                      Text('Ringkasan Booking', style: AppTheme.headlineSmall),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  const Text('Pastikan data booking Anda sudah benar',
+                      style: AppTheme.bodySmall),
                   const SizedBox(height: 20),
                   _buildSummaryCard(
+                    icon: Icons.motorcycle,
                     title: 'Kendaraan',
                     child: _buildVehicleInfo(),
                   ),
                   const SizedBox(height: 16),
                   _buildSummaryCard(
+                    icon: Icons.info_outline,
                     title: 'Detail Kendaraan',
                     child: _buildDetailKendaraan(),
                   ),
                   const SizedBox(height: 16),
                   _buildSummaryCard(
+                    icon: Icons.camera_alt_outlined,
                     title: 'Foto Kerusakan',
                     child: _buildPhotoSection(),
                   ),
                   const SizedBox(height: 16),
                   _buildSummaryCard(
+                    icon: Icons.location_on,
                     title: 'Bengkel',
                     child: _buildBengkelInfo(),
                   ),
@@ -59,24 +72,32 @@ class RingkasanBookingScreen extends StatelessWidget {
   }
 
   Widget _buildStepper() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildStepCompleted(Icons.motorcycle, 'Pilih\nKendaraan'),
-        _buildConnector(true),
-        _buildStepCompleted(Icons.location_on, 'Pilih\nBengkel'),
-        _buildConnector(true),
-        _buildStepActive(Icons.receipt_long, 'Ringkasan &\nKonfirmasi'),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.08)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildStepCompleted(Icons.motorcycle, 'Pilih\nKendaraan'),
+          _buildConnector(true),
+          _buildStepCompleted(Icons.location_on, 'Pilih\nBengkel'),
+          _buildConnector(true),
+          _buildStepActive(Icons.receipt_long, 'Ringkasan &\nKonfirmasi'),
+        ],
+      ),
     );
   }
 
   Widget _buildConnector(bool isActive) {
     return Container(
-      width: 40,
+      width: 36,
       height: 2,
-      color: isActive ? AppColors.primary : Colors.grey.shade300,
-      margin: const EdgeInsets.only(bottom: 28),
+      color: isActive ? AppColors.primary : Colors.grey.shade200,
+      margin: const EdgeInsets.only(bottom: 24),
     );
   }
 
@@ -84,16 +105,16 @@ class RingkasanBookingScreen extends StatelessWidget {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(10),
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
             color: AppColors.primary,
           ),
-          child: Icon(icon, color: Colors.white, size: 22),
+          child: Icon(icon, color: Colors.white, size: 20),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         SizedBox(
-          width: 80,
+          width: 72,
           child: Text(label, textAlign: TextAlign.center, style: AppTheme.bodySmall),
         ),
       ],
@@ -104,16 +125,16 @@ class RingkasanBookingScreen extends StatelessWidget {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(color: AppColors.primary, width: 2),
           ),
-          child: Icon(icon, color: AppColors.primary, size: 22),
+          child: Icon(icon, color: AppColors.primary, size: 20),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         SizedBox(
-          width: 80,
+          width: 72,
           child: Text(
             label,
             textAlign: TextAlign.center,
@@ -128,19 +149,32 @@ class RingkasanBookingScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryCard({required String title, required Widget child}) {
+  Widget _buildSummaryCard({required IconData icon, required String title, required Widget child}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: Colors.grey.shade100),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: AppTheme.titleMedium),
+          Row(
+            children: [
+              Icon(icon, color: AppColors.primary, size: 18),
+              const SizedBox(width: 8),
+              Text(title, style: AppTheme.titleMedium),
+            ],
+          ),
           const SizedBox(height: 12),
           child,
         ],
@@ -152,13 +186,19 @@ class RingkasanBookingScreen extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 70,
-          height: 70,
+          width: 64,
+          height: 64,
           decoration: BoxDecoration(
             color: AppColors.primaryLight,
             borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.08),
+                blurRadius: 4,
+              ),
+            ],
           ),
-          child: const Icon(Icons.motorcycle, size: 40, color: AppColors.primary),
+          child: const Icon(Icons.motorcycle, size: 36, color: AppColors.primary),
         ),
         const SizedBox(width: 16),
         const Column(
@@ -203,6 +243,12 @@ class RingkasanBookingScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.grey.shade200,
         borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 4,
+          ),
+        ],
       ),
       child: const Icon(Icons.image, color: Colors.grey, size: 40),
     );
@@ -226,11 +272,25 @@ class RingkasanBookingScreen extends StatelessWidget {
             children: [
               Text('BENGKEL 123', style: AppTheme.titleMedium),
               SizedBox(height: 2),
-              Text('4.8 (120 Penilaian)', style: AppTheme.bodySmall),
+              Row(
+                children: [
+                  Icon(Icons.star, size: 14, color: Color(0xFFF59E0B)),
+                  SizedBox(width: 4),
+                  Text('4.8 (120 Penilaian)', style: AppTheme.bodySmall),
+                ],
+              ),
             ],
           ),
         ),
-        const Text('50m', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Text('50m',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white)),
+        ),
       ],
     );
   }

@@ -33,7 +33,16 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
                 children: [
                   _buildStepper(),
                   const SizedBox(height: 32),
-                  const Text('Pilih Bengkel', style: AppTheme.headlineSmall),
+                  const Row(
+                    children: [
+                      Icon(Icons.location_on, color: AppColors.primary, size: 22),
+                      SizedBox(width: 8),
+                      Text('Pilih Bengkel', style: AppTheme.headlineSmall),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  const Text('Pilih bengkel terdekat untuk servis kendaraan Anda',
+                      style: AppTheme.bodySmall),
                   const SizedBox(height: 16),
                   _buildSearchBar(),
                   const SizedBox(height: 24),
@@ -49,24 +58,32 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
   }
 
   Widget _buildStepper() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildStepCompleted(Icons.motorcycle, 'Pilih\nKendaraan'),
-        _buildConnector(true),
-        _buildStepActive(Icons.location_on, 'Pilih\nBengkel'),
-        _buildConnector(false),
-        _buildStepInactive(Icons.receipt_long, 'Ringkasan &\nKonfirmasi'),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.08)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildStepCompleted(Icons.motorcycle, 'Pilih\nKendaraan'),
+          _buildConnector(true),
+          _buildStepActive(Icons.location_on, 'Pilih\nBengkel'),
+          _buildConnector(false),
+          _buildStepInactive(Icons.receipt_long, 'Ringkasan &\nKonfirmasi'),
+        ],
+      ),
     );
   }
 
   Widget _buildConnector(bool isActive) {
     return Container(
-      width: 40,
+      width: 36,
       height: 2,
-      color: isActive ? AppColors.primary : Colors.grey.shade300,
-      margin: const EdgeInsets.only(bottom: 28),
+      color: isActive ? AppColors.primary : Colors.grey.shade200,
+      margin: const EdgeInsets.only(bottom: 24),
     );
   }
 
@@ -74,16 +91,16 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(10),
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
             color: AppColors.primary,
           ),
-          child: Icon(icon, color: Colors.white, size: 22),
+          child: Icon(icon, color: Colors.white, size: 20),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         SizedBox(
-          width: 80,
+          width: 72,
           child: Text(label, textAlign: TextAlign.center, style: AppTheme.bodySmall),
         ),
       ],
@@ -94,16 +111,16 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(color: AppColors.primary, width: 2),
           ),
-          child: Icon(icon, color: AppColors.primary, size: 22),
+          child: Icon(icon, color: AppColors.primary, size: 20),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         SizedBox(
-          width: 80,
+          width: 72,
           child: Text(
             label,
             textAlign: TextAlign.center,
@@ -122,16 +139,16 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.grey, width: 2),
+            border: Border.all(color: Colors.grey.shade300, width: 2),
           ),
-          child: Icon(icon, color: Colors.grey, size: 22),
+          child: Icon(icon, color: Colors.grey, size: 20),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         SizedBox(
-          width: 80,
+          width: 72,
           child: Text(label, textAlign: TextAlign.center, style: AppTheme.bodySmall),
         ),
       ],
@@ -144,6 +161,13 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppTheme.radiusSm),
         border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: const TextField(
         decoration: InputDecoration(
@@ -168,6 +192,8 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
 
   Widget _buildBengkelItem(int index) {
     bool isSelected = selectedIndex == index;
+    final ratings = [4.8, 4.6, 4.5, 4.3, 4.2];
+    final distances = ['50m', '150m', '250m', '425m', '600m'];
     return GestureDetector(
       onTap: () => setState(() => selectedIndex = index),
       child: Container(
@@ -177,7 +203,7 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(AppTheme.radiusMd),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.divider,
+            color: isSelected ? AppColors.primary : Colors.grey.shade100,
             width: isSelected ? 1.5 : 1,
           ),
           boxShadow: isSelected
@@ -188,14 +214,20 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
                     offset: const Offset(0, 2),
                   ),
                 ]
-              : [],
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primaryLight : Colors.grey.shade100,
+                color: isSelected ? AppColors.primaryLight : Colors.grey.shade50,
                 borderRadius: BorderRadius.circular(AppTheme.radiusSm),
               ),
               child: Icon(Icons.build_rounded,
@@ -206,19 +238,27 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('BENGKEL 123', style: AppTheme.titleMedium),
-                  const SizedBox(height: 2),
+                  Text('BENGKEL ${index + 1}', style: AppTheme.titleMedium),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.star, color: Colors.amber.shade700, size: 14),
+                      Icon(Icons.star, color: Colors.amber.shade600, size: 14),
                       const SizedBox(width: 4),
-                      const Text('4.8 (120 Penilaian)', style: AppTheme.bodySmall),
+                      Text('${ratings[index]} (120 Penilaian)', style: AppTheme.bodySmall),
                     ],
                   ),
                 ],
               ),
             ),
-            const Text('50m', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(distances[index],
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white)),
+            ),
             const SizedBox(width: 12),
             Icon(
               isSelected ? Icons.check_circle : Icons.circle_outlined,
@@ -259,7 +299,10 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
                 builder: (context) => const RingkasanBookingScreen(),
               ),
             ),
-            child: const Text('Berikutnya'),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Text('Berikutnya'),
+            ),
           ),
         ],
       ),
