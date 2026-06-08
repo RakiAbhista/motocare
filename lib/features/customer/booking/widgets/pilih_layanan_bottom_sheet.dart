@@ -63,196 +63,80 @@ class _PilihLayananBottomSheetState extends State<PilihLayananBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedServices =
-        _services.where((s) => _selectedIds.contains(s.id)).toList();
+    final List<String> layananList = [
+      'Paket Ganti Oli (Oli Mesin + Gardan)',
+      'Servis Rutin',
+      'Ganti Kampas Rem',
+      'Tune Up',
+      'Lainnya',
+    ];
 
-    return DraggableScrollableSheet(
-      initialChildSize: 0.7,
-      maxChildSize: 0.9,
-      minChildSize: 0.4,
-      builder: (_, scrollController) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 12),
+          Container(
+            width: 50,
+            height: 5,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade400,
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
-          child: Column(
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 50,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade400,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Pilih Layanan Servis',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Bisa pilih lebih dari satu layanan',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-              ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _services.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'Layanan tidak tersedia.',
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                          )
-                        : ListView.builder(
-                            controller: scrollController,
-                            itemCount: _services.length,
-                            itemBuilder: (context, index) {
-                              final service = _services[index];
-                              final isSelected =
-                                  _selectedIds.contains(service.id);
-                              return InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    if (isSelected) {
-                                      _selectedIds.remove(service.id);
-                                    } else {
-                                      _selectedIds.add(service.id);
-                                    }
-                                  });
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 14),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? Colors.lightBlue.shade50
-                                        : Colors.white,
-                                    border: Border(
-                                      bottom: BorderSide(
-                                          color: Colors.grey.shade200),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Checkbox(
-                                        value: isSelected,
-                                        activeColor: Colors.lightBlue,
-                                        onChanged: (val) {
-                                          setState(() {
-                                            if (val == true) {
-                                              _selectedIds.add(service.id);
-                                            } else {
-                                              _selectedIds.remove(service.id);
-                                            }
-                                          });
-                                        },
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          service.serviceName,
-                                          style: TextStyle(
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ),
-                                      Text(
-                                        _formatPrice(service.basePrice),
-                                        style: const TextStyle(
-                                          color: Colors.lightBlue,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-              ),
-              // Bottom bar: total + save button
-              Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20, vertical: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 10,
-                      offset: const Offset(0, -4),
+          const SizedBox(height: 16),
+          const Text(
+            'Pilih Layanan',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          const SizedBox(height: 8),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: layananList.length,
+            itemBuilder: (context, index) {
+              return InkWell(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: Colors.grey.shade200),
                     ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '${selectedServices.length} layanan dipilih',
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.grey),
-                          ),
-                          Text(
-                            _formatPrice(
-                              selectedServices
-                                  .fold<double>(
-                                    0,
-                                    (sum, s) =>
-                                        sum +
-                                        (double.tryParse(s.basePrice) ?? 0),
-                                  )
-                                  .toString(),
-                            ),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Colors.lightBlue,
-                            ),
-                          ),
-                        ],
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.check_circle_outline,
+                        color: Colors.grey.shade400,
+                        size: 20,
                       ),
-                    ),
-                    ElevatedButton(
-                      onPressed: _selectedIds.isEmpty
-                          ? null
-                          : () {
-                              Navigator.pop(context, selectedServices);
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.lightBlue,
-                        disabledBackgroundColor: Colors.grey.shade300,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 32, vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                      const SizedBox(width: 12),
+                      Text(
+                        layananList[index],
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                          color: Color(0xFF1A1A1A),
                         ),
                       ),
-                      child: const Text(
-                        'Simpan',
-                        style: TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              );
+            },
           ),
-        );
-      },
+          const SizedBox(height: 24),
+        ],
+      ),
     );
   }
 }

@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:motocare/core/services/booking_service.dart';
-import 'package:motocare/features/customer/booking/models/booking_models.dart';
-import '../../../../widgets/main_wrapper.dart';
+import 'package:motocare/core/theme/app_colors.dart';
+import 'package:motocare/core/theme/app_theme.dart';
+import 'package:motocare/widgets/main_wrapper.dart';
 
 class RingkasanBookingScreen extends StatefulWidget {
   final Vehicle selectedVehicle;
@@ -99,56 +99,61 @@ class _RingkasanBookingScreenState extends State<RingkasanBookingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
+        title: const Text('Booking Servis'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.lightBlue),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Booking Servis',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
       ),
       body: Column(
         children: [
           Expanded(
-            child: _isLoadingSummary
-                ? const Center(child: CircularProgressIndicator())
-                : SingleChildScrollView(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildStepper(),
-                        const SizedBox(height: 40),
-                        const Text(
-                          'Ringkasan Booking',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 18),
-                        ),
-                        const SizedBox(height: 16),
-                        _buildVehicleCard(),
-                        const SizedBox(height: 24),
-                        _buildDetailKendaraan(),
-                        const SizedBox(height: 24),
-                        _buildLayananSection(),
-                        const SizedBox(height: 24),
-                        _buildKomplaySection(),
-                        if (widget.damagePhoto != null) ...[
-                          const SizedBox(height: 24),
-                          _buildPhotoSection(),
-                        ],
-                        const SizedBox(height: 24),
-                        _buildBengkelCard(),
-                        const SizedBox(height: 24),
-                        _buildTotalSection(),
-                      ],
-                    ),
+            child: SingleChildScrollView(
+              padding: AppTheme.pagePadding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildStepper(),
+                  const SizedBox(height: 32),
+                  const Row(
+                    children: [
+                      Icon(Icons.receipt_long_rounded, color: AppColors.primary, size: 22),
+                      SizedBox(width: 8),
+                      Text('Ringkasan Booking', style: AppTheme.headlineSmall),
+                    ],
                   ),
+                  const SizedBox(height: 6),
+                  const Text('Pastikan data booking Anda sudah benar',
+                      style: AppTheme.bodySmall),
+                  const SizedBox(height: 20),
+                  _buildSummaryCard(
+                    icon: Icons.motorcycle,
+                    title: 'Kendaraan',
+                    child: _buildVehicleInfo(),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildSummaryCard(
+                    icon: Icons.info_outline,
+                    title: 'Detail Kendaraan',
+                    child: _buildDetailKendaraan(),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildSummaryCard(
+                    icon: Icons.camera_alt_outlined,
+                    title: 'Foto Kerusakan',
+                    child: _buildPhotoSection(),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildSummaryCard(
+                    icon: Icons.location_on,
+                    title: 'Bengkel',
+                    child: _buildBengkelInfo(),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
           ),
           _buildBottomButtons(context),
         ],
@@ -157,15 +162,32 @@ class _RingkasanBookingScreenState extends State<RingkasanBookingScreen> {
   }
 
   Widget _buildStepper() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildStepCompleted(Icons.motorcycle, 'Pilih\nKendaraan'),
-        Container(width: 40, height: 2, color: Colors.blue),
-        _buildStepCompleted(Icons.location_on, 'Pilih\nBengkel'),
-        Container(width: 40, height: 2, color: Colors.blue),
-        _buildStepActive(Icons.receipt_long, 'Ringkasan &\nKonfirmasi'),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.08)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildStepCompleted(Icons.motorcycle, 'Pilih\nKendaraan'),
+          _buildConnector(true),
+          _buildStepCompleted(Icons.location_on, 'Pilih\nBengkel'),
+          _buildConnector(true),
+          _buildStepActive(Icons.receipt_long, 'Ringkasan &\nKonfirmasi'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConnector(bool isActive) {
+    return Container(
+      width: 36,
+      height: 2,
+      color: isActive ? AppColors.primary : Colors.grey.shade200,
+      margin: const EdgeInsets.only(bottom: 24),
     );
   }
 
@@ -173,17 +195,17 @@ class _RingkasanBookingScreenState extends State<RingkasanBookingScreen> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(10),
           decoration: const BoxDecoration(
-              shape: BoxShape.circle, color: Colors.lightBlue),
-          child: Icon(icon, color: Colors.white),
+            shape: BoxShape.circle,
+            color: AppColors.primary,
+          ),
+          child: Icon(icon, color: Colors.white, size: 20),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         SizedBox(
-          width: 80,
-          child: Text(label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 10, color: Colors.grey)),
+          width: 72,
+          child: Text(label, textAlign: TextAlign.center, style: AppTheme.bodySmall),
         ),
       ],
     );
@@ -193,57 +215,89 @@ class _RingkasanBookingScreenState extends State<RingkasanBookingScreen> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.lightBlue, width: 2),
+            border: Border.all(color: AppColors.primary, width: 2),
           ),
-          child: Icon(icon, color: Colors.lightBlue),
+          child: Icon(icon, color: AppColors.primary, size: 20),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         SizedBox(
-          width: 80,
-          child: Text(label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                  fontSize: 10,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold)),
+          width: 72,
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 10,
+              color: AppColors.textBody,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildVehicleCard() {
-    final v = widget.selectedVehicle;
+  Widget _buildSummaryCard({required IconData icon, required String title, required Widget child}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: Colors.grey.shade100),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: AppColors.primary, size: 18),
+              const SizedBox(width: 8),
+              Text(title, style: AppTheme.titleMedium),
+            ],
+          ),
+          const SizedBox(height: 12),
+          child,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVehicleInfo() {
     return Row(
       children: [
         Container(
-          width: 80,
-          height: 80,
+          width: 64,
+          height: 64,
           decoration: BoxDecoration(
-            color: Colors.lightBlue.shade50,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(Icons.motorcycle,
-              size: 50, color: Colors.lightBlue),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${v.brand} ${v.model}',
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              Text(
-                v.plateNumber,
-                style: const TextStyle(color: Colors.black54, fontSize: 14),
+            color: AppColors.primaryLight,
+            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.08),
+                blurRadius: 4,
               ),
             ],
           ),
+          child: const Icon(Icons.motorcycle, size: 36, color: AppColors.primary),
+        ),
+        const SizedBox(width: 16),
+        const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Honda Beatrix', style: AppTheme.titleMedium),
+            SizedBox(height: 2),
+            Text('H 1945 AGS', style: AppTheme.bodySmall),
+          ],
         ),
       ],
     );
@@ -252,209 +306,118 @@ class _RingkasanBookingScreenState extends State<RingkasanBookingScreen> {
   Widget _buildDetailKendaraan() {
     final v = widget.selectedVehicle;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Detail Kendaraan',
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: Colors.grey)),
-        const SizedBox(height: 12),
-        _buildRow('Merk', v.brand),
-        _buildRow('Model', v.model),
-        _buildRow('Nomor Plat', v.plateNumber),
-        _buildRow('Tahun', v.manufacturingYear.toString()),
-        _buildRow('Tipe', v.vehicleType),
+        _buildAutoFillRow('Merk Kendaraan', 'Autofill'),
+        _buildAutoFillRow('Tipe Kendaraan', 'Autofill'),
+        _buildAutoFillRow('Nomor Plat', 'Autofill'),
+        _buildAutoFillRow('Tahun Keluaran', 'Autofill'),
       ],
     );
   }
 
   Widget _buildRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 4),
       child: Row(
         children: [
-          Text('$label : ',
-              style: const TextStyle(fontSize: 12, color: Colors.grey)),
-          Text(value,
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 12)),
+          Text('$label : ', style: AppTheme.bodySmall),
+          Text(value, style: AppTheme.titleMedium),
         ],
       ),
     );
   }
 
-  Widget _buildLayananSection() {
-    final services = _summary?.services ?? widget.selectedServices;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildPhotoSection() {
+    return Container(
+      width: 80,
+      height: 80,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 4,
+          ),
+        ],
+      ),
+      child: const Icon(Icons.image, color: Colors.grey, size: 40),
+    );
+  }
+
+  Widget _buildBengkelInfo() {
+    return Row(
       children: [
-        const Text('Layanan Servis',
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: Colors.grey)),
-        const SizedBox(height: 10),
-        ...services.map((s) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppColors.primaryLight,
+            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+          ),
+          child: const Icon(Icons.build_rounded, color: AppColors.primary, size: 22),
+        ),
+        const SizedBox(width: 12),
+        const Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('BENGKEL 123', style: AppTheme.titleMedium),
+              SizedBox(height: 2),
+              Row(
                 children: [
-                  Text(s.serviceName,
-                      style: const TextStyle(fontSize: 13)),
-                  Text(
-                    _formatPrice(double.tryParse(s.basePrice) ?? 0),
-                    style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.lightBlue,
-                        fontWeight: FontWeight.w600),
-                  ),
+                  Icon(Icons.star, size: 14, color: Color(0xFFF59E0B)),
+                  SizedBox(width: 4),
+                  Text('4.8 (120 Penilaian)', style: AppTheme.bodySmall),
                 ],
               ),
-            )),
-      ],
-    );
-  }
-
-  Widget _buildKomplaySection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Catatan Keluhan',
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: Colors.grey)),
-        const SizedBox(height: 8),
-        Text(widget.complaint,
-            style: const TextStyle(fontSize: 13)),
-      ],
-    );
-  }
-
-  Widget _buildPhotoSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Foto Kerusakan',
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: Colors.grey)),
-        const SizedBox(height: 10),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Image.file(widget.damagePhoto!,
-              width: 120, height: 120, fit: BoxFit.cover),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Text('50m',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white)),
         ),
       ],
     );
   }
 
-  Widget _buildBengkelCard() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.lightBlue.shade50,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.lightBlue.shade100,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.build, color: Colors.lightBlue),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              widget.selectedWorkshop.name,
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 14),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTotalSection() {
-    final total = _summary?.totalPrice ??
-        widget.selectedServices.fold<double>(
-            0.0, (sum, s) => sum + (double.tryParse(s.basePrice) ?? 0));
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text('Total Biaya',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          Text(
-            _formatPrice(total),
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: Colors.lightBlue,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildBottomButtons(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
+    return Container(
+      padding: AppTheme.pagePadding,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          ElevatedButton(
-            onPressed: _isSubmitting ? null : () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.grey.shade400,
-              elevation: 0,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
-            ),
-            child: const Text('Kembali',
-                style: TextStyle(color: Colors.white)),
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Kembali'),
           ),
           const SizedBox(width: 12),
           ElevatedButton(
-            onPressed: _isSubmitting ? null : _submitBooking,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.lightBlue,
-              disabledBackgroundColor: Colors.grey.shade300,
-              elevation: 0,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+            onPressed: () => Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const MainWrapper(hasActiveBooking: true)),
+              (route) => false,
             ),
-            child: _isSubmitting
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white),
-                  )
-                : const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12.0),
-                    child: Text('Kirim',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold)),
-                  ),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Text('Kirim'),
+            ),
           ),
         ],
       ),

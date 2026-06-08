@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:motocare/core/services/booking_service.dart';
-import 'package:motocare/features/customer/booking/models/booking_models.dart';
+import 'package:motocare/core/theme/app_colors.dart';
+import 'package:motocare/core/theme/app_theme.dart';
 
 class PilihKendaraanBottomSheet extends StatefulWidget {
   const PilihKendaraanBottomSheet({super.key});
@@ -61,97 +61,66 @@ class _PilihKendaraanBottomSheetState
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Pilih Kendaraan',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                const Text('Pilih Kendaraan', style: AppTheme.titleLarge),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(Icons.close, color: Colors.grey),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _vehicles.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'Tidak ada kendaraan terdaftar.',
-                          style: TextStyle(color: Colors.grey),
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: 4,
+              itemBuilder: (context, index) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryLight,
+                          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                         ),
-                      )
-                    : ListView.builder(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 20),
-                        itemCount: _vehicles.length,
-                        itemBuilder: (context, index) {
-                          final vehicle = _vehicles[index];
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 60,
-                                  height: 60,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade100,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(Icons.motorcycle,
-                                      color: Colors.grey),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '${vehicle.brand} ${vehicle.model}',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 15,
-                                        ),
-                                      ),
-                                      Text(
-                                        vehicle.plateNumber,
-                                        style: const TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      Text(
-                                        '${vehicle.manufacturingYear} · ${vehicle.vehicleType}',
-                                        style: const TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 11,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.pop(context, vehicle);
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.lightBlue,
-                                    minimumSize: const Size(60, 32),
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12),
-                                  ),
-                                  child: const Text(
-                                    'Pilih',
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 12),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+                        child: const Icon(Icons.motorcycle, color: AppColors.primary),
                       ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Honda Beatrix', style: AppTheme.titleMedium),
+                            const Text('H 1945 AGS', style: AppTheme.bodySmall),
+                          ],
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(70, 32),
+                          padding: EdgeInsets.zero,
+                        ),
+                        child: const Text('Pilih', style: TextStyle(fontSize: 12)),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),

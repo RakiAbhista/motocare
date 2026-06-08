@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:motocare/core/theme/app_colors.dart';
+import 'package:motocare/core/theme/app_theme.dart';
 
 class ServiceDetailBottomSheet extends StatelessWidget {
   final Map<String, dynamic> orderData;
@@ -47,11 +48,11 @@ class ServiceDetailBottomSheet extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _ServiceCostCard(orderData: orderData),
+                  const _ServiceCostCard(),
                   const SizedBox(height: 16),
                   const _DocumentationCard(),
                   const SizedBox(height: 16),
-                  _ReceiptCard(orderData: orderData),
+                  const _ReceiptCard(),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -110,42 +111,35 @@ class _ServiceCostCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
       ),
       child: Column(
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.manage_history, size: 40, color: Colors.black87),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                ),
+                child: const Icon(Icons.manage_history, size: 28, color: AppColors.primary),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      serviceNames.isNotEmpty ? serviceNames : 'Service',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                    ),
-                    Text(
-                      _formatDate(bookingDate),
-                      style: const TextStyle(
-                        color: Colors.black87,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    const Text('Ganti Oli', style: AppTheme.titleLarge),
+                    const SizedBox(height: 2),
+                    const Text('19 Maret 2025', style: AppTheme.bodySmall),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 14, color: Colors.black54),
+                        Icon(Icons.location_on, size: 14, color: Colors.grey.shade600),
                         const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            workshop?['name'] ?? '-',
-                            style: const TextStyle(color: Colors.black54, fontSize: 12),
-                          ),
-                        ),
+                        const Text('Bengkel Semarang Barat', style: AppTheme.bodySmall),
                       ],
                     ),
                   ],
@@ -154,46 +148,39 @@ class _ServiceCostCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Divider(color: Colors.grey.shade200, thickness: 1),
+          const Divider(),
           const SizedBox(height: 8),
-
-          // List each service with its price
-          ...services.map((service) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      service['service_name'] ?? '-',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                    ),
-                  ),
-                  Text(
-                    _formatCurrency(service['base_price']),
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
-
-          const SizedBox(height: 4),
-          Divider(color: Colors.grey.shade200, thickness: 1),
+          _buildCostRow('Spare parts Oli', 'Rp 55.000'),
           const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Total Biaya', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-              Text(
-                _formatCurrency(totalPrice),
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-            ],
-          ),
+          _buildCostRow('Biaya Jasa', 'Rp 50.000'),
+          const SizedBox(height: 8),
+          const Divider(),
+          const SizedBox(height: 8),
+          _buildTotalRow('Total Biaya', 'Rp 105.000'),
         ],
       ),
+    );
+  }
+
+  Widget _buildCostRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: AppTheme.bodyMedium),
+        Text(value, style: AppTheme.titleMedium),
+      ],
+    );
+  }
+
+  Widget _buildTotalRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: AppTheme.titleLarge),
+        Text(value,
+            style:
+                const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary)),
+      ],
     );
   }
 }
@@ -207,19 +194,19 @@ class _DocumentationCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Dokumentasi Service', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const Text('Dokumentasi Service', style: AppTheme.titleLarge),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(width: 85, height: 85, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(8))),
-              Container(width: 85, height: 85, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(8))),
-              Container(width: 85, height: 85, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(8))),
+              _buildDocPlaceholder(),
+              _buildDocPlaceholder(),
+              _buildDocPlaceholder(),
             ],
           ),
           const SizedBox(height: 16),
@@ -227,13 +214,25 @@ class _DocumentationCard extends StatelessWidget {
             children: [
               Expanded(child: Divider(color: Colors.grey.shade300)),
               const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12.0),
-                child: Text('Lihat Semua Foto', style: TextStyle(color: Colors.grey, fontSize: 10)),
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Text('Lihat Semua Foto',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 10)),
               ),
               Expanded(child: Divider(color: Colors.grey.shade300)),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDocPlaceholder() {
+    return Container(
+      width: 85,
+      height: 85,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade300,
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
       ),
     );
   }
@@ -274,54 +273,14 @@ class _ReceiptCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Receipt',
-                style: TextStyle(
-                  color: Color(0xFF1565C0),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              Text(
-                'Order #$orderId',
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Bengkel
-          _receiptRow('Bengkel', workshop?['name'] ?? '-'),
-          const SizedBox(height: 8),
-          Divider(color: Colors.grey.shade200),
-          const SizedBox(height: 8),
-          // Services
-          ...services.map((s) => Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: _receiptRow(
-              s['service_name'] ?? '-',
-              _formatCurrency(s['base_price']),
-            ),
-          )).toList(),
-          const SizedBox(height: 8),
-          Divider(color: Colors.grey.shade300, thickness: 1.5),
-          const SizedBox(height: 8),
-          _receiptRow(
-            'Total',
-            _formatCurrency(totalPrice),
-            isBold: true,
-          ),
+          const Text('Receipt',
+              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 120),
         ],
       ),
     );

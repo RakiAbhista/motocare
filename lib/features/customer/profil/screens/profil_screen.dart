@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:motocare/core/theme/app_colors.dart';
+import 'package:motocare/core/theme/app_theme.dart';
+import 'package:motocare/core/theme/app_background.dart';
+import 'package:motocare/features/customer/home/screens/notifikasi_screen.dart';
 import 'package:motocare/features/customer/kendaraan/screens/tambah_kendaraan_screen.dart';
 import 'package:motocare/features/customer/kendaraan/widgets/detail_motor_bottom_sheet.dart';
-import '../widgets/profile_dialogs.dart';
+import 'package:motocare/widgets/custom_card.dart';
 
 class ProfilScreen extends StatelessWidget {
   const ProfilScreen({super.key});
@@ -9,95 +13,32 @@ class ProfilScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: const [
-              _HeaderWithOverlapCard(),
-              _VehicleSection(),
-              _HelpAndSupport(),
-              SizedBox(height: 100),
-            ],
+      body: BengkelBackground(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                const _ProfileHeader(),
+                const SizedBox(height: 28),
+                Padding(
+                  padding: AppTheme.pagePaddingH,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const _PointsCard(),
+                      const SizedBox(height: 28),
+                      const _VehicleSection(),
+                      const SizedBox(height: 24),
+                      const _HelpAndSupport(),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 100),
+              ],
+            ),
           ),
         ),
       ),
-    );
-  }
-}
-
-class _HeaderWithOverlapCard extends StatelessWidget {
-  const _HeaderWithOverlapCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      alignment: Alignment.bottomCenter,
-      children: [
-        const _ProfileHeader(),
-        const _PointsAndVoucherCard(),
-        /// SETTINGS BUTTON - TOP RIGHT (titik tiga)
-        Positioned(
-          top: 12,
-          right: 12,
-          child: PopupMenuButton<String>(
-            icon: const Icon(
-              Icons.more_vert,
-              color: Colors.white,
-              size: 28,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            color: Colors.white,
-            elevation: 8,
-            offset: const Offset(0, 45),
-            onSelected: (value) {
-              if (value == 'edit_profile') {
-                showEditPhoneDialog(context);
-              } else if (value == 'logout') {
-                showLogoutDialog(context);
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'edit_profile',
-                child: Row(
-                  children: const [
-                    Icon(Icons.edit, color: Colors.blue, size: 20),
-                    SizedBox(width: 10),
-                    Text(
-                      'Edit Profile',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const PopupMenuDivider(),
-              PopupMenuItem(
-                value: 'logout',
-                child: Row(
-                  children: const [
-                    Icon(Icons.logout, color: Colors.red, size: 20),
-                    SizedBox(width: 10),
-                    Text(
-                      'Logout',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Colors.red,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }
@@ -109,123 +50,128 @@ class _ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 260,
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 36),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Colors.blue, Color(0xFF29B6F6)],
+        color: AppColors.primary,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
         ),
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const NotifikasiScreen()),
+                  ),
+                  child: const Icon(Icons.notifications, color: Colors.white, size: 22),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
           Container(
             width: 100,
             height: 100,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            child: const Icon(
-              Icons.person,
-              size: 70,
-              color: Colors.grey,
-            ),
+            child: const Icon(Icons.person, size: 60, color: Colors.grey),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           const Text(
             'John Doe',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+            style: AppTheme.headlineLarge,
+          ),
+          const SizedBox(height: 4),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              'john.doe@email.com',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.9),
+                fontSize: 13,
+              ),
             ),
           ),
-          const SizedBox(height: 40),
         ],
       ),
     );
   }
 }
 
-class _PointsAndVoucherCard extends StatelessWidget {
-  const _PointsAndVoucherCard();
+class _PointsCard extends StatelessWidget {
+  const _PointsCard();
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      bottom: -25,
-      left: 20,
-      right: 20,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withValues(alpha: 0.08),
+            AppColors.primary.withValues(alpha: 0.02),
           ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.12)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            const _PointsSection(),
-            Container(
-              height: 30,
-              width: 2,
-              color: Colors.grey.shade200,
-            ),
-            const _VoucherSection(),
+            _buildPointItem(Icons.stars_rounded, '36', 'Poin'),
+            Container(height: 40, width: 1, color: AppColors.primary.withValues(alpha: 0.15)),
+            _buildPointItem(Icons.local_activity_rounded, '2', 'Voucher'),
           ],
         ),
       ),
     );
   }
-}
 
-class _PointsSection extends StatelessWidget {
-  const _PointsSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Row(
+  Widget _buildPointItem(IconData icon, String value, String label) {
+    return Column(
       children: [
-        Icon(Icons.star, color: Colors.blue, size: 30),
-        SizedBox(width: 8),
+        Icon(icon, color: AppColors.primary, size: 28),
+        const SizedBox(height: 6),
         Text(
-          '36 Points',
-          style: TextStyle(
-            color: Colors.blue,
+          value,
+          style: const TextStyle(
+            color: AppColors.primary,
             fontWeight: FontWeight.bold,
-            fontSize: 16,
+            fontSize: 22,
           ),
         ),
-      ],
-    );
-  }
-}
-
-class _VoucherSection extends StatelessWidget {
-  const _VoucherSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Row(
-      children: [
-        Icon(Icons.local_activity, color: Colors.blue, size: 30),
-        SizedBox(width: 8),
         Text(
-          '2 Voucher',
+          label,
           style: TextStyle(
-            color: Colors.blue,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
+            color: AppColors.primary.withValues(alpha: 0.7),
+            fontSize: 12,
           ),
         ),
       ],
@@ -238,32 +184,47 @@ class _VehicleSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 60, left: 20, right: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Kendaraan anda',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          children: [
+            Icon(Icons.motorcycle, color: AppColors.primary, size: 20),
+            SizedBox(width: 8),
+            Text('Kendaraan Anda', style: AppTheme.titleLarge),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _VehicleListItem(
+          name: 'Honad Betarix',
+          plate: 'H1945 AGS',
+          onTap: () => DetailMotorBottomSheet.show(context),
+        ),
+        const SizedBox(height: 12),
+        _VehicleListItem(
+          name: 'Honad Betarix',
+          plate: 'H1945 AGS',
+          onTap: () => DetailMotorBottomSheet.show(context),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Punya kendaraan lain?', style: AppTheme.titleMedium),
+            ElevatedButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const TambahKendaraanScreen()),
+              ),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Tambah'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          const _VehicleListItem(
-            name: 'Honda Beatrix',
-            plate: 'H 1945 AGS',
-          ),
-          const SizedBox(height: 16),
-          const _VehicleListItem(
-            name: 'Honda Beatrix',
-            plate: 'H 1945 AGS',
-          ),
-          const SizedBox(height: 8),
-          _AddVehicleButton(),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -271,125 +232,65 @@ class _VehicleSection extends StatelessWidget {
 class _VehicleListItem extends StatelessWidget {
   final String name;
   final String plate;
+  final VoidCallback? onTap;
 
-  const _VehicleListItem({required this.name, required this.plate});
+  const _VehicleListItem({
+    required this.name,
+    required this.plate,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-        border: Border.all(color: Colors.grey.shade200),
-      ),
+    return CustomCard(
+      accentColor: AppColors.primary,
+      cutCorner: true,
       child: Row(
         children: [
           Container(
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(8),
+              color: AppColors.primaryLight,
+              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.08),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            child: const Icon(
-              Icons.motorcycle,
-              size: 50,
-              color: Colors.grey,
-            ),
+            child: const Icon(Icons.motorcycle, size: 45, color: AppColors.primary),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
+                Text(name, style: AppTheme.titleLarge),
+                const SizedBox(height: 2),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(4),
                   ),
+                  child: Text(plate, style: AppTheme.bodySmall.copyWith(color: AppColors.primary)),
                 ),
-                Text(
-                  plate,
-                  style: const TextStyle(
-                    color: Colors.black87,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _DetailButton(),
               ],
             ),
           ),
+          OutlinedButton(
+            onPressed: onTap,
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: AppColors.primary.withValues(alpha: 0.4)),
+            ),
+            child: const Text('Detail'),
+          ),
+          const SizedBox(width: 4),
         ],
       ),
-    );
-  }
-}
-
-class _DetailButton extends StatelessWidget {
-  const _DetailButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: () => DetailMotorBottomSheet.show(context),
-      style: OutlinedButton.styleFrom(
-        side: const BorderSide(color: Colors.blue),
-        minimumSize: const Size(80, 30),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-      child: const Text(
-        'Detail',
-        style: TextStyle(color: Colors.blue),
-      ),
-    );
-  }
-}
-
-class _AddVehicleButton extends StatelessWidget {
-  const _AddVehicleButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          'Punya kendaraan lain?',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        OutlinedButton(
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const TambahKendaraanScreen()),
-          ),
-          style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: Colors.blue),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          child: const Text(
-            'Tambah',
-            style: TextStyle(
-              color: Colors.blue,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -399,18 +300,23 @@ class _HelpAndSupport extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-      child: Center(
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
+        ),
         child: RichText(
           text: const TextSpan(
             text: 'Butuh Bantuan? ',
-            style: TextStyle(color: Colors.grey, fontSize: 12),
-            children: const [
+            style: AppTheme.bodySmall,
+            children: [
               TextSpan(
                 text: 'Klik Disini!',
                 style: TextStyle(
-                  color: Colors.blue,
+                  color: AppColors.primary,
                   fontWeight: FontWeight.bold,
                 ),
               ),

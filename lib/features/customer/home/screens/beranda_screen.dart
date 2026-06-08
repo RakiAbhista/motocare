@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-
-import '../../../../core/services/customer_home_service.dart';
-import '../../../../widgets/custom_top_bar.dart';
+import 'package:motocare/core/theme/app_colors.dart';
+import 'package:motocare/core/theme/app_theme.dart';
+import 'package:motocare/core/theme/app_background.dart';
+import 'package:motocare/widgets/custom_top_bar.dart';
+import 'package:motocare/widgets/custom_card.dart';
+import 'package:motocare/widgets/section_header.dart';
+import 'package:motocare/widgets/status_badge.dart';
 import '../widgets/promo_banner_carousel.dart';
-import '../../emergency/screens/panggilan_darurat_screen.dart';
 import 'notifikasi_screen.dart';
 import '../../kendaraan/widgets/detail_motor_bottom_sheet.dart';
 import '../../booking/screens/booking_servis_screen.dart';
@@ -59,75 +61,39 @@ class _BerandaScreenState extends State<BerandaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isWideScreen = screenWidth > 600;
-    final contentWidth = isWideScreen ? 800.0 : screenWidth;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const PanggilanDaruratScreen()),
-        ),
-        backgroundColor: const Color(0xFFD32F2F),
-        shape: const CircleBorder(),
-        child: const Icon(Icons.warning_amber, color: Colors.black, size: 28),
-      ),
-      body: SafeArea(
-        child: isLoading 
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header & Banner
-              _buildHeader(context),
-              const SizedBox(height: 20),
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isWideScreen ? 40 : 16,
-                ),
-                child: Center(
-                  child: SizedBox(
-                    width: contentWidth,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        PromoBannerCarousel(banners: homeData?['banners']),
+      body: BengkelBackground(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(context),
+                const SizedBox(height: 20),
+                Padding(
+                  padding: AppTheme.pagePaddingH,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const PromoBannerCarousel(),
+                      const SizedBox(height: 24),
+                      _buildPointsVoucherCard(context),
+                      const SizedBox(height: 24),
+                      if (daruratType != null) ...[
+                        _buildStatusDarurat(),
                         const SizedBox(height: 24),
-
-                        // Points & Voucher Card
-                        _buildPointsVoucherCard(context),
-                        const SizedBox(height: 20),
-
-                        // Status Panggilan Darurat
-                        if (widget.daruratType != null) ...[
-                          _buildStatusDarurat(),
-                          const SizedBox(height: 24),
-                        ],
-
-                        const SizedBox(height: 20),
-
-                        // Kendaraan Anda
-                        _buildKendaraanCard(context),
-                        const SizedBox(height: 20),
-
-                        // Service Status & Booking
-                        _buildServiceSection(context),
-                        const SizedBox(height: 24),
-
-                        // Riwayat Service Terbaru (hanya tampil jika tidak ada active order)
-                        if (homeData?['active_order'] == null) ...[
-                          _buildRecentServiceHistory(),
-                          const SizedBox(height: 100),
-                        ],
                       ],
-                    ),
+                      _buildKendaraanCard(context),
+                      const SizedBox(height: 24),
+                      _buildServiceSection(context),
+                      const SizedBox(height: 24),
+                      _buildRecentServiceHistory(),
+                      const SizedBox(height: 100),
+                    ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -148,120 +114,139 @@ class _BerandaScreenState extends State<BerandaScreen> {
     final points = userSummary?['points'] ?? 0;
     
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withValues(alpha: 0.08),
+            AppColors.primary.withValues(alpha: 0.02),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: AppColors.primary.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.stars, color: Colors.blue, size: 24),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg - 1),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 ),
-                const SizedBox(width: 12),
-                Column(
+                child: const Icon(Icons.stars_rounded, color: AppColors.primary, size: 28),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Poin Saya',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '$points Poin',
-                      style: const TextStyle(
-                        color: Colors.blue,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    const Text('Poin Saya', style: AppTheme.bodySmall),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Text('36', style: TextStyle(color: AppColors.primary, fontSize: 28, fontWeight: FontWeight.bold)),
+                        const SizedBox(width: 4),
+                        Text('Poin', style: TextStyle(color: AppColors.primary.withValues(alpha: 0.7), fontSize: 14, fontWeight: FontWeight.w600)),
+                        const SizedBox(width: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.warning.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.local_activity, size: 12, color: AppColors.warning),
+                              SizedBox(width: 4),
+                              Text('2 Voucher', style: TextStyle(color: AppColors.warning, fontSize: 11, fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          Container(
-            height: 40,
-            width: 1,
-            color: Colors.grey.shade200,
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Fitur Voucher akan segera hadir!')),
-              );
-            },
-            icon: const Icon(Icons.local_activity, size: 18),
-            label: const Text('Voucher'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
               ),
-            ),
+              Container(
+                height: 38,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Tukar', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                      const SizedBox(width: 4),
+                      Icon(Icons.chevron_right, color: Colors.white.withValues(alpha: 0.7), size: 16),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildKendaraanCard(BuildContext context) {
-    final vehicles = homeData?['vehicles'] as List<dynamic>?;
-    final vehicle = (vehicles != null && vehicles.isNotEmpty) ? vehicles.first : null;
-    final vehicleName = vehicle != null ? '${vehicle['brand']} ${vehicle['model']}' : 'Belum ada kendaraan';
-    final plateNumber = vehicle?['plate_number'] ?? '-';
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return CustomCard(
+      accentColor: AppColors.primary,
+      cutCorner: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text(
-                'Kendaraan Anda',
-                style: TextStyle(
-                  color: Colors.blue,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.motorcycle, color: AppColors.primary, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Kendaraan Anda',
+                    style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.success.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.check_circle, size: 12, color: AppColors.success),
+                    SizedBox(width: 4),
+                    Text('Aktif', style: TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.w600)),
+                  ],
                 ),
               ),
-              Icon(Icons.arrow_drop_down, color: Colors.grey),
             ],
           ),
           const SizedBox(height: 16),
@@ -269,45 +254,56 @@ class _BerandaScreenState extends State<BerandaScreen> {
             children: [
               Container(
                 width: 100,
-                height: 80,
+                height: 90,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.08),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                child: const Icon(Icons.motorcycle, size: 50, color: Colors.grey),
+                child: const Icon(Icons.motorcycle, size: 50, color: AppColors.primary),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      vehicleName.toUpperCase(),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
+                    const Row(
+                      children: [
+                        Expanded(child: Text('Honda Beatrix', style: AppTheme.titleLarge)),
+                      ],
                     ),
-                    Text(
-                      plateNumber,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: () => DetailMotorBottomSheet.show(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(80, 32),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text('H 1945 AGS', style: TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w600)),
                         ),
+                        const SizedBox(width: 8),
+                        const Text('2020', style: AppTheme.bodySmall),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      height: 32,
+                      child: OutlinedButton(
+                        onPressed: () => DetailMotorBottomSheet.show(context),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          side: BorderSide(color: AppColors.primary.withValues(alpha: 0.4)),
+                        ),
+                        child: const Text('Detail Kendaraan', style: TextStyle(fontSize: 12)),
                       ),
-                      child: const Text('Detail'),
                     ),
                   ],
                 ),
@@ -325,45 +321,102 @@ class _BerandaScreenState extends State<BerandaScreen> {
     final step2Label = isMekanik ? 'Mekanik Menuju Lokasi' : 'Towing Menuju Lokasi';
 
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.2)),
+        color: AppColors.danger.withValues(alpha: 0.04),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2)),
+          BoxShadow(
+            color: AppColors.danger.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Status Panggilan Darurat',
-            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-          const SizedBox(height: 8),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildTrackerNode(true, 'Peninjauan\nPanggilan'),
-              _buildTrackerLine(false),
-              _buildTrackerNode(false, step2Label),
-              _buildTrackerLine(false),
-              _buildTrackerNode(false, 'Servis\nBerlangsung'),
-              _buildTrackerLine(false),
-              _buildTrackerNode(false, 'Menunggu\nPembayaran'),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const Center(
-            child: Text(
-              'Menunggu konfirmasi mekanik...',
-              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 14),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.danger.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                  ),
+                  child: const Icon(Icons.warning_amber_rounded, color: AppColors.danger, size: 18),
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Status Panggilan Darurat',
+                    style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ),
+                StatusBadge.danger('Aktif'),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.danger,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: AppTheme.titleMedium.copyWith(color: AppColors.danger)),
+                    const SizedBox(height: 2),
+                    const Text('Sedang dalam penanganan...', style: AppTheme.bodySmall),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildTrackerNode(true, 'Peninjauan\nPanggilan'),
+                _buildTrackerLine(false),
+                _buildTrackerNode(false, step2Label),
+                _buildTrackerLine(false),
+                _buildTrackerNode(false, 'Servis\nBerlangsung'),
+                _buildTrackerLine(false),
+                _buildTrackerNode(false, 'Menunggu\nPembayaran'),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.danger.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 12, height: 12,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.danger),
+                    ),
+                    SizedBox(width: 8),
+                    Text('Menunggu konfirmasi mekanik...', style: TextStyle(color: AppColors.danger, fontSize: 12, fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -379,125 +432,131 @@ class _BerandaScreenState extends State<BerandaScreen> {
     final hasActiveOrder = activeOrder != null;
 
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withValues(alpha: 0.06),
+            Colors.white,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.12)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: AppColors.primary.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Status Service',
-            style: TextStyle(
-              color: Colors.blue,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-          const SizedBox(height: 8),
-          if (!hasActiveOrder) ...[
-            // ✅ Default view: No active order
-            Text(
-              vehicleName.toUpperCase(),
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-            ),
-            Text(
-              plateNumber,
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const BookingServisScreen()),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                   ),
+                  child: const Icon(Icons.build_rounded, color: AppColors.primary, size: 18),
                 ),
-                child: const Text(
-                  'Booking Servis',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                const SizedBox(width: 10),
+                const Text(
+                  'Status Servis',
+                  style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16),
                 ),
-              ),
-            ),
-          ] else ...[
-            // ✅ Active order view with status tracker
-            Text(
-              vehicleName.toUpperCase(),
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-            ),
-            Text(
-              plateNumber,
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-            const SizedBox(height: 12),
-            
-            // Status badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: _getStatusColor(activeOrder['status']).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                _getStatusLabel(activeOrder['status']),
-                style: TextStyle(
-                  color: _getStatusColor(activeOrder['status']),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
+              ],
             ),
             const SizedBox(height: 16),
-            
-            // Status tracker
-            _buildTrackerWithStatus(activeOrder['status']),
-            const SizedBox(height: 16),
-            
-            // Services info
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            if (!hasActiveBooking) ...[
+              Row(
                 children: [
-                  const Text(
-                    'Layanan yang dipesan:',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  Container(
+                    width: 48, height: 48,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                    ),
+                    child: const Icon(Icons.motorcycle, size: 28, color: AppColors.primary),
                   ),
-                  const SizedBox(height: 8),
-                  ...(activeOrder['services'] as List<dynamic>?)?.map((service) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text(
-                        '• ${service['service_name']}',
-                        style: const TextStyle(fontSize: 11, color: Colors.grey),
-                      ),
-                    );
-                  }).toList() ?? [],
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('HONDA BEATRIX', style: AppTheme.titleMedium),
+                        SizedBox(height: 2),
+                        Text('H 1945 AGS', style: AppTheme.bodySmall),
+                      ],
+                    ),
+                  ),
+                  StatusBadge.warning('Belum Servis'),
                 ],
               ),
-            ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const BookingServisScreen()),
+                  ),
+                  icon: const Icon(Icons.build_rounded, size: 18),
+                  label: const Text('Booking Servis Sekarang'),
+                ),
+              ),
+            ] else ...[
+              Row(
+                children: [
+                  Container(
+                    width: 48, height: 48,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                    ),
+                    child: const Icon(Icons.motorcycle, size: 28, color: AppColors.primary),
+                  ),
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('HONDA BEATRIX', style: AppTheme.titleMedium),
+                        SizedBox(height: 2),
+                        Text('H 1945 AGS', style: AppTheme.bodySmall),
+                      ],
+                    ),
+                  ),
+                  StatusBadge.primary('Dalam Antrian'),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildTrackerNode(true, 'Sedang\nDitinjau'),
+                  _buildTrackerLine(false),
+                  _buildTrackerNode(false, 'Servis\nDimulai'),
+                  _buildTrackerLine(false),
+                  _buildTrackerNode(false, 'Menunggu\nPembayaran'),
+                  _buildTrackerLine(false),
+                  _buildTrackerNode(false, 'Servis\nSelesai'),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Center(
+                child: StatusBadge.primary('Wait for review'),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -563,16 +622,25 @@ class _BerandaScreenState extends State<BerandaScreen> {
   Widget _buildTrackerNode(bool isActive, String label) {
     return Column(
       children: [
-        Container(
-          width: 24,
-          height: 24,
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          width: isActive ? 28 : 24,
+          height: isActive ? 28 : 24,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isActive ? Colors.blue : Colors.transparent,
+            color: isActive ? AppColors.primary : Colors.transparent,
             border: Border.all(
-              color: isActive ? Colors.blue : Colors.grey.shade300,
+              color: isActive ? AppColors.primary : Colors.grey.shade300,
               width: 2,
             ),
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.3),
+                      blurRadius: 6,
+                    ),
+                  ]
+                : null,
           ),
           child: isActive
               ? const Icon(Icons.check, color: Colors.white, size: 14)
@@ -584,7 +652,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
           child: Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 10, color: Colors.black87),
+            style: AppTheme.bodySmall,
           ),
         ),
       ],
@@ -595,8 +663,15 @@ class _BerandaScreenState extends State<BerandaScreen> {
     return Container(
       width: 32,
       height: 2,
-      color: isActive ? Colors.blue : Colors.grey.shade300,
-      margin: const EdgeInsets.only(top: 11),
+      decoration: BoxDecoration(
+        gradient: isActive
+            ? const LinearGradient(
+                colors: [AppColors.primary, AppColors.secondary],
+              )
+            : null,
+        color: isActive ? null : Colors.grey.shade300,
+      ),
+      margin: const EdgeInsets.only(top: 13),
     );
   }
 
@@ -604,76 +679,75 @@ class _BerandaScreenState extends State<BerandaScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text(
-              'Riwayat Servis',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            Text(
-              'Lihat Semua',
-              style: TextStyle(
-                color: Colors.blue,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+        const SectionHeader(
+          title: 'Riwayat Servis',
+          actionLabel: 'Lihat Semua',
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         Container(
-          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            border: Border.all(color: AppColors.success.withValues(alpha: 0.15)),
+            color: AppColors.success.withValues(alpha: 0.03),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: AppColors.success.withValues(alpha: 0.04),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
             ],
           ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.check_circle, color: Colors.green, size: 24),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              onTap: () {},
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
                   children: [
-                    Text(
-                      'Ganti Oli & Tune Up',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                      ),
+                      child: const Icon(Icons.check_circle, color: AppColors.success, size: 26),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Ganti Oli & Tune Up', style: AppTheme.titleMedium),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.calendar_today, size: 10, color: Colors.grey.shade400),
+                              const SizedBox(width: 4),
+                              Text('28 Apr 2026', style: AppTheme.labelSmall),
+                              const SizedBox(width: 12),
+                              Icon(Icons.location_on, size: 10, color: Colors.grey.shade400),
+                              const SizedBox(width: 4),
+                              Text('Bengkel MotoCare', style: AppTheme.labelSmall),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    SizedBox(height: 4),
-                    Text(
-                      '28 Apr 2026 • Bengkel MotoCare',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
                       ),
+                      child: const Icon(Icons.chevron_right, color: AppColors.success, size: 18),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: Colors.grey),
-            ],
+            ),
           ),
         ),
       ],
