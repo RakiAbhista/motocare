@@ -35,7 +35,7 @@ class OrderDetailSheet extends StatefulWidget {
 class _OrderDetailSheetState extends State<OrderDetailSheet> {
   bool _isLoading = false;
 
-  void _updateStatus(String newStatus) async {
+  void _acceptOrder() async {
     setState(() => _isLoading = true);
     final orderId = widget.order['order_id'] ?? widget.order['id'];
     
@@ -47,30 +47,49 @@ class _OrderDetailSheetState extends State<OrderDetailSheet> {
       return;
     }
 
-    final success = await MechanicService().updateOrderStatus(orderId, newStatus);
+    final success = await MechanicService().acceptOrder(orderId);
     
     if (mounted) {
       setState(() => _isLoading = false);
       Navigator.pop(context);
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Status order berhasil diperbarui ke: $newStatus'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-      } else {
-        // Fallback simulation to keep app flow responsive and testable even if backend doesn't support state changes
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Status order diperbarui ke: $newStatus'),
-            backgroundColor: AppColors.primary,
-          ),
-        );
-      }
-      if (widget.onStatusUpdated != null) {
-        widget.onStatusUpdated!();
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success
+              ? 'Order berhasil diterima dan dimulai!'
+              : 'Gagal menerima order. Silakan coba lagi.'),
+          backgroundColor: success ? AppColors.success : Colors.red,
+        ),
+      );
+      widget.onStatusUpdated?.call();
+    }
+  }
+
+  void _completeOrder() async {
+    setState(() => _isLoading = true);
+    final orderId = widget.order['order_id'] ?? widget.order['id'];
+    
+    if (orderId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ID Order tidak ditemukan')),
+      );
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    final success = await MechanicService().completeOrder(orderId);
+    
+    if (mounted) {
+      setState(() => _isLoading = false);
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success
+              ? 'Pekerjaan berhasil diselesaikan!'
+              : 'Gagal menyelesaikan pekerjaan. Silakan coba lagi.'),
+          backgroundColor: success ? AppColors.success : Colors.red,
+        ),
+      );
+      widget.onStatusUpdated?.call();
     }
   }
 
@@ -437,11 +456,11 @@ class _OrderDetailSheetState extends State<OrderDetailSheet> {
                   : ElevatedButton(
                       onPressed: () {
                         if (status == 'PROCESS' || status == 'IN PROGRESS') {
-                          _updateStatus('completed');
+                          _completeOrder();
                         } else if (status == 'COMPLETED' || status == 'SELESAI') {
                           // No action needed
                         } else {
-                          _updateStatus('process');
+                          _acceptOrder();
                         }
                       },
                       style: ElevatedButton.styleFrom(

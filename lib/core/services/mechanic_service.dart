@@ -43,26 +43,40 @@ class MechanicService {
     }
   }
 
-  /// Update order status (Mulai / Selesai)
-  /// We define this to allow the mechanic to update the order status
-  Future<bool> updateOrderStatus(int orderId, String status) async {
+  /// Accept order (Mulai Kerja) — POST /mechanic/orders/{id}/accept
+  Future<bool> acceptOrder(dynamic orderId) async {
     try {
-      print('🔵 [MechanicService] Updating order $orderId status to: $status');
+      print('🔵 [MechanicService] Accepting order $orderId');
       final response = await http.post(
-        Uri.parse('$baseUrl/mechanic/orders/$orderId/status'),
+        Uri.parse('$baseUrl/mechanic/orders/$orderId/accept'),
         headers: _getHeaders(),
-        body: jsonEncode({'status': status}),
       );
 
-      print('🔵 [MechanicService] Update status: ${response.statusCode}');
-      print('🔵 [MechanicService] Update response: ${response.body}');
+      print('🔵 [MechanicService] Accept status: ${response.statusCode}');
+      print('🔵 [MechanicService] Accept response: ${response.body}');
 
-      if (response.statusCode == 200) {
-        return true;
-      }
-      return false;
+      return response.statusCode == 200;
     } catch (e) {
-      print('❌ [MechanicService] Error updating order status: $e');
+      print('❌ [MechanicService] Error accepting order: $e');
+      return false;
+    }
+  }
+
+  /// Complete order (Selesaikan Pekerjaan) — POST /mechanic/orders/{id}/complete
+  Future<bool> completeOrder(dynamic orderId) async {
+    try {
+      print('🔵 [MechanicService] Completing order $orderId');
+      final response = await http.post(
+        Uri.parse('$baseUrl/mechanic/orders/$orderId/complete'),
+        headers: _getHeaders(),
+      );
+
+      print('🔵 [MechanicService] Complete status: ${response.statusCode}');
+      print('🔵 [MechanicService] Complete response: ${response.body}');
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('❌ [MechanicService] Error completing order: $e');
       return false;
     }
   }
