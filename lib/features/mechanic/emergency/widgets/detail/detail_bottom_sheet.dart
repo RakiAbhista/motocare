@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:motocare/core/theme/app_colors.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../screens/emergency_invoice_screen.dart';
 
 class DetailBottomSheet extends StatelessWidget {
-  const DetailBottomSheet({super.key});
+  final double customerLatitude;
+  final double customerLongitude;
+
+  const DetailBottomSheet({
+    super.key,
+    required this.customerLatitude,
+    required this.customerLongitude,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -334,6 +342,78 @@ class DetailBottomSheet extends StatelessWidget {
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                         ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Action Button: Navigasi
+              Container(
+                width: double.infinity,
+                height: 55,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: AppColors.primary, width: 2),
+                  borderRadius: BorderRadius.circular(9999),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(9999),
+                    onTap: () async {
+                      final Uri url = Uri.parse(
+                          'https://www.google.com/maps/dir/?api=1&destination=$customerLatitude,$customerLongitude');
+                      try {
+                        final bool launched = await launchUrl(
+                          url,
+                          mode: LaunchMode.externalApplication,
+                        );
+                        if (!launched && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Tidak dapat membuka Google Maps'),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Gagal membuka Google Maps: $e'),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    child: const Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.map_outlined,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Navigasi (Google Maps)',
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
