@@ -6,7 +6,7 @@ import 'work_status_card.dart';
 import 'servis_selesai_card.dart';
 import 'profile_menu_card.dart';
 import '../screens/work_history_screen.dart';
-import 'package:motocare/main.dart';
+import 'package:motocare/features/auth/login/screens/login_screen.dart';
 
 class ProfileContent extends StatefulWidget {
   const ProfileContent({super.key});
@@ -237,7 +237,7 @@ class _ProfileContentState extends State<ProfileContent> {
 
                           // Navigate to login / role selection
                           Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (context) => const MyApp()),
+                            MaterialPageRoute(builder: (context) => const LoginScreen()),
                             (route) => false,
                           );
 

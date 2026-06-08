@@ -13,28 +13,33 @@ class AuthService {
   // final String baseUrl = 'http://192.168.100.11:8000/api/v1';
 
   String? _accessToken;
+  String? _role;
 
   String? get accessToken => _accessToken;
+  String? get role => _role;
 
-  /// Load token dari SharedPreferences saat app dimulai
+  /// Load token dan role dari SharedPreferences saat app dimulai
   Future<void> loadTokenFromStorage() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       _accessToken = prefs.getString('access_token');
+      _role = prefs.getString('user_role');
       print('🔵 [AuthService] Loaded token from storage: ${_accessToken != null ? 'SUCCESS' : 'EMPTY'}');
+      print('🔵 [AuthService] Loaded role from storage: $_role');
     } catch (e) {
-      print('❌ [AuthService] Error loading token: $e');
+      print('❌ [AuthService] Error loading auth data: $e');
     }
   }
 
-  /// Save token ke SharedPreferences
-  Future<void> _saveTokenToStorage(String token) async {
+  /// Save token dan role ke SharedPreferences
+  Future<void> _saveAuthToStorage(String token, String role) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('access_token', token);
-      print('🔵 [AuthService] Token saved to storage');
+      await prefs.setString('user_role', role);
+      print('🔵 [AuthService] Auth data saved to storage');
     } catch (e) {
-      print('❌ [AuthService] Error saving token: $e');
+      print('❌ [AuthService] Error saving auth data: $e');
     }
   }
 
@@ -43,6 +48,7 @@ class AuthService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('access_token');
+      await prefs.remove('user_role');
       print('🔵 [AuthService] Storage cleared');
     } catch (e) {
       print('❌ [AuthService] Error clearing storage: $e');
@@ -64,7 +70,8 @@ class AuthService {
       
       if (response.statusCode == 200) {
         _accessToken = data['access_token'];
-        await _saveTokenToStorage(_accessToken!);
+        _role = data['user']?['role'] ?? 'customer';
+        await _saveAuthToStorage(_accessToken!, _role!);
       }
       
       return {
@@ -75,15 +82,15 @@ class AuthService {
         'message': data['message']
       };
     } 
-catch (e, stackTrace) {
-  print('❌ [Login] ERROR: $e');
-  print(stackTrace);
-  return {
-    'success': false,
-    'message': 'Gagal terhubung ke server'
-  };
-}  
-}
+    catch (e, stackTrace) {
+      print('❌ [Login] ERROR: $e');
+      print(stackTrace);
+      return {
+        'success': false,
+        'message': 'Gagal terhubung ke server'
+      };
+    }  
+  }
 
   Future<Map<String, dynamic>> register(Map<String, String> data) async {
     try {
@@ -134,7 +141,8 @@ catch (e, stackTrace) {
       
       if (response.statusCode == 200) {
         _accessToken = body['access_token'];
-        await _saveTokenToStorage(_accessToken!);
+        _role = body['user']?['role'] ?? _role ?? 'customer';
+        await _saveAuthToStorage(_accessToken!, _role!);
       }
       
       return {
@@ -174,8 +182,9 @@ catch (e, stackTrace) {
       print('🔵 [Logout] Status: ${response.statusCode}');
       print('🔵 [Logout] Response: ${response.body}');
       
-      // Clear token dan storage regardless of response
+      // Clear token, role, dan storage regardless of response
       _accessToken = null;
+      _role = null;
       await _clearStorage();
       
       final body = jsonDecode(response.body);
@@ -185,8 +194,9 @@ catch (e, stackTrace) {
       };
     } catch (e) {
       print('❌ [Logout] Error: $e');
-      // Still clear token even if request fails
+      // Still clear token and role even if request fails
       _accessToken = null;
+      _role = null;
       await _clearStorage();
       return {'success': false, 'message': 'Logout berhasil (offline mode)'};
     }
