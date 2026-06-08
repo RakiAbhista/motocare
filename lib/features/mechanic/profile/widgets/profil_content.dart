@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:motocare/core/theme/app_colors.dart';
-import 'package:motocare/core/services/auth_service.dart';
 import 'profile_header.dart';
 import 'work_status_card.dart';
 import 'servis_selesai_card.dart';
 import 'profile_menu_card.dart';
 import '../screens/work_history_screen.dart';
-import 'package:motocare/features/auth/login/screens/login_screen.dart';
+import 'package:motocare/main.dart';
 
 class ProfileContent extends StatefulWidget {
   const ProfileContent({super.key});
@@ -203,76 +202,52 @@ class _ProfileContentState extends State<ProfileContent> {
     showDialog(
       context: context,
       builder: (context) {
-        bool isLoggingOut = false;
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              title: const Text(
-                "Konfirmasi Keluar",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              content: const Text(
-                "Apakah Anda yakin ingin keluar dan mengakhiri sesi kerja hari ini?",
-              ),
-              actions: [
-                TextButton(
-                  onPressed: isLoggingOut ? null : () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Batal", style: TextStyle(color: Colors.grey)),
-                ),
-                ElevatedButton(
-                  onPressed: isLoggingOut
-                      ? null
-                      : () async {
-                          setDialogState(() => isLoggingOut = true);
-
-                          final result = await AuthService().logout();
-
-                          if (!context.mounted) return;
-                          Navigator.pop(context); // close dialog
-
-                          // Navigate to login / role selection
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (context) => const LoginScreen()),
-                            (route) => false,
-                          );
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(result['message'] ?? 'Berhasil keluar dari akun.'),
-                              behavior: SnackBarBehavior.floating,
-                              backgroundColor:
-                                  result['success'] == true ? AppColors.success : Colors.red,
-                            ),
-                          );
-                        },
-                  style: ElevatedButton.styleFrom(
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text(
+            "Konfirmasi Keluar",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            "Apakah Anda yakin ingin keluar dan mengakhiri sesi kerja hari ini?",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Batal", style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // Navigasi kembali ke halaman pemilihan role (main.dart)
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const MyApp()),
+                  (route) => false,
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Berhasil keluar dari akun."),
+                    behavior: SnackBarBehavior.floating,
                     backgroundColor: Colors.red,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
                   ),
-                  child: isLoggingOut
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text(
-                          "Keluar",
-                          style: TextStyle(color: Colors.white),
-                        ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
-              ],
-            );
-          },
+              ),
+              child: const Text(
+                "Keluar",
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
         );
       },
     );

@@ -14,6 +14,10 @@ class _DetailEmergencyScreenState extends State<DetailEmergencyScreen> {
   // 1. Inisialisasi MapController
   late MapController mapController;
 
+  // Mock customer coordinates: Tembalang, Semarang
+  final double customerLatitude = -7.050186;
+  final double customerLongitude = 110.438925;
+
   @override
   void initState() {
     super.initState();
@@ -72,6 +76,24 @@ class _DetailEmergencyScreenState extends State<DetailEmergencyScreen> {
                     ),
                   ),
                 ),
+                staticPoints: [
+                  StaticPositionGeoPoint(
+                    "customer_location",
+                    const MarkerIcon(
+                      icon: Icon(
+                        Icons.location_on,
+                        color: Colors.red,
+                        size: 48,
+                      ),
+                    ),
+                    [
+                      GeoPoint(
+                        latitude: customerLatitude,
+                        longitude: customerLongitude,
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
@@ -134,7 +156,10 @@ class _DetailEmergencyScreenState extends State<DetailEmergencyScreen> {
           ),
 
           // 5. Draggable Bottom Sheet (Bisa di-slide)
-          const DetailBottomSheet(),
+          DetailBottomSheet(
+            customerLatitude: customerLatitude,
+            customerLongitude: customerLongitude,
+          ),
         ],
       ),
     );
