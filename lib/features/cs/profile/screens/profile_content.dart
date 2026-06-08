@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:motocare/features/cs/shared/enums/service_status.dart';
-import 'package:motocare/features/cs/home/screens/work_history_screen.dart';
+import 'package:motocare/features/cs/profile/screens/work_history_screen.dart';
 
 import '../../profile/widgets/profile_menu_card.dart';
 import '../widgets/profile_header.dart';

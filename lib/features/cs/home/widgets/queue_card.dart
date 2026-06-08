@@ -8,7 +8,7 @@ class QueueCard extends StatelessWidget {
   final String plate;
   final Enum status;
   final String buttonText;
-  final String imagePath;
+  final String? imagePath;
   final VoidCallback onTap;
 
   const QueueCard({
@@ -18,7 +18,7 @@ class QueueCard extends StatelessWidget {
     required this.plate,
     required this.status,
     required this.buttonText,
-    required this.imagePath,
+    this.imagePath,
     required this.onTap,
   });
 
@@ -44,10 +44,16 @@ class QueueCard extends StatelessWidget {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: Image.asset(
-                imagePath,
-                fit: BoxFit.cover,
-              ),
+              child: (imagePath != null && imagePath!.isNotEmpty)
+                  ? Image.asset(
+                      imagePath!,
+                      fit: BoxFit.cover,
+                    )
+                  : const Icon(
+                      Icons.directions_bike,
+                      size: 36,
+                      color: Colors.grey,
+                    ),
             ),
           ),
 

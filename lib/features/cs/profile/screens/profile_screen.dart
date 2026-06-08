@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'profile_content.dart';
+import 'package:motocare/core/theme/app_colors.dart';
+
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -20,6 +22,8 @@ class _ProfileScreen extends State<ProfileScreen  > {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: AppColors.background,
+
 
       /// ISI HALAMAN
       body: pages[currentIndex],

@@ -1,10 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:motocare/core/theme/app_colors.dart';
+import 'package:motocare/features/cs/profile/service/profile_service.dart';
 
 import 'profile_dialogs.dart';
 
-class ProfileHeader extends StatelessWidget {
+class ProfileHeader extends StatefulWidget {
   const ProfileHeader({super.key});
+
+  @override
+  State<ProfileHeader> createState() => _ProfileHeaderState();
+}
+
+class _ProfileHeaderState extends State<ProfileHeader> {
+  final ProfileService _profileService = ProfileService();
+
+  String _name = 'Loading...';
+  String _role = '';
+  String _phoneNumber = '';
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final data = await _profileService.getProfile();
+
+    if (!mounted) return;
+
+    if (data['success'] == true) {
+      setState(() {
+        _name = data['name'] ?? 'Customer Service';
+        _role = _formatRole(data['role'] ?? '');
+        _phoneNumber = data['phone_number'] ?? '';
+        _isLoading = false;
+      });
+    } else {
+      setState(() {
+        _name = 'Customer Service';
+        _isLoading = false;
+      });
+    }
+  }
+
+  /// Format role dari snake_case ke Title Case
+  String _formatRole(String role) {
+    return role
+        .split('_')
+        .map((word) => word.isNotEmpty
+            ? '${word[0].toUpperCase()}${word.substring(1)}'
+            : '')
+        .join(' ');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,74 +70,78 @@ class ProfileHeader extends StatelessWidget {
               bottomRight: Radius.circular(35),
             ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              /// PROFILE IMAGE
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                  border: Border.all(color: Colors.black, width: 3),
-                ),
-                child: ClipOval(
-                  child: Image.asset(
-                    "lib/features/cs/shared/assets_dummy/person.jpeg",
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              /// PROFILE NAME
-              const Text(
-                "Joshua Jisoo",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              const SizedBox(height: 6),
-
-              /// ROLE / SUBTITLE
-              const Text(
-                "Customer Service",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              /// PHONE NUMBER
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(
-                    Icons.phone,
-                    size: 14,
-                    color: Colors.white70,
-                  ),
-                  SizedBox(width: 5),
-                  Text(
-                    "+62 812-3456-7890",
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white70,
-                      letterSpacing: 0.4,
+          child: _isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    /// PROFILE IMAGE
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        border: Border.all(color: Colors.black, width: 3),
+                      ),
+                      child: ClipOval(
+                        child: Image.asset(
+                          "lib/features/cs/shared/assets_dummy/person.jpeg",
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+
+                    const SizedBox(height: 16),
+
+                    /// PROFILE NAME
+                    Text(
+                      _name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    /// ROLE / SUBTITLE
+                    Text(
+                      _role,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    /// PHONE NUMBER
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.phone,
+                          size: 14,
+                          color: Colors.white70,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          _phoneNumber,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.white70,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
         ),
 
         /// SETTINGS BUTTON - TOP RIGHT (titik tiga)

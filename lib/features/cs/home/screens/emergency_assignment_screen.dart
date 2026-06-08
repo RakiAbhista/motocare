@@ -367,9 +367,8 @@ class _EmergencyAssignmentScreenState
                           /// IMAGE
                           const CircleAvatar(
                             radius: 28,
-                            backgroundImage: AssetImage(
-                              "assets/images/profile.jpg",
-                            ),
+                            backgroundColor: Colors.blue,
+                            child: Icon(Icons.person, color: Colors.white, size: 28),
                           ),
 
                           const SizedBox(width: 14),

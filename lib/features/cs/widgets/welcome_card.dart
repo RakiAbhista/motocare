@@ -1,18 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:motocare/core/theme/app_colors.dart';
-import 'package:motocare/features/cs/home/widgets/stat_box.dart';
+import 'package:motocare/features/cs/widgets/stat_box.dart';
 
 class WelcomeCard extends StatelessWidget {
-  final String csName;
-  final int totalOrder;
-  final int totalCompleted;
-
-  const WelcomeCard({
-    super.key,
-    this.csName = 'Loading...',
-    this.totalOrder = 0,
-    this.totalCompleted = 0,
-  });
+  const WelcomeCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,30 +17,28 @@ class WelcomeCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "SERVICE OPERATIONS",
-            style: TextStyle(color: Colors.white70, fontSize: 12),
-          ),
+          const Text("SERVICE OPERATIONS",
+              style: TextStyle(color: Colors.white70, fontSize: 12)),
           const SizedBox(height: 8),
-          Text(
-            csName,
-            style: const TextStyle(
+          const Text(
+            "Hello, Joshua Jisoo",
+            style: TextStyle(
               color: Colors.white,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 16),
+
           Row(
             children: [
-              StatBox(title: "Total Order", value: totalOrder.toString()),
+              StatBox(title: "Active Queue", value: "14 Units"),
               const SizedBox(width: 10),
-              StatBox(title: "Total Completed", value: totalCompleted.toString()),
+              StatBox(title: "Avg. Wait", value: "24 Mins"),
             ],
-          ),
+          )
         ],
       ),
     );
   }
 }
-

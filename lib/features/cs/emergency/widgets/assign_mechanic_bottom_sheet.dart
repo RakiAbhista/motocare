@@ -1,17 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:motocare/features/cs/emergency/service/emergency_service.dart';
 
 class MechanicModel {
-  final String id;
+  final int id;
   final String name;
-  final double rating;
-  final String imagePath;
+  final String email;
+  final String status;
 
   const MechanicModel({
     required this.id,
     required this.name,
-    required this.rating,
-    required this.imagePath,
+    required this.email,
+    required this.status,
   });
+
+  factory MechanicModel.fromJson(Map<String, dynamic> json) {
+    return MechanicModel(
+      id: json['id'],
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      status: json['status'] ?? '',
+    );
+  }
 }
 
 class AssignMechanicBottomSheet extends StatefulWidget {
@@ -22,30 +32,45 @@ class AssignMechanicBottomSheet extends StatefulWidget {
       _AssignMechanicBottomSheetState();
 }
 
-class _AssignMechanicBottomSheetState
-    extends State<AssignMechanicBottomSheet> {
-  final List<MechanicModel> _mechanics = const [
-    MechanicModel(
-      id: '1',
-      name: 'Andi Saputra',
-      rating: 4.9,
-      imagePath: 'lib/features/cs/shared/assets_dummy/person.jpeg',
-    ),
-    MechanicModel(
-      id: '2',
-      name: 'Budi Santoso',
-      rating: 4.8,
-      imagePath: 'lib/features/cs/shared/assets_dummy/person.jpeg',
-    ),
-    MechanicModel(
-      id: '3',
-      name: 'Hendra Wijaya',
-      rating: 4.7,
-      imagePath: 'lib/features/cs/shared/assets_dummy/person.jpeg',
-    ),
-  ];
+class _AssignMechanicBottomSheetState extends State<AssignMechanicBottomSheet> {
+  final EmergencyService _emergencyService = EmergencyService();
+  List<MechanicModel> _mechanics = [];
+  bool _isLoading = true;
+  String? _errorMessage;
 
-  String? _selectedId;
+  int? _selectedId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMechanics();
+  }
+
+  Future<void> _loadMechanics() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final result = await _emergencyService.getMechanics();
+
+    if (result['success']) {
+      final dataList = result['data'] as List<dynamic>;
+      final mechanics = dataList
+          .map((m) => MechanicModel.fromJson(m as Map<String, dynamic>))
+          .toList();
+
+      setState(() {
+        _mechanics = mechanics;
+        _isLoading = false;
+      });
+    } else {
+      setState(() {
+        _errorMessage = result['message'];
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,11 +124,45 @@ class _AssignMechanicBottomSheetState
           const SizedBox(height: 18),
 
           /// LIST MEKANIK
-          ..._mechanics.map((mechanic) => _MechanicTile(
-                mechanic: mechanic,
-                isSelected: _selectedId == mechanic.id,
-                onTap: () => setState(() => _selectedId = mechanic.id),
-              )),
+          if (_isLoading)
+            const Padding(
+              padding: EdgeInsets.all(24.0),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_errorMessage != null)
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Center(
+                child: Column(
+                  children: [
+                    Text('Error: $_errorMessage'),
+                    ElevatedButton(
+                      onPressed: _loadMechanics,
+                      child: const Text('Coba Lagi'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else if (_mechanics.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(24.0),
+              child: Center(child: Text('Tidak ada mekanik tersedia.')),
+            )
+          else
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: _mechanics.map((mechanic) {
+                    return _MechanicTile(
+                      mechanic: mechanic,
+                      isSelected: _selectedId == mechanic.id,
+                      onTap: () => setState(() => _selectedId = mechanic.id),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
 
           const SizedBox(height: 20),
 
@@ -182,23 +241,14 @@ class _MechanicTile extends StatelessWidget {
             /// PHOTO + STATUS DOT
             Stack(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: Image.asset(
-                    mechanic.imagePath,
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: Colors.blue[100],
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: const Icon(Icons.person, color: Colors.blue, size: 32),
-                    ),
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.blue[100],
+                    borderRadius: BorderRadius.circular(14),
                   ),
+                  child: const Icon(Icons.person, color: Colors.blue, size: 32),
                 ),
                 Positioned(
                   bottom: 2,
@@ -207,7 +257,7 @@ class _MechanicTile extends StatelessWidget {
                     width: 12,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: Colors.green,
+                      color: mechanic.status.toLowerCase() == 'available' ? Colors.green : Colors.grey,
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2),
                     ),
@@ -233,33 +283,23 @@ class _MechanicTile extends StatelessWidget {
                   const SizedBox(height: 5),
                   Row(
                     children: [
-                      /// TERSEDIA BADGE
+                      /// STATUS BADGE
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
                           vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.blue[50],
+                          color: mechanic.status.toLowerCase() == 'available' ? Colors.blue[50] : Colors.grey[200],
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Text(
-                          "TERSEDIA",
+                        child: Text(
+                          mechanic.status.toUpperCase(),
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue,
+                            color: mechanic.status.toLowerCase() == 'available' ? Colors.blue : Colors.grey[700],
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.star, size: 14, color: Colors.amber),
-                      const SizedBox(width: 2),
-                      Text(
-                        mechanic.rating.toString(),
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
