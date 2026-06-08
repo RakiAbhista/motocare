@@ -7,17 +7,24 @@ import '../widgets/emergency_customer_card.dart';
 import '../widgets/emergency_initial_report.dart';
 import '../widgets/emergency_map_section.dart';
 import '../widgets/emergency_timer_card.dart';
+import '../models/emergency_model.dart';
+import '../service/emergency_service.dart';
 
 class EmergencyAssignmentScreen extends StatefulWidget {
-  const EmergencyAssignmentScreen({super.key});
+  final int emergencyId;
+
+  const EmergencyAssignmentScreen({super.key, required this.emergencyId});
 
   @override
   State<EmergencyAssignmentScreen> createState() =>
       _EmergencyAssignmentScreenState();
 }
 
-class _EmergencyAssignmentScreenState
-    extends State<EmergencyAssignmentScreen> {
+class _EmergencyAssignmentScreenState extends State<EmergencyAssignmentScreen> {
+  final EmergencyService _emergencyService = EmergencyService();
+  EmergencyModel? _emergency;
+  bool _isLoading = true;
+  String? _errorMessage;
 
   final MapController mapController = MapController(
     initPosition: GeoPoint(
@@ -27,6 +34,110 @@ class _EmergencyAssignmentScreenState
   );
 
   MechanicModel? _selectedMechanic;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEmergencyDetail();
+  }
+
+  Future<void> _loadEmergencyDetail() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final result = await _emergencyService.getEmergencyDetail(widget.emergencyId);
+
+    if (result['success']) {
+      setState(() {
+        _emergency = result['data'] as EmergencyModel;
+        _isLoading = false;
+      });
+    } else {
+      setState(() {
+        _errorMessage = result['message'];
+        _isLoading = false;
+      });
+    }
+  }
+
+  bool _isSubmitting = false;
+
+  Future<void> _confirmAssignment() async {
+    if (_selectedMechanic == null) return;
+
+    setState(() => _isSubmitting = true);
+
+    final result = await _emergencyService.assignMechanic(
+      emergencyId: widget.emergencyId,
+      mechanicId: _selectedMechanic!.id,
+    );
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+
+    if (result['success'] == true) {
+      _showSuccessDialog();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['message'] ?? 'Gagal assign mekanik'),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    }
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.check_circle, color: Colors.blue, size: 64),
+            const SizedBox(height: 16),
+            const Text(
+              "Mekanik Berhasil Di-assign!",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "${_selectedMechanic!.name} telah ditugaskan untuk menangani emergency ini.",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // tutup dialog
+                  Navigator.of(context).pop(); // kembali ke list
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text(
+                  "Kembali",
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   void _openAssignMechanicSheet() async {
     final result = await showModalBottomSheet<MechanicModel>(
@@ -51,134 +162,153 @@ class _EmergencyAssignmentScreenState
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FB),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              /// APP BAR
-              const EmergencyAppBar(),
-
-              const SizedBox(height: 20),
-
-              /// MAIN CARD
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-
-                    /// LABEL BADGE
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        "PANGGILAN TOWING",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _errorMessage != null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('Error: $_errorMessage'),
+                        const SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: _loadEmergencyDetail,
+                          child: const Text('Coba Lagi'),
                         ),
-                      ),
+                      ],
                     ),
+                  )
+                : _buildContent(context, _emergency!),
+      ),
+    );
+  }
 
-                    const SizedBox(height: 16),
+  Widget _buildContent(BuildContext context, EmergencyModel emergency) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          /// APP BAR
+          const EmergencyAppBar(),
 
-                    /// TITLE
-                    const Text(
-                      "Engine Failure: BR-9902-XK",
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                      ),
+          const SizedBox(height: 20),
+
+          /// MAIN CARD
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                /// LABEL BADGE
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    "PANGGILAN TOWING",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
                     ),
-
-                    const SizedBox(height: 12),
-
-                    /// ADDRESS & TIME
-                    Text(
-                      "Requested at 14:20 PM • Jalan Raya Menteng, No. 42",
-                      style: TextStyle(color: Colors.grey[700], fontSize: 15),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    /// TIMER
-                    const EmergencyTimerCard(),
-
-                    const SizedBox(height: 24),
-
-                    /// MAP
-                    EmergencyMapSection(mapController: mapController),
-
-                    const SizedBox(height: 24),
-
-                    /// CUSTOMER DETAILS
-                    const EmergencyCustomerCard(),
-
-                    const SizedBox(height: 24),
-
-                    /// INITIAL REPORT
-                    const EmergencyInitialReport(),
-
-                    const SizedBox(height: 24),
-
-                    /// ASSIGN MECHANIC CARD
-                    _AssignMechanicCard(
-                      selectedMechanic: _selectedMechanic,
-                      onTap: _openAssignMechanicSheet,
-                    ),
-
-                    /// CONFIRM BUTTON — only visible when mechanic is selected
-                    AnimatedSize(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      child: _selectedMechanic != null
-                          ? Padding(
-                              padding: const EdgeInsets.only(top: 16),
-                              child: SizedBox(
-                                width: double.infinity,
-                                height: 58,
-                                child: ElevatedButton(
-                                  onPressed: () {},
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
-                                    elevation: 0,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(18),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    "Konfirmasi",
-                                    style: TextStyle(
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
-
-                    const SizedBox(height: 10),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+
+                const SizedBox(height: 16),
+
+                /// TITLE
+                Text(
+                  "Engine Failure: ${emergency.plateNumber}",
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                /// ADDRESS & TIME
+                Text(
+                  "Requested at ${emergency.createdAt} • ${emergency.location ?? 'Lokasi belum tersedia'}",
+                  style: TextStyle(color: Colors.grey[700], fontSize: 15),
+                ),
+
+                const SizedBox(height: 24),
+
+                /// TIMER
+                const EmergencyTimerCard(),
+
+                const SizedBox(height: 24),
+
+                /// MAP
+                EmergencyMapSection(mapController: mapController),
+
+                const SizedBox(height: 24),
+
+                /// CUSTOMER DETAILS
+                EmergencyCustomerCard(
+                  customerName: emergency.customerName,
+                  vehicle: "${emergency.vehicleBrand} ${emergency.vehicleModel}",
+                ),
+
+                const SizedBox(height: 24),
+
+                /// INITIAL REPORT
+                EmergencyInitialReport(
+                  description: emergency.description ?? "Tidak ada deskripsi keluhan yang diberikan",
+                ),
+
+                const SizedBox(height: 24),
+
+                /// ASSIGN MECHANIC CARD
+                _AssignMechanicCard(
+                  selectedMechanic: _selectedMechanic,
+                  onTap: _openAssignMechanicSheet,
+                ),
+
+                /// CONFIRM BUTTON — only visible when mechanic is selected
+                ElevatedButton(
+                  onPressed: _isSubmitting ? null : _confirmAssignment,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          height: 22,
+                          width: 45,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : const Text(
+                          "Konfirmasi",
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -232,17 +362,10 @@ class _AssignMechanicCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: selectedMechanic != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: Image.asset(
-                        selectedMechanic!.imagePath,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.person,
-                          color: Colors.blue,
-                          size: 28,
-                        ),
-                      ),
+                  ? const Icon(
+                      Icons.person,
+                      color: Colors.blue,
+                      size: 28,
                     )
                   : const Icon(
                       Icons.engineering_outlined,
@@ -274,27 +397,16 @@ class _AssignMechanicCard extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 7, vertical: 2),
                               decoration: BoxDecoration(
-                                color: Colors.blue[50],
+                                color: selectedMechanic!.status.toLowerCase() == 'available' ? Colors.blue[50] : Colors.grey[200],
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: const Text(
-                                "TERSEDIA",
+                              child: Text(
+                                selectedMechanic!.status.toUpperCase(),
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.blue,
+                                  color: selectedMechanic!.status.toLowerCase() == 'available' ? Colors.blue : Colors.grey[700],
                                 ),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            const Icon(Icons.star,
-                                size: 13, color: Colors.amber),
-                            const SizedBox(width: 2),
-                            Text(
-                              selectedMechanic!.rating.toString(),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
@@ -346,4 +458,3 @@ class _AssignMechanicCard extends StatelessWidget {
     );
   }
 }
-

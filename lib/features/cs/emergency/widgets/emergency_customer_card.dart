@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
 class EmergencyCustomerCard extends StatelessWidget {
-  const EmergencyCustomerCard({super.key});
+  final String customerName;
+  final String vehicle;
+
+  const EmergencyCustomerCard({
+    super.key,
+    required this.customerName,
+    required this.vehicle,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +38,8 @@ class EmergencyCustomerCard extends StatelessWidget {
               /// AVATAR
               const CircleAvatar(
                 radius: 28,
-                backgroundImage: AssetImage("assets/images/profile.jpg"),
+                backgroundColor: Colors.blue,
+                child: Icon(Icons.person, color: Colors.white, size: 28),
               ),
 
               const SizedBox(width: 14),
@@ -41,16 +49,16 @@ class EmergencyCustomerCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "Aditya Pratama",
-                      style: TextStyle(
+                    Text(
+                      customerName,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "Yamaha NMAX 250 • Matte Black",
+                      vehicle,
                       style: TextStyle(color: Colors.grey[600]),
                     ),
                     const SizedBox(height: 8),

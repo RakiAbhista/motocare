@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:motocare/core/services/auth_service.dart';
 import 'package:motocare/features/auth/login/screens/login_screen.dart';
 
+import 'package:motocare/features/cs/profile/service/profile_service.dart';
+
 /// Dialog untuk edit nomor telepon
 void showEditPhoneDialog(BuildContext context) {
   final TextEditingController phoneController = TextEditingController();
+  final pageContext = context;
 
   showDialog(
-    context: context,
+    context: pageContext,
     builder: (dialogContext) {
       return AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -28,17 +31,50 @@ void showEditPhoneDialog(BuildContext context) {
             child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               final newPhone = phoneController.text.trim();
               if (newPhone.isNotEmpty) {
-                Navigator.pop(dialogContext);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Phone number updated to $newPhone"),
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: Colors.green,
-                  ),
+                // Tampilkan loading dialog
+                showDialog(
+                  context: dialogContext,
+                  barrierDismissible: false,
+                  builder: (_) => const Center(child: CircularProgressIndicator()),
                 );
+
+                // Hit API
+                final result = await ProfileService().updateProfile('Customer Service', newPhone);
+
+                // Tutup loading
+                if (dialogContext.mounted) {
+                  Navigator.pop(dialogContext);
+                }
+
+                if (result['success']) {
+                  // Tutup edit dialog
+                  if (dialogContext.mounted) {
+                    Navigator.pop(dialogContext);
+                  }
+                  if (pageContext.mounted) {
+                    ScaffoldMessenger.of(pageContext).showSnackBar(
+                      SnackBar(
+                        content: Text("Phone number updated to $newPhone"),
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } else {
+                  // Tampilkan pesan error
+                  if (pageContext.mounted) {
+                    ScaffoldMessenger.of(pageContext).showSnackBar(
+                      SnackBar(
+                        content: Text(result['message'] ?? 'Gagal update phone number'),
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
               }
             },
             style: ElevatedButton.styleFrom(

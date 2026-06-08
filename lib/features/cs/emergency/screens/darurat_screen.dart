@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'darurat_content.dart';
+import 'package:motocare/core/theme/app_colors.dart';
+
 
 class DaruratScreen extends StatefulWidget {
   const DaruratScreen({super.key});
@@ -20,6 +22,8 @@ class _DaruratScreen extends State<DaruratScreen  > {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: AppColors.background,
+
 
       /// ISI HALAMAN
       body: pages[currentIndex],

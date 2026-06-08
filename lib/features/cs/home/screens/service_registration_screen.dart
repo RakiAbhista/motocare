@@ -1,15 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:motocare/features/cs/home/screens/confirmation_service_screen.dart';
 
+// ===========================
+// VehicleInfo Widget (dipindah keluar dari class lain)
+// ===========================
+class VehicleInfo extends StatelessWidget {
+  final String title;
+  final String value;
+
+  const VehicleInfo({super.key, required this.title, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 11,
+            color: Colors.grey,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+}
+
+// ===========================
+// ServiceRegistrationScreen
+// ===========================
 class ServiceRegistrationScreen extends StatefulWidget {
   final bool isVehicleRegistered;
-
   final String plateNumber;
+  final Map<String, dynamic>? vehicleData;
 
   const ServiceRegistrationScreen({
     super.key,
     required this.isVehicleRegistered,
     required this.plateNumber,
+    this.vehicleData,
   });
 
   @override
@@ -19,63 +55,61 @@ class ServiceRegistrationScreen extends StatefulWidget {
 
 class _ServiceRegistrationScreenState extends State<ServiceRegistrationScreen> {
   final merkController = TextEditingController();
-
   final typeController = TextEditingController();
-
   final yearController = TextEditingController();
-
   final complaintController = TextEditingController();
+
+  @override
+  void dispose() {
+    merkController.dispose();
+    typeController.dispose();
+    yearController.dispose();
+    complaintController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
       body: SafeArea(
         child: Column(
           children: [
-            /// =========================
-            /// HEADER
-            /// =========================
+            // =========================
+            // HEADER
+            // =========================
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-
+                    onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.arrow_back_ios, color: Colors.blue),
                   ),
-
                   const Expanded(
                     child: Text(
                       "Offline Registration",
                       textAlign: TextAlign.center,
-
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-
                   const SizedBox(width: 40),
                 ],
               ),
             ),
 
-            /// STEP
+            // =========================
+            // STEP INDICATOR
+            // =========================
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-
               child: Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
                     children: const [
                       Text(
                         "STEP 2 OF 3",
@@ -85,7 +119,6 @@ class _ServiceRegistrationScreenState extends State<ServiceRegistrationScreen> {
                           fontSize: 12,
                         ),
                       ),
-
                       Text(
                         "SERVICE DETAILS",
                         style: TextStyle(
@@ -96,24 +129,20 @@ class _ServiceRegistrationScreenState extends State<ServiceRegistrationScreen> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 10),
-
                   Stack(
                     children: [
                       Container(
                         height: 6,
-
                         decoration: BoxDecoration(
                           color: Colors.grey[300],
                           borderRadius: BorderRadius.circular(20),
                         ),
                       ),
-
                       Container(
                         height: 6,
-                        width: MediaQuery.of(context).size.width * 0.65,
-
+                        width:
+                            (MediaQuery.of(context).size.width - 40) * 0.65,
                         decoration: BoxDecoration(
                           color: Colors.blue,
                           borderRadius: BorderRadius.circular(20),
@@ -127,71 +156,59 @@ class _ServiceRegistrationScreenState extends State<ServiceRegistrationScreen> {
 
             const SizedBox(height: 20),
 
-            /// CONTENT
+            // =========================
+            // CONTENT
+            // =========================
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-
                 child: Column(
                   children: [
-                    /// ===================================
-                    /// REGISTERED VEHICLE
-                    /// ===================================
                     if (widget.isVehicleRegistered)
                       buildRegisteredVehicleCard(),
 
-                    /// ===================================
-                    /// MANUAL INPUT VEHICLE
-                    /// ===================================
                     if (!widget.isVehicleRegistered) buildManualVehicleForm(),
 
                     const SizedBox(height: 20),
 
-                    /// SERVICE REQUIREMENT
                     buildServiceRequirement(),
 
                     const SizedBox(height: 30),
 
-                    /// BUTTON
-                    /// BUTTON
+                    // CONFIRM BUTTON
                     SizedBox(
                       width: double.infinity,
                       height: 58,
-
                       child: ElevatedButton(
                         onPressed: () {
-
                           Navigator.push(
                             context,
-
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  ConfirmationServiceScreen(
+                              builder: (context) => ConfirmationServiceScreen(
+                                plateNumber: widget.plateNumber,
+                                vehicleName:
+                                    widget.vehicleData?['model'] ?? "NMAX 155",
+                                ownerName: widget.vehicleData?['user']
+                                        ?['name'] ??
+                                    "Aditama Pratama",
+                                complaint: complaintController.text,
+                                userId: widget.vehicleData?['user']?['id'] ?? 0,
+                                vehicleId: widget.vehicleData?['id'] ?? 0,
 
-                                    plateNumber: widget.plateNumber,
-
-                                    vehicleName: "NMAX 155",
-
-                                    ownerName: "Aditama Pratama",
-
-                                    complaint:
-                                    complaintController.text,
-                                  ),
+                                // INI GIMANA YA ? , Workshop ID sama Service ID nya
+                                workshopId: 1,  // ← langsung angka, bukan widget.workshopId
+                                serviceId: 1,   // ← langsung angka, bukan widget.serviceId
+                              ),
                             ),
                           );
-
-                          print("CONFIRM");
                         },
-
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                           elevation: 0,
-
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
                         ),
-
                         child: const Text(
                           "Confirm Registration",
                           style: TextStyle(
@@ -214,236 +231,152 @@ class _ServiceRegistrationScreenState extends State<ServiceRegistrationScreen> {
     );
   }
 
-  /// ===================================
-  /// REGISTERED VEHICLE CARD
-  /// ===================================
+  // ===========================
+  // REGISTERED VEHICLE CARD
+  // ===========================
   Widget buildRegisteredVehicleCard() {
     return Column(
       children: [
         Container(
+          width: double.infinity,
           padding: const EdgeInsets.all(18),
-
           decoration: BoxDecoration(
             color: Colors.white,
-
             borderRadius: BorderRadius.circular(24),
-
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+              ),
             ],
           ),
-
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // Kiri - teks
               Expanded(
+                flex: 3,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                        horizontal: 10,
+                        vertical: 5,
                       ),
-
                       decoration: BoxDecoration(
                         color: Colors.blue.shade50,
                         borderRadius: BorderRadius.circular(10),
                       ),
-
                       child: Text(
                         widget.plateNumber,
-
                         style: const TextStyle(
                           color: Colors.blue,
                           fontWeight: FontWeight.bold,
+                          fontSize: 13,
                         ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-
-                    const SizedBox(height: 15),
-
-                    const Text(
-                      "NMAX 155",
-                      style: TextStyle(
-                        fontSize: 32,
+                    const SizedBox(height: 10),
+                    Text(
+                      widget.vehicleData?['model'] ?? "NMAX 155",
+                      style: const TextStyle(
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Colors.blue,
                       ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
                     ),
-
-                    const SizedBox(height: 5),
-
-                    const Text(
-                      "Owner: Aditama Pratama",
-                      style: TextStyle(fontSize: 16),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Owner: ${widget.vehicleData?['user']?['name'] ?? 'Aditama Pratama'}",
+                      style: const TextStyle(fontSize: 13),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(width: 20),
+              const SizedBox(width: 10),
 
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-
-                child: Image.asset(
-                  "assets/images/motor.png",
-                  width: 110,
-                  height: 110,
-                  fit: BoxFit.cover,
+              // Kanan - gambar
+              Expanded(
+                flex: 2,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.asset(
+                    "assets/images/motor.png",
+                    height: 100,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(
+                        Icons.two_wheeler,
+                        size: 50,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
         ),
-
         const SizedBox(height: 20),
-
-        /// VEHICLE SPECIFICATION
         buildVehicleSpecification(),
       ],
     );
   }
 
-  /// ===================================
-  /// MANUAL FORM
-  /// ===================================
-  Widget buildManualVehicleForm() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F7FB),
-        borderRadius: BorderRadius.circular(24),
-      ),
-
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
-            children: [
-              const Text(
-                "VEHICLE SPECIFICATION",
-                style: TextStyle(
-                  color: Colors.blue,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1,
-                ),
-              ),
-
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade100,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-
-                child: Text(
-                  widget.plateNumber,
-
-                  style: const TextStyle(
-                    color: Colors.blue,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-
-          buildInputField("MERK MOTOR", "contoh : Yamaha", merkController),
-
-          const SizedBox(height: 16),
-
-          buildInputField("TIPE MOTOR", "contoh : Aerox", typeController),
-
-          const SizedBox(height: 16),
-
-          buildInputField("TAHUN KELUARAN", "contoh : 2022", yearController),
-        ],
-      ),
-    );
-  }
-
-  /// ===================================
-  /// VEHICLE SPEC
-  /// ===================================
+  // ===========================
+  // VEHICLE SPECIFICATION (dipanggil dari buildRegisteredVehicleCard)
+  // ===========================
   Widget buildVehicleSpecification() {
     return Container(
       width: double.infinity,
-
-      padding: const EdgeInsets.all(20),
-
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F7FB),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+          ),
+        ],
       ),
-
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-
         children: [
           const Text(
-            "VEHICLE SPECIFICATION",
+            "Vehicle Specification",
             style: TextStyle(
-              color: Colors.blue,
+              fontSize: 15,
               fontWeight: FontWeight.bold,
-              letterSpacing: 1,
             ),
           ),
-
-          const SizedBox(height: 20),
-
-          const Row(
-            children: [
-              Expanded(
-                child: vehicleInfo(title: "BRAND", value: "Yamaha"),
-              ),
-
-              Expanded(
-                child: vehicleInfo(title: "TYPE", value: "Scooter"),
-              ),
-            ],
-          ),
-
-          SizedBox(height: 20),
-
+          const SizedBox(height: 16),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: vehicleInfo(title: "MODEL YEAR", value: "2022"),
+              VehicleInfo(
+                title: "BRAND",
+                value: widget.vehicleData?['brand'] ?? "Yamaha",
               ),
-
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-
-                      decoration: const BoxDecoration(
-                        color: Colors.green,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-
-                    const SizedBox(width: 8),
-
-                    const Text(
-                      "Active",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
+              VehicleInfo(
+                title: "TYPE",
+                value: widget.vehicleData?['type'] ?? "Matic",
+              ),
+              VehicleInfo(
+                title: "YEAR",
+                value: widget.vehicleData?['year']?.toString() ?? "2022",
               ),
             ],
           ),
@@ -452,92 +385,119 @@ class _ServiceRegistrationScreenState extends State<ServiceRegistrationScreen> {
     );
   }
 
-  /// ===================================
-  /// SERVICE REQUIREMENT
-  /// ===================================
+  // ===========================
+  // MANUAL VEHICLE FORM (untuk kendaraan tidak terdaftar)
+  // ===========================
+  Widget buildManualVehicleForm() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Vehicle Information",
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Merk
+          _buildTextField(
+            label: "Brand / Merk",
+            hint: "e.g. Yamaha",
+            controller: merkController,
+            icon: Icons.motorcycle,
+          ),
+          const SizedBox(height: 12),
+
+          // Tipe
+          _buildTextField(
+            label: "Type",
+            hint: "e.g. NMAX 155",
+            controller: typeController,
+            icon: Icons.two_wheeler,
+          ),
+          const SizedBox(height: 12),
+
+          // Tahun
+          _buildTextField(
+            label: "Year",
+            hint: "e.g. 2022",
+            controller: yearController,
+            icon: Icons.calendar_today,
+            keyboardType: TextInputType.number,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ===========================
+  // SERVICE REQUIREMENT (keluhan / complaint)
+  // ===========================
   Widget buildServiceRequirement() {
     return Container(
       width: double.infinity,
-
-      padding: const EdgeInsets.all(20),
-
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-
         borderRadius: BorderRadius.circular(24),
-
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+          ),
         ],
       ),
-
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-
         children: [
-          Row(
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-
-                child: const Icon(Icons.build, color: Colors.white),
-              ),
-
-              const SizedBox(width: 15),
-
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-
-                children: [
-                  Text(
-                    "Service Requirements",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-
-                  Text(
-                    "Describe the issues for our mechanic",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 25),
-
           const Text(
-            "CUSTOMER COMPLAINT",
+            "Service Requirement",
             style: TextStyle(
-              color: Colors.blue,
+              fontSize: 15,
               fontWeight: FontWeight.bold,
-              letterSpacing: 1,
-              fontSize: 12,
             ),
           ),
-
-          const SizedBox(height: 12),
-
+          const SizedBox(height: 4),
+          const Text(
+            "Describe the issue or service needed",
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          const SizedBox(height: 14),
           TextField(
             controller: complaintController,
-            maxLines: 5,
-
+            maxLines: 4,
             decoration: InputDecoration(
-              hintText:
-                  "Example: Squeaking sound from the rear brake and oil change...",
-
+              hintText: "e.g. Engine sounds rough, oil change needed...",
+              hintStyle: const TextStyle(fontSize: 13, color: Colors.grey),
               filled: true,
-              fillColor: const Color(0xFFF5F7FB),
-
+              fillColor: Colors.grey.shade50,
+              contentPadding: const EdgeInsets.all(14),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-
-                borderSide: BorderSide.none,
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: Colors.grey.shade200),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: Colors.blue),
               ),
             ),
           ),
@@ -546,83 +506,52 @@ class _ServiceRegistrationScreenState extends State<ServiceRegistrationScreen> {
     );
   }
 
-  /// ===================================
-  /// INPUT FIELD
-  /// ===================================
-  Widget buildInputField(
-    String label,
-    String hint,
-    TextEditingController controller,
-  ) {
+  // ===========================
+  // HELPER: reusable text field
+  // ===========================
+  Widget _buildTextField({
+    required String label,
+    required String hint,
+    required TextEditingController controller,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-
       children: [
         Text(
           label,
-
           style: const TextStyle(
             fontSize: 12,
-            color: Colors.grey,
             fontWeight: FontWeight.bold,
+            color: Colors.grey,
           ),
         ),
-
-        const SizedBox(height: 8),
-
+        const SizedBox(height: 6),
         TextField(
           controller: controller,
-
+          keyboardType: keyboardType,
           decoration: InputDecoration(
             hintText: hint,
-
+            hintStyle: const TextStyle(fontSize: 13, color: Colors.grey),
+            prefixIcon: Icon(icon, size: 20, color: Colors.blue),
             filled: true,
-            fillColor: Colors.white,
-
+            fillColor: Colors.grey.shade50,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-
-              borderSide: BorderSide.none,
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Colors.blue),
             ),
           ),
-        ),
-      ],
-    );
-  }
-}
-
-/// ===================================
-/// SMALL INFO ITEM
-/// ===================================
-class vehicleInfo extends StatelessWidget {
-  final String title;
-
-  final String value;
-
-  const vehicleInfo({super.key, required this.title, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-
-      children: [
-        Text(
-          title,
-
-          style: const TextStyle(
-            fontSize: 11,
-            color: Colors.grey,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        Text(
-          value,
-
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ],
     );

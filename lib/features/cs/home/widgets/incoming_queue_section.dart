@@ -1,98 +1,88 @@
 import 'package:flutter/material.dart';
+import 'package:motocare/features/cs/home/models/latest_order_model.dart';
 import 'package:motocare/features/cs/home/widgets/queue_card.dart';
-
 import '../../shared/enums/service_status.dart';
 import '../screens/detail_service_screen.dart';
 
 class IncomingQueueSection extends StatelessWidget {
+  final List<LatestOrderModel> orders;
   final bool showCompletedOnly;
 
   const IncomingQueueSection({
     super.key,
+    required this.orders,
     this.showCompletedOnly = false,
   });
 
+  // Map status string dari API → ServiceStatus enum
+  ServiceStatus _mapStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'in_progress':
+        return ServiceStatus.inProgress;
+      case 'completed':
+        return ServiceStatus.completed;
+      case 'pending':
+      case 'waiting_payment':
+      default:
+        return ServiceStatus.waitingPayment;
+    }
+  }
+
+  String _buttonText(ServiceStatus status) {
+    switch (status) {
+      case ServiceStatus.pending:
+      case ServiceStatus.waitingPayment:
+        return 'Pembayaran';
+      case ServiceStatus.inProgress:
+      case ServiceStatus.completed:
+        return 'Detail';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final filtered = showCompletedOnly
+        ? orders.where((o) => o.status == 'completed').toList()
+        : orders;
 
-      children: [
-        /// WAITING PAYMENT
-        if (!showCompletedOnly)
-          QueueCard(
-            customerName: "Ahmad Subagyo",
-            vehicle: "Honda Beat (2022)",
-            plate: "B 1234 XYZ",
-            status: ServiceStatus.waitingPayment,
-            buttonText: "Pembayaran",
-              imagePath: "lib/features/cs/shared/assets_dummy/motorcycle_1.jpg",
-            onTap: () {
-              Navigator.push(
-                context,
-
-                MaterialPageRoute(
-                  builder: (_) => const DetailServiceScreen(
-                    status: ServiceStatus.waitingPayment,
-                  ),
-                ),
-              );
-            },
-          ),
-
-        if (!showCompletedOnly)
-          const SizedBox(height: 14),
-
-        /// IN PROGRESS
-        if (!showCompletedOnly)
-          QueueCard(
-            customerName: "Siti Aminah",
-            vehicle: "Vespa Sprint S",
-            plate: "AD 5678 JK",
-            status: ServiceStatus.inProgress,
-            buttonText: "Detail",
-            imagePath: "lib/features/cs/shared/assets_dummy/motorcycle_2.png",
-
-
-            onTap: () {
-              Navigator.push(
-                context,
-
-                MaterialPageRoute(
-                  builder: (_) => const DetailServiceScreen(
-                    status: ServiceStatus.inProgress,
-                  ),
-                ),
-              );
-            },
-          ),
-
-        if (!showCompletedOnly)
-          const SizedBox(height: 14),
-
-        /// COMPLETED
-        QueueCard(
-          customerName: "Rian Hidayat",
-          vehicle: "Honda CBR 150R",
-          plate: "L 9901 QR",
-          status: ServiceStatus.completed,
-          buttonText: "Detail",
-          imagePath: "lib/features/cs/shared/assets_dummy/motorcycle_3.jpg",
-
-
-          onTap: () {
-            Navigator.push(
-              context,
-
-              MaterialPageRoute(
-                builder: (_) => const DetailServiceScreen(
-                  status: ServiceStatus.completed,
-                ),
-              ),
-            );
-          },
+    if (filtered.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 24),
+          child: Text('Tidak ada antrian saat ini'),
         ),
-      ],
+      );
+    }
+
+    return Column(
+      children: List.generate(filtered.length, (index) {
+        final order = filtered[index];
+        final serviceStatus = _mapStatus(order.status);
+
+        return Column(
+          children: [
+            QueueCard(
+              customerName: order.customerName,
+              vehicle: '${order.vehicleBrand} ${order.vehicleModel}',
+              plate: order.plateNumber,
+              status: serviceStatus,
+              buttonText: _buttonText(serviceStatus),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => DetailServiceScreen(
+                      orderId: order.id,
+                      status: serviceStatus,
+                    ),
+                  ),
+                );
+              },
+            ),
+            if (index < filtered.length - 1) const SizedBox(height: 14),
+          ],
+        );
+      }),
     );
   }
 }
