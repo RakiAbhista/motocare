@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/core/theme/app_theme.dart';
+import 'package:motocare/features/customer/booking/models/booking_models.dart';
+import 'package:motocare/core/services/booking_service.dart';
 import 'ringkasan_booking_screen.dart';
 
 class PilihBengkelScreen extends StatefulWidget {
@@ -232,17 +234,22 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: 5,
-      itemBuilder: (context, index) => _buildBengkelItem(index),
+      itemCount: list.length,
+      itemBuilder: (context, index) {
+        final workshop = list[index];
+        return _buildBengkelItem(workshop, index);
+      },
     );
   }
 
-  Widget _buildBengkelItem(int index) {
-    bool isSelected = selectedIndex == index;
+  Widget _buildBengkelItem(Workshop workshop, int index) {
+    bool isSelected = _selectedWorkshop?.id == workshop.id;
     final ratings = [4.8, 4.6, 4.5, 4.3, 4.2];
     final distances = ['50m', '150m', '250m', '425m', '600m'];
+    final rating = ratings[index % ratings.length];
+    final distance = distances[index % distances.length];
     return GestureDetector(
-      onTap: () => setState(() => selectedIndex = index),
+      onTap: () => setState(() => _selectedWorkshop = workshop),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
@@ -285,13 +292,13 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('BENGKEL ${index + 1}', style: AppTheme.titleMedium),
+                  Text(workshop.name, style: AppTheme.titleMedium),
                   const SizedBox(height: 4),
                   Row(
                     children: [
                       Icon(Icons.star, color: Colors.amber.shade600, size: 14),
                       const SizedBox(width: 4),
-                      Text('${ratings[index]} (120 Penilaian)', style: AppTheme.bodySmall),
+                      Text('$rating (120 Penilaian)', style: AppTheme.bodySmall),
                     ],
                   ),
                 ],
@@ -303,7 +310,7 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
                 color: AppColors.primary,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Text(distances[index],
+              child: Text(distance,
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white)),
             ),
             const SizedBox(width: 12),
@@ -340,12 +347,26 @@ class _PilihBengkelScreenState extends State<PilihBengkelScreen> {
           ),
           const SizedBox(width: 12),
           ElevatedButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const RingkasanBookingScreen(),
-              ),
-            ),
+            onPressed: () {
+              if (_selectedWorkshop == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Silakan pilih bengkel terlebih dahulu')),
+                );
+                return;
+              }
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => RingkasanBookingScreen(
+                    selectedVehicle: widget.selectedVehicle,
+                    selectedServices: widget.selectedServices,
+                    selectedWorkshop: _selectedWorkshop!,
+                    complaint: widget.complaint,
+                    damagePhoto: widget.damagePhoto,
+                  ),
+                ),
+              );
+            },
             child: const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
               child: Text('Berikutnya'),

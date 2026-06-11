@@ -2,7 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 
 class InvoiceServiceList extends StatelessWidget {
-  const InvoiceServiceList({super.key});
+  final List<dynamic> services;
+  final VoidCallback? onAdd;
+  final Map<String, dynamic>? totalData;
+
+  const InvoiceServiceList({
+    super.key,
+    this.services = const [],
+    this.onAdd,
+    this.totalData,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +47,7 @@ class InvoiceServiceList extends StatelessWidget {
                 ),
               ),
               TextButton.icon(
-                onPressed: () {},
+                onPressed: onAdd,
                 icon: const Icon(Icons.add_circle, color: AppColors.primary, size: 18),
                 label: const Text(
                   'Tambah',
@@ -59,20 +68,14 @@ class InvoiceServiceList extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Item 1: Paket Ganti Oli
-          _buildInvoiceItem('Paket Ganti Oli', '95.000'),
-          const SizedBox(height: 16),
-          
-          // Item 2: Busi Merk
-          _buildInvoiceItem('Busi Merk X', '35.000'),
-          const SizedBox(height: 16),
-          
-          // Item 3: Roller 10 gr Merk
-          _buildInvoiceItem('Roller 10gr', '90.000'),
-          const SizedBox(height: 16),
-          
-          // Item 4: Jasa Mekanik
-          _buildInvoiceItem('Jasa Mekanik', '50.000'),
+          // Dynamic service items
+          for (var i = 0; i < services.length; i++) ...[
+            _buildInvoiceItem(
+              services[i]['service_name'] ?? services[i]['additional_service'] ?? 'Layanan',
+              (services[i]['price'] ?? services[i]['base_price'] ?? '0').toString(),
+            ),
+            const SizedBox(height: 16),
+          ],
           
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
@@ -105,12 +108,12 @@ class InvoiceServiceList extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Text('TOTAL AMOUNT', style: TextStyle(fontFamily: 'Manrope', fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.primary, letterSpacing: 2.2)),
-                      SizedBox(height: 8),
+                    children: [
+                      const Text('TOTAL AMOUNT', style: TextStyle(fontFamily: 'Manrope', fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.primary, letterSpacing: 2.2)),
+                      const SizedBox(height: 8),
                       Text(
-                        'Rp. 299.700',
-                        style: TextStyle(
+                        _formatTotal(),
+                        style: const TextStyle(
                           fontFamily: 'Manrope',
                           fontSize: 26, // Disesuaikan agar muat di layar mobile
                           fontWeight: FontWeight.w800,
@@ -127,6 +130,25 @@ class InvoiceServiceList extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _formatTotal() {
+    if (totalData != null) {
+      // try common keys
+      final t = totalData!['total'] ?? totalData!['data']?['total'] ?? totalData!['data']?['grand_total'] ?? totalData!['grand_total'];
+      if (t != null) return 'Rp. ${t.toString()}';
+    }
+    // fallback: sum prices in services
+    try {
+      double sum = 0;
+      for (var s in services) {
+        final p = s['price'] ?? s['base_price'] ?? 0;
+        sum += double.tryParse(p.toString()) ?? 0;
+      }
+      return 'Rp. ${sum.toStringAsFixed(0)}';
+    } catch (_) {
+      return 'Rp. 0';
+    }
   }
 
   // Helper Widget untuk Form Input Jasa & Harga

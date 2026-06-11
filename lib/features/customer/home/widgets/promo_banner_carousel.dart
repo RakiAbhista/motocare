@@ -44,8 +44,12 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
   @override
   Widget build(BuildContext context) {
     final banners = widget.banners ?? [];
-    
-    if (banners.isEmpty) {
+
+    // If backend banners empty, fallback to sample banners
+    final useSample = banners.isEmpty;
+    final int count = useSample ? _banners.length : banners.length;
+
+    if (count == 0) {
       return Container(
         height: 150,
         decoration: BoxDecoration(
@@ -62,73 +66,125 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
           height: 150,
           child: PageView.builder(
             controller: _pageController,
-            itemCount: _banners.length,
+            itemCount: count,
             onPageChanged: (index) => setState(() => _currentPage = index),
             itemBuilder: (context, index) {
+              if (useSample) {
+                final s = _banners[index];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          s.color,
+                          s.color.withValues(alpha: 0.7),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                      boxShadow: [
+                        BoxShadow(
+                          color: s.color.withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            right: -10,
+                            bottom: -10,
+                            child: Icon(
+                              s.icon,
+                              size: 80,
+                              color: Colors.white.withValues(alpha: 0.12),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  s.icon,
+                                  size: 28,
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  s.label,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  s.subtitle,
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.85),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }
+
+              // Use backend banner
               final banner = banners[index];
+              final imageUrl = banner['image_url'] as String?;
+              final title = banner['title'] as String? ?? '';
+
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Container(
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        _banners[index].color,
-                        _banners[index].color.withValues(alpha: 0.7),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
                     borderRadius: BorderRadius.circular(AppTheme.radiusLg),
                     boxShadow: [
                       BoxShadow(
-                        color: _banners[index].color.withValues(alpha: 0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 5),
+                        color: Colors.black.withValues(alpha: 0.06),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(AppTheme.radiusLg),
                     child: Stack(
+                      fit: StackFit.expand,
                       children: [
-                        Positioned(
-                          right: -10,
-                          bottom: -10,
-                          child: Icon(
-                            _banners[index].icon,
-                            size: 80,
-                            color: Colors.white.withValues(alpha: 0.12),
+                        if (imageUrl != null && imageUrl.isNotEmpty)
+                          Image.network(imageUrl, fit: BoxFit.cover)
+                        else
+                          Container(color: Colors.grey.shade200),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.black.withValues(alpha: 0.25), Colors.transparent],
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.center,
+                            ),
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                _banners[index].icon,
-                                size: 28,
-                                color: Colors.white.withValues(alpha: 0.9),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                _banners[index].label,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                _banners[index].subtitle,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.85),
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
+                        Positioned(
+                          left: 16,
+                          bottom: 16,
+                          child: Text(
+                            title,
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                         ),
                       ],
@@ -143,7 +199,7 @@ class _PromoBannerCarouselState extends State<PromoBannerCarousel> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
-            _banners.length,
+            count,
             (index) => AnimatedContainer(
               duration: const Duration(milliseconds: 250),
               margin: const EdgeInsets.symmetric(horizontal: 4),

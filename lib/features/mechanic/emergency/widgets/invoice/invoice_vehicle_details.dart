@@ -2,7 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 
 class InvoiceVehicleDetails extends StatelessWidget {
-  const InvoiceVehicleDetails({super.key});
+  final String vehicleBrand;
+  final String plateNumber;
+  final String vehicleType;
+  final String vehicleModel;
+
+  const InvoiceVehicleDetails({
+    super.key,
+    this.vehicleBrand = '',
+    this.plateNumber = '',
+    this.vehicleType = '',
+    this.vehicleModel = '',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,12 +26,12 @@ class InvoiceVehicleDetails extends StatelessWidget {
               color: AppColors.primaryLight,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('VEHICLE', style: TextStyle(fontFamily: 'Plus Jakarta Sans', fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF434652))),
-                SizedBox(height: 4),
-                Text('Honda Beat', style: TextStyle(fontFamily: 'Plus Jakarta Sans', fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF181C20))),
+                const Text('VEHICLE', style: TextStyle(fontFamily: 'Plus Jakarta Sans', fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF434652))),
+                const SizedBox(height: 4),
+                Text(vehicleBrand.isNotEmpty ? '$vehicleBrand ${vehicleModel.isNotEmpty ? vehicleModel : ''}' : '-', style: const TextStyle(fontFamily: 'Plus Jakarta Sans', fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF181C20))),
               ],
             ),
           ),
@@ -33,12 +44,12 @@ class InvoiceVehicleDetails extends StatelessWidget {
               color: AppColors.primaryLight,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('PLATE NUMBER', style: TextStyle(fontFamily: 'Plus Jakarta Sans', fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF434652))),
-                SizedBox(height: 4),
-                Text('H 1945 AGS', style: TextStyle(fontFamily: 'Plus Jakarta Sans', fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF181C20))),
+                const Text('PLATE NUMBER', style: TextStyle(fontFamily: 'Plus Jakarta Sans', fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF434652))),
+                const SizedBox(height: 4),
+                Text(plateNumber.isNotEmpty ? plateNumber : '-', style: const TextStyle(fontFamily: 'Plus Jakarta Sans', fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF181C20))),
               ],
             ),
           ),

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/core/theme/app_theme.dart';
 import 'package:motocare/widgets/main_wrapper.dart';
+import 'package:motocare/features/customer/booking/models/booking_models.dart';
+import 'package:motocare/core/services/booking_service.dart';
 
 class RingkasanBookingScreen extends StatefulWidget {
   final Vehicle selectedVehicle;
@@ -291,12 +293,12 @@ class _RingkasanBookingScreenState extends State<RingkasanBookingScreen> {
           child: const Icon(Icons.motorcycle, size: 36, color: AppColors.primary),
         ),
         const SizedBox(width: 16),
-        const Column(
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Honda Beatrix', style: AppTheme.titleMedium),
-            SizedBox(height: 2),
-            Text('H 1945 AGS', style: AppTheme.bodySmall),
+            Text('${widget.selectedVehicle.brand} ${widget.selectedVehicle.model}', style: AppTheme.titleMedium),
+            const SizedBox(height: 2),
+            Text(widget.selectedVehicle.plateNumber, style: AppTheme.bodySmall),
           ],
         ),
       ],
@@ -307,10 +309,10 @@ class _RingkasanBookingScreenState extends State<RingkasanBookingScreen> {
     final v = widget.selectedVehicle;
     return Column(
       children: [
-        _buildAutoFillRow('Merk Kendaraan', 'Autofill'),
-        _buildAutoFillRow('Tipe Kendaraan', 'Autofill'),
-        _buildAutoFillRow('Nomor Plat', 'Autofill'),
-        _buildAutoFillRow('Tahun Keluaran', 'Autofill'),
+        _buildRow('Merk Kendaraan', v.brand),
+        _buildRow('Tipe Kendaraan', v.vehicleType),
+        _buildRow('Nomor Plat', v.plateNumber),
+        _buildRow('Tahun Keluaran', v.manufacturingYear.toString()),
       ],
     );
   }
@@ -328,9 +330,12 @@ class _RingkasanBookingScreenState extends State<RingkasanBookingScreen> {
   }
 
   Widget _buildPhotoSection() {
+    if (widget.damagePhoto == null) {
+      return const Text('Tidak ada foto dilampirkan', style: AppTheme.bodySmall);
+    }
     return Container(
-      width: 80,
-      height: 80,
+      width: 120,
+      height: 120,
       decoration: BoxDecoration(
         color: Colors.grey.shade200,
         borderRadius: BorderRadius.circular(AppTheme.radiusSm),
@@ -341,11 +346,15 @@ class _RingkasanBookingScreenState extends State<RingkasanBookingScreen> {
           ),
         ],
       ),
-      child: const Icon(Icons.image, color: Colors.grey, size: 40),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+        child: Image.file(widget.damagePhoto!, fit: BoxFit.cover),
+      ),
     );
   }
 
   Widget _buildBengkelInfo() {
+    final w = widget.selectedWorkshop;
     return Row(
       children: [
         Container(
@@ -357,13 +366,13 @@ class _RingkasanBookingScreenState extends State<RingkasanBookingScreen> {
           child: const Icon(Icons.build_rounded, color: AppColors.primary, size: 22),
         ),
         const SizedBox(width: 12),
-        const Expanded(
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('BENGKEL 123', style: AppTheme.titleMedium),
-              SizedBox(height: 2),
-              Row(
+              Text(w.name, style: AppTheme.titleMedium),
+              const SizedBox(height: 2),
+              const Row(
                 children: [
                   Icon(Icons.star, size: 14, color: Color(0xFFF59E0B)),
                   SizedBox(width: 4),
@@ -408,15 +417,19 @@ class _RingkasanBookingScreenState extends State<RingkasanBookingScreen> {
           ),
           const SizedBox(width: 12),
           ElevatedButton(
-            onPressed: () => Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const MainWrapper(hasActiveBooking: true)),
-              (route) => false,
-            ),
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text('Kirim'),
+            onPressed: _isSubmitting ? null : _submitBooking,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _isSubmitting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text('Kirim'),
             ),
           ),
         ],

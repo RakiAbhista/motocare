@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/core/theme/app_theme.dart';
+import 'package:motocare/features/customer/booking/models/booking_models.dart';
+import 'package:motocare/core/services/emergency_service.dart';
 
 class PilihKendaraanBottomSheet extends StatefulWidget {
   const PilihKendaraanBottomSheet({super.key});
@@ -21,7 +23,7 @@ class PilihKendaraanBottomSheet extends StatefulWidget {
 
 class _PilihKendaraanBottomSheetState
     extends State<PilihKendaraanBottomSheet> {
-  final _service = BookingService();
+  final _service = EmergencyService();
   List<Vehicle> _vehicles = [];
   bool _isLoading = true;
 
@@ -32,7 +34,8 @@ class _PilihKendaraanBottomSheetState
   }
 
   Future<void> _loadVehicles() async {
-    final vehicles = await _service.getVehicles();
+    final raw = await _service.getVehicles();
+    final vehicles = raw.map((e) => Vehicle.fromJson(e as Map<String, dynamic>)).toList();
     if (mounted) {
       setState(() {
         _vehicles = vehicles;
@@ -76,51 +79,56 @@ class _PilihKendaraanBottomSheetState
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: 4,
-              itemBuilder: (context, index) {
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryLight,
-                          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                        ),
-                        child: const Icon(Icons.motorcycle, color: AppColors.primary),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _vehicles.isEmpty
+                    ? const Center(child: Text('Tidak ada kendaraan ditemukan.'))
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        itemCount: _vehicles.length,
+                        itemBuilder: (context, index) {
+                          final vehicle = _vehicles[index];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryLight,
+                                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                                  ),
+                                  child: const Icon(Icons.motorcycle, color: AppColors.primary),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('${vehicle.brand} ${vehicle.model}', style: AppTheme.titleMedium),
+                                      Text(vehicle.plateNumber, style: AppTheme.bodySmall),
+                                    ],
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => Navigator.pop(context, vehicle),
+                                  style: ElevatedButton.styleFrom(
+                                    minimumSize: const Size(70, 32),
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                  child: const Text('Pilih', style: TextStyle(fontSize: 12)),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Honda Beatrix', style: AppTheme.titleMedium),
-                            const Text('H 1945 AGS', style: AppTheme.bodySmall),
-                          ],
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(70, 32),
-                          padding: EdgeInsets.zero,
-                        ),
-                        child: const Text('Pilih', style: TextStyle(fontSize: 12)),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
           ),
         ],
       ),

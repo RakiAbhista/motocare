@@ -3,17 +3,51 @@ import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/core/theme/app_theme.dart';
 import '../../emergency/screens/panggilan_darurat_screen.dart';
 import '../../booking/screens/booking_servis_screen.dart';
+import 'package:motocare/core/services/riwayat_service.dart';
 
-class DetailMotorBottomSheet extends StatelessWidget {
-  const DetailMotorBottomSheet({super.key});
+class DetailMotorBottomSheet extends StatefulWidget {
+  final Map<String, dynamic>? vehicle;
+  final int? vehicleId;
 
-  static void show(BuildContext context) {
+  const DetailMotorBottomSheet({super.key, this.vehicle, this.vehicleId});
+
+  static void show(BuildContext context, {Map<String, dynamic>? vehicle, int? vehicleId}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const DetailMotorBottomSheet(),
+      builder: (context) => DetailMotorBottomSheet(vehicle: vehicle, vehicleId: vehicleId),
     );
+  }
+
+  @override
+  State<DetailMotorBottomSheet> createState() => _DetailMotorBottomSheetState();
+}
+
+class _DetailMotorBottomSheetState extends State<DetailMotorBottomSheet> {
+  Map<String, dynamic>? _vehicleData;
+  bool _isLoading = false;
+  final RiwayatService _riwayatService = RiwayatService();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.vehicle != null) {
+      _vehicleData = widget.vehicle;
+    } else if (widget.vehicleId != null) {
+      _loadDetail(widget.vehicleId!);
+    }
+  }
+
+  Future<void> _loadDetail(int id) async {
+    setState(() => _isLoading = true);
+    final detail = await _riwayatService.getVehicleDetail(id);
+    if (mounted) {
+      setState(() {
+        _vehicleData = detail;
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -37,23 +71,25 @@ class DetailMotorBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  _MotorHeaderCard(),
-                  const SizedBox(height: 16),
-                  _SpecsCard(),
-                  const SizedBox(height: 16),
-                  _ServiceInfoCard(),
-                  const SizedBox(height: 16),
-                  _StnkCard(),
-                  const SizedBox(height: 24),
-                  _ActionButtonsRow(),
-                  const SizedBox(height: 40),
-                ],
-              ),
-            ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: [
+                        _MotorHeaderCard(vehicle: _vehicleData),
+                        const SizedBox(height: 16),
+                        _SpecsCard(vehicle: _vehicleData),
+                        const SizedBox(height: 16),
+                        _ServiceInfoCard(vehicle: _vehicleData),
+                        const SizedBox(height: 16),
+                        _StnkCard(vehicle: _vehicleData),
+                        const SizedBox(height: 24),
+                        _ActionButtonsRow(),
+                        const SizedBox(height: 40),
+                      ],
+                    ),
+                  ),
           ),
         ],
       ),
@@ -62,6 +98,9 @@ class DetailMotorBottomSheet extends StatelessWidget {
 }
 
 class _MotorHeaderCard extends StatelessWidget {
+  final Map<String, dynamic>? vehicle;
+  const _MotorHeaderCard({this.vehicle});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -86,7 +125,7 @@ class _MotorHeaderCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                const Text('Honda Beatrix', style: AppTheme.titleLarge),
+                Text('${vehicle?['brand'] ?? ''} ${vehicle?['model'] ?? ''}', style: AppTheme.titleLarge),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -94,9 +133,9 @@ class _MotorHeaderCard extends StatelessWidget {
                     color: AppColors.primaryLight,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Text(
-                    'H 1945 AGS',
-                    style: TextStyle(
+                  child: Text(
+                    vehicle?['plate_number'] ?? '-',
+                    style: const TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -113,6 +152,9 @@ class _MotorHeaderCard extends StatelessWidget {
 }
 
 class _SpecsCard extends StatelessWidget {
+  final Map<String, dynamic>? vehicle;
+  const _SpecsCard({this.vehicle});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -125,9 +167,9 @@ class _SpecsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSpecRow('Tahun', '2019'),
+          _buildSpecRow('Tahun', vehicle != null ? '${vehicle!['manufacturing_year'] ?? '-'}' : '-'),
           const SizedBox(height: 8),
-          _buildSpecRow('Kilometer', '12.500 KM'),
+          _buildSpecRow('Kilometer', '-'),
         ],
       ),
     );
@@ -145,6 +187,9 @@ class _SpecsCard extends StatelessWidget {
 }
 
 class _ServiceInfoCard extends StatelessWidget {
+  final Map<String, dynamic>? vehicle;
+  const _ServiceInfoCard({this.vehicle});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -166,7 +211,7 @@ class _ServiceInfoCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          const Text('Service Terakhir : 12 Maret 2025', style: AppTheme.titleMedium),
+          Text('Service Terakhir : -', style: AppTheme.titleMedium),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -195,6 +240,9 @@ class _ServiceInfoCard extends StatelessWidget {
 }
 
 class _StnkCard extends StatelessWidget {
+  final Map<String, dynamic>? vehicle;
+  const _StnkCard({this.vehicle});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -223,7 +271,7 @@ class _StnkCard extends StatelessWidget {
               color: AppColors.primaryLight,
               borderRadius: BorderRadius.circular(AppTheme.radiusSm),
             ),
-            child: const Center(child: Icon(Icons.image, color: AppColors.primary, size: 40)),
+            child: Center(child: Text(vehicle?['registration_doc'] ?? '-', style: AppTheme.titleMedium)),
           ),
         ],
       ),

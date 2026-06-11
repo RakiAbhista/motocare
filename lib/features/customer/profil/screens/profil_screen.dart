@@ -6,9 +6,19 @@ import 'package:motocare/features/customer/home/screens/notifikasi_screen.dart';
 import 'package:motocare/features/customer/kendaraan/screens/tambah_kendaraan_screen.dart';
 import 'package:motocare/features/customer/kendaraan/widgets/detail_motor_bottom_sheet.dart';
 import 'package:motocare/widgets/custom_card.dart';
+import 'package:motocare/features/customer/profil/widgets/profile_dialogs.dart';
 
-class ProfilScreen extends StatelessWidget {
+class ProfilScreen extends StatefulWidget {
   const ProfilScreen({super.key});
+
+  @override
+  State<ProfilScreen> createState() => _ProfilScreenState();
+}
+
+class _ProfilScreenState extends State<ProfilScreen> {
+  Future<void> refresh() async {
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,6 +85,18 @@ class _ProfileHeader extends StatelessWidget {
                     MaterialPageRoute(builder: (context) => const NotifikasiScreen()),
                   ),
                   child: const Icon(Icons.notifications, color: Colors.white, size: 22),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: GestureDetector(
+                  onTap: () => showLogoutDialog(context),
+                  child: const Icon(Icons.logout, color: Colors.white, size: 22),
                 ),
               ),
             ],

@@ -2,7 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 
 class InvoiceCustomerInfo extends StatelessWidget {
-  const InvoiceCustomerInfo({super.key});
+  final String clientName;
+  final String clientPhone;
+  final String? damagePhoto;
+
+  const InvoiceCustomerInfo({
+    super.key,
+    this.clientName = '',
+    this.clientPhone = '',
+    this.damagePhoto,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +40,9 @@ class InvoiceCustomerInfo extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Andi Pratama',
-                style: TextStyle(
+              Text(
+                clientName.isNotEmpty ? clientName : 'Nama Tidak Diketahui',
+                style: const TextStyle(
                   fontFamily: 'Plus Jakarta Sans',
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
@@ -42,13 +51,13 @@ class InvoiceCustomerInfo extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              const Row(
+              Row(
                 children: [
-                  Icon(Icons.phone, size: 14, color: AppColors.primary),
-                  SizedBox(width: 8),
+                  const Icon(Icons.phone, size: 14, color: AppColors.primary),
+                  const SizedBox(width: 8),
                   Text(
-                    'Hubungi Pelanggan',
-                    style: TextStyle(
+                    clientPhone.isNotEmpty ? clientPhone : 'Hubungi Pelanggan',
+                    style: const TextStyle(
                       fontFamily: 'Plus Jakarta Sans',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -66,10 +75,29 @@ class InvoiceCustomerInfo extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.grey[200],
             borderRadius: BorderRadius.circular(12),
-            image: const DecorationImage(
-              image: NetworkImage('https://via.placeholder.com/150'), 
-              fit: BoxFit.cover,
-            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF1E293B).withOpacity(0.15),
+                blurRadius: 15,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: damagePhoto != null && damagePhoto!.isNotEmpty
+                ? Image.network(
+                    damagePhoto!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (c, e, st) => Container(
+                      color: Colors.grey[200],
+                      child: const Center(child: Icon(Icons.directions_bike, size: 36, color: Colors.grey)),
+                    ),
+                  )
+                : Container(
+                    color: Colors.grey[200],
+                    child: const Center(child: Icon(Icons.directions_bike, size: 36, color: Colors.grey)),
+                  ),
           ),
         ),
       ],

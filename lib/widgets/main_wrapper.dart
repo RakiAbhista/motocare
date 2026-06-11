@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/features/customer/home/screens/beranda_screen.dart';
 import 'package:motocare/features/customer/home/screens/terdekat_screen.dart';
 import 'package:motocare/features/customer/profil/screens/profil_screen.dart';
@@ -21,6 +22,10 @@ class MainWrapper extends StatefulWidget {
 
 class _MainWrapperState extends State<MainWrapper> {
   int _selectedIndex = 0;
+  final GlobalKey _berandaKey = GlobalKey();
+  final GlobalKey _riwayatKey = GlobalKey();
+  final GlobalKey _terdekatKey = GlobalKey();
+  final GlobalKey _profilKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -29,12 +34,13 @@ class _MainWrapperState extends State<MainWrapper> {
         index: _selectedIndex,
         children: [
           BerandaScreen(
+            key: _berandaKey,
             hasActiveBooking: widget.hasActiveBooking,
             daruratType: widget.daruratType,
           ),
-          const RiwayatScreen(),
-          const TerdekatScreen(),
-          const ProfilScreen(),
+          RiwayatScreen(key: _riwayatKey),
+          TerdekatScreen(key: _terdekatKey),
+          ProfilScreen(key: _profilKey),
         ],
       ),
 
@@ -78,6 +84,20 @@ class _MainWrapperState extends State<MainWrapper> {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+    // After first frame, trigger refresh on the initially selected page
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        if (_selectedIndex == 0) (_berandaKey.currentState as dynamic)?.refresh();
+        if (_selectedIndex == 1) (_riwayatKey.currentState as dynamic)?.refresh();
+        if (_selectedIndex == 2) (_terdekatKey.currentState as dynamic)?.refresh();
+        if (_selectedIndex == 3) (_profilKey.currentState as dynamic)?.refresh();
+      } catch (_) {}
+    });
+  }
+
   Widget _buildNavItem({
     required IconData icon,
     required String label,
@@ -85,7 +105,18 @@ class _MainWrapperState extends State<MainWrapper> {
     required int index,
   }) {
     return GestureDetector(
-      onTap: () => setState(() => _selectedIndex = index),
+      onTap: () {
+        setState(() => _selectedIndex = index);
+        // call refresh on the selected page (if available)
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          try {
+            if (index == 0) ( _berandaKey.currentState as dynamic)?.refresh();
+            if (index == 1) ( _riwayatKey.currentState as dynamic)?.refresh();
+            if (index == 2) ( _terdekatKey.currentState as dynamic)?.refresh();
+            if (index == 3) ( _profilKey.currentState as dynamic)?.refresh();
+          } catch (_) {}
+        });
+      },
       behavior: HitTestBehavior.opaque,
       child: Column(
         mainAxisSize: MainAxisSize.min,

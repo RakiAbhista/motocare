@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/core/theme/app_theme.dart';
 
@@ -48,11 +49,11 @@ class ServiceDetailBottomSheet extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const _ServiceCostCard(),
+                  _ServiceCostCard(orderData: orderData),
                   const SizedBox(height: 16),
                   const _DocumentationCard(),
                   const SizedBox(height: 16),
-                  const _ReceiptCard(),
+                  _ReceiptCard(orderData: orderData),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -131,15 +132,15 @@ class _ServiceCostCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Ganti Oli', style: AppTheme.titleLarge),
+                    Text(serviceNames.isNotEmpty ? serviceNames : 'Service', style: AppTheme.titleLarge),
                     const SizedBox(height: 2),
-                    const Text('19 Maret 2025', style: AppTheme.bodySmall),
+                    Text(_formatDate(bookingDate), style: AppTheme.bodySmall),
                     const SizedBox(height: 4),
                     Row(
                       children: [
                         Icon(Icons.location_on, size: 14, color: Colors.grey.shade600),
                         const SizedBox(width: 4),
-                        const Text('Bengkel Semarang Barat', style: AppTheme.bodySmall),
+                        Text(workshop?['name'] ?? '-', style: AppTheme.bodySmall),
                       ],
                     ),
                   ],
@@ -150,13 +151,14 @@ class _ServiceCostCard extends StatelessWidget {
           const SizedBox(height: 16),
           const Divider(),
           const SizedBox(height: 8),
-          _buildCostRow('Spare parts Oli', 'Rp 55.000'),
-          const SizedBox(height: 8),
-          _buildCostRow('Biaya Jasa', 'Rp 50.000'),
+          ...services.map((s) => Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: _buildCostRow(s['service_name'] ?? '', _formatCurrency(s['base_price'])),
+          )).toList(),
           const SizedBox(height: 8),
           const Divider(),
           const SizedBox(height: 8),
-          _buildTotalRow('Total Biaya', 'Rp 105.000'),
+          _buildTotalRow('Total Biaya', _formatCurrency(totalPrice)),
         ],
       ),
     );
@@ -265,8 +267,19 @@ class _ReceiptCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final services = List<Map<String, dynamic>>.from(orderData['services'] ?? []);
     final workshop = orderData['workshop'] as Map<String, dynamic>?;
-    final orderId = orderData['order_id'];
+    final orderId = orderData['id'] ?? orderData['order_id'] ?? '-';
+    final bookingDate = orderData['booking_date'] as String?;
     final totalPrice = orderData['total_price'];
+
+    String formattedDate = '-';
+    if (bookingDate != null) {
+      try {
+        final date = DateTime.parse(bookingDate);
+        formattedDate = DateFormat('dd-MM-yyyy HH:mm').format(date);
+      } catch (_) {
+        formattedDate = bookingDate;
+      }
+    }
 
     return Container(
       width: double.infinity,
@@ -280,7 +293,23 @@ class _ReceiptCard extends StatelessWidget {
         children: [
           const Text('Receipt',
               style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 120),
+          const SizedBox(height: 16),
+          _receiptRow('Order ID', '#$orderId'),
+          const SizedBox(height: 8),
+          _receiptRow('Tanggal', formattedDate),
+          const SizedBox(height: 8),
+          _receiptRow('Bengkel', workshop?['name'] ?? '-'),
+          const SizedBox(height: 12),
+          const Divider(height: 1, thickness: 1),
+          const SizedBox(height: 12),
+          ...services.map((s) => Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: _receiptRow(s['service_name'] ?? '', _formatCurrency(s['base_price'])),
+          )).toList(),
+          const SizedBox(height: 4),
+          const Divider(height: 1, thickness: 1),
+          const SizedBox(height: 12),
+          _receiptRow('Total', _formatCurrency(totalPrice), isBold: true),
         ],
       ),
     );

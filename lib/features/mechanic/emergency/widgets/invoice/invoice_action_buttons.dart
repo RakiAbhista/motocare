@@ -2,7 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 
 class InvoiceActionButtons extends StatelessWidget {
-  const InvoiceActionButtons({super.key});
+  final VoidCallback? onTowing;
+  final VoidCallback? onProceedPayment;
+  final bool loading;
+
+  const InvoiceActionButtons({
+    super.key,
+    this.onTowing,
+    this.onProceedPayment,
+    this.loading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,15 +29,15 @@ class InvoiceActionButtons extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
-              onTap: () {},
-              child: const Row(
+              onTap: loading ? null : onTowing,
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.local_shipping_outlined, color: AppColors.danger, size: 24),
-                  SizedBox(width: 8),
+                  const Icon(Icons.local_shipping_outlined, color: AppColors.danger, size: 24),
+                  const SizedBox(width: 8),
                   Text(
                     'Ajukan Layanan Towing',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontFamily: 'Plus Jakarta Sans',
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -59,17 +68,19 @@ class InvoiceActionButtons extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(9999),
-              onTap: () {},
-              child: const Center(
-                child: Text(
-                  'Lanjutkan Pembayaran',
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 16, // Sedikit dikecilkan dari 18 agar proporsional
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
+              onTap: loading ? null : onProceedPayment,
+              child: Center(
+                child: loading
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Text(
+                        'Lanjutkan Pembayaran',
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
           ),

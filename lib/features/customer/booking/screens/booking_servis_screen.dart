@@ -65,7 +65,7 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
             _buildStepper(),
             const SizedBox(height: 32),
             _buildVehicleSection(context),
-            if (isVehicleSelected)
+            if (_selectedVehicle != null)
               Column(
                 children: [
                   const SizedBox(height: 24),
@@ -80,12 +80,37 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: ElevatedButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PilihBengkelScreen(),
-                        ),
-                      ),
+                      onPressed: () {
+                        if (_selectedVehicle == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Silakan pilih kendaraan terlebih dahulu')),
+                          );
+                          return;
+                        }
+                        if (_selectedServices.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Silakan pilih minimal satu layanan servis')),
+                          );
+                          return;
+                        }
+                        if (_complaintController.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Silakan tuliskan keluhan kendaraan Anda')),
+                          );
+                          return;
+                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PilihBengkelScreen(
+                              selectedVehicle: _selectedVehicle!,
+                              selectedServices: _selectedServices,
+                              complaint: _complaintController.text,
+                              damagePhoto: _damagePhoto,
+                            ),
+                          ),
+                        );
+                      },
                       child: const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 20),
                         child: Text('Berikutnya'),
@@ -165,6 +190,7 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
   }
 
   Widget _buildVehicleSection(BuildContext context) {
+    final hasVehicle = _selectedVehicle != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -178,7 +204,9 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
         const SizedBox(height: 12),
         InkWell(
           onTap: () => PilihKendaraanBottomSheet.show(context).then((value) {
-            setState(() => isVehicleSelected = true);
+            if (value != null) {
+              setState(() => _selectedVehicle = value);
+            }
           }),
           child: Container(
             width: double.infinity,
@@ -187,9 +215,9 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
               border: Border.all(
-                color: isVehicleSelected ? AppColors.primary.withValues(alpha: 0.4) : AppColors.border,
+                color: hasVehicle ? AppColors.primary.withValues(alpha: 0.4) : AppColors.border,
               ),
-              boxShadow: isVehicleSelected
+              boxShadow: hasVehicle
                   ? [
                       BoxShadow(
                         color: AppColors.primary.withValues(alpha: 0.06),
@@ -204,23 +232,25 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: isVehicleSelected ? AppColors.primaryLight : Colors.grey.shade50,
+                    color: hasVehicle ? AppColors.primaryLight : Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                   ),
                   child: Icon(
-                    isVehicleSelected ? Icons.motorcycle : Icons.add_circle_outline,
-                    color: isVehicleSelected ? AppColors.primary : Colors.grey,
+                    hasVehicle ? Icons.motorcycle : Icons.add_circle_outline,
+                    color: hasVehicle ? AppColors.primary : Colors.grey,
                     size: 24,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    isVehicleSelected ? 'Honda Beatrix (H 1945 AGS)' : 'Pilih Kendaraan',
+                    hasVehicle
+                        ? '${_selectedVehicle!.brand} ${_selectedVehicle!.model} (${_selectedVehicle!.plateNumber})'
+                        : 'Pilih Kendaraan',
                     style: TextStyle(
-                      color: isVehicleSelected ? AppColors.textBody : Colors.grey,
+                      color: hasVehicle ? AppColors.textBody : Colors.grey,
                       fontSize: 14,
-                      fontWeight: isVehicleSelected ? FontWeight.w500 : FontWeight.normal,
+                      fontWeight: hasVehicle ? FontWeight.w500 : FontWeight.normal,
                     ),
                   ),
                 ),
@@ -267,11 +297,17 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Paket Ganti Oli (Oli mesin + Gardan)',
-                  style: TextStyle(color: Color(0xFF1A1A1A), fontSize: 14),
+                Expanded(
+                  child: Text(
+                    _selectedServices.isEmpty
+                        ? 'Pilih Layanan'
+                        : _selectedServices.map((s) => s.serviceName).join(', '),
+                    style: const TextStyle(color: Color(0xFF1A1A1A), fontSize: 14),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                Icon(Icons.arrow_drop_down, color: Colors.grey),
+                const Icon(Icons.arrow_drop_down, color: Colors.grey),
               ],
             ),
           ),
@@ -294,7 +330,7 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
         ),
         const SizedBox(height: 8),
         TextFormField(
-          initialValue: 'Ganti oli, Motor tidak bisa menyala',
+          controller: _complaintController,
           maxLines: 3,
           style: const TextStyle(fontSize: 14),
           decoration: InputDecoration(
@@ -329,10 +365,10 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          _buildAutoFillRow('Merk Kendaraan', 'Autofill'),
-          _buildAutoFillRow('Tipe Kendaraan', 'Autofill'),
-          _buildAutoFillRow('Nomor Plat', 'Autofill'),
-          _buildAutoFillRow('Tahun Keluaran', 'Autofill'),
+          _buildRow('Merk Kendaraan', _selectedVehicle?.brand ?? '-'),
+          _buildRow('Tipe Kendaraan', _selectedVehicle?.vehicleType ?? '-'),
+          _buildRow('Nomor Plat', _selectedVehicle?.plateNumber ?? '-'),
+          _buildRow('Tahun Keluaran', _selectedVehicle?.manufacturingYear.toString() ?? '-'),
         ],
       ),
     );
@@ -365,9 +401,9 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
         const SizedBox(height: 4),
         const Text('Pastikan gambar terlihat jelas.', style: AppTheme.bodySmall),
         const SizedBox(height: 12),
-        if (!isPhotoUploaded)
+        if (_damagePhoto == null)
           InkWell(
-            onTap: () => setState(() => isPhotoUploaded = true),
+            onTap: _pickPhoto,
             child: Container(
               width: 120,
               height: 120,
@@ -405,13 +441,16 @@ class _BookingServisScreenState extends State<BookingServisScreen> {
                     ),
                   ],
                 ),
-                child: const Icon(Icons.image, color: Colors.grey, size: 50),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  child: Image.file(_damagePhoto!, fit: BoxFit.cover),
+                ),
               ),
               Positioned(
                 top: -8,
                 right: -8,
                 child: InkWell(
-                  onTap: () => setState(() => isPhotoUploaded = false),
+                  onTap: () => setState(() => _damagePhoto = null),
                   child: Container(
                     decoration: const BoxDecoration(
                       color: Colors.white,
