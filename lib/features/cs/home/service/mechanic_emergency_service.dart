@@ -37,6 +37,25 @@ class MechanicEmergencyService {
     }
   }
 
+  Future<List<dynamic>> getHistory() async {
+    final uri = Uri.parse('$_baseUrl/mechanic/emergencies/history');
+    try {
+      print('🔵 [MechanicEmergencyService] GET $uri');
+      final res = await http.get(uri, headers: _headers());
+      print('🔵 [MechanicEmergencyService] GET $uri -> ${res.statusCode}');
+      if (res.statusCode == 200) {
+        final body = jsonDecode(res.body);
+        print('🟢 [MechanicEmergencyService] getHistory success: ${body}');
+        return body['data'] as List<dynamic>? ?? [];
+      }
+      print('🔴 [MechanicEmergencyService] getHistory failed: ${res.statusCode} ${res.body}');
+      return [];
+    } catch (e) {
+      print('🔴 [MechanicEmergencyService] getHistory exception: $e');
+      return [];
+    }
+  }
+
   Future<List<dynamic>> getServices() async {
     final uri = Uri.parse('$_baseUrl/mechanic/emergencies/services');
     try {
@@ -188,10 +207,11 @@ class MechanicEmergencyService {
     }
   }
 
-  Future<bool> completePayment(int id, {File? paymentProof}) async {
+  Future<bool> completePayment(int id, {File? paymentProof, String paymentType = 'transfer'}) async {
     final uri = Uri.parse('$_baseUrl/mechanic/emergencies/$id/complete-payment');
     final request = http.MultipartRequest('POST', uri);
     request.headers.addAll(_headers());
+    request.fields['payment_type'] = paymentType;
     if (paymentProof != null && await paymentProof.exists()) {
       request.files.add(await http.MultipartFile.fromPath('payment_proof', paymentProof.path));
     }
@@ -209,6 +229,42 @@ class MechanicEmergencyService {
       return false;
     } catch (e) {
       print('🔴 [MechanicEmergencyService] completePayment exception: $e');
+      return false;
+    }
+  }
+
+  Future<bool> cancelEmergency(int id) async {
+    final uri = Uri.parse('$_baseUrl/mechanic/emergencies/$id/cancel');
+    try {
+      print('🔵 [MechanicEmergencyService] POST $uri');
+      final res = await http.post(uri, headers: _headers());
+      print('🔵 [MechanicEmergencyService] POST $uri -> ${res.statusCode}');
+      if (res.statusCode == 200) {
+        print('🟢 [MechanicEmergencyService] cancelEmergency success: ${res.body}');
+        return true;
+      }
+      print('🔴 [MechanicEmergencyService] cancelEmergency failed: ${res.statusCode} ${res.body}');
+      return false;
+    } catch (e) {
+      print('🔴 [MechanicEmergencyService] cancelEmergency exception: $e');
+      return false;
+    }
+  }
+
+  Future<bool> removeService(int emergencyId, int serviceId) async {
+    final uri = Uri.parse('$_baseUrl/mechanic/emergencies/$emergencyId/service/$serviceId');
+    try {
+      print('🔵 [MechanicEmergencyService] DELETE $uri');
+      final res = await http.delete(uri, headers: _headers());
+      print('🔵 [MechanicEmergencyService] DELETE $uri -> ${res.statusCode}');
+      if (res.statusCode == 200) {
+        print('🟢 [MechanicEmergencyService] removeService success');
+        return true;
+      }
+      print('🔴 [MechanicEmergencyService] removeService failed: ${res.statusCode} ${res.body}');
+      return false;
+    } catch (e) {
+      print('🔴 [MechanicEmergencyService] removeService exception: $e');
       return false;
     }
   }

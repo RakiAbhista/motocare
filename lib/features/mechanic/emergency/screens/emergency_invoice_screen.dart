@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/features/cs/home/service/mechanic_emergency_service.dart';
 import '../widgets/invoice/invoice_customer_info.dart';
 import '../widgets/invoice/invoice_vehicle_details.dart';
 import '../widgets/invoice/invoice_service_list.dart';
 import '../widgets/invoice/invoice_action_buttons.dart';
+import '../screens/emergency_payment_screen.dart';
 
 class EmergencyInvoiceScreen extends StatefulWidget {
   final int emergencyId;
@@ -23,6 +25,7 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
   final MechanicEmergencyService _svc = MechanicEmergencyService();
   Map<String, dynamic>? _detail;
   List<dynamic> _availableServices = [];
+  List<dynamic> _services = []; // ← sumber utama service list dari getTotal
   Map<String, dynamic>? _total;
   bool _loading = true;
   bool _actionLoading = false;
@@ -41,12 +44,39 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
     try {
       total = await _svc.getTotal(widget.emergencyId);
     } catch (_) {}
+
+    // Ambil service list: prioritaskan dari getTotal, fallback dari showEmergency
+    List<dynamic> serviceList = [];
+    if (total != null && total['data'] != null && total['data']['services'] != null) {
+      serviceList = total['data']['services'] as List<dynamic>;
+    } else if (detail != null) {
+      final payload = detail['data'] ?? detail;
+      final order = payload?['order'] ?? {};
+      serviceList = order['services'] as List<dynamic>? ?? [];
+    }
+
     setState(() {
       _detail = detail;
       _availableServices = services;
       _total = total;
+      _services = serviceList;
       _loading = false;
     });
+  }
+
+  Future<void> _refreshServices() async {
+    // Refresh dari getTotal — sumber paling akurat karena langsung query n_order_services
+    final total = await _svc.getTotal(widget.emergencyId);
+    if (total != null && mounted) {
+      List<dynamic> serviceList = [];
+      if (total['data'] != null && total['data']['services'] != null) {
+        serviceList = total['data']['services'] as List<dynamic>;
+      }
+      setState(() {
+        _total = total;
+        _services = serviceList;
+      });
+    }
   }
 
   Future<void> _refreshDetail() async {
@@ -60,10 +90,13 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
     String additional = '';
     String priceTxt = '';
 
+    // Simpan reference ke context screen (bukan dialog) untuk ScaffoldMessenger
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     await showDialog(
       context: context,
-      builder: (context) {
-        return StatefulBuilder(builder: (context, setStateSB) {
+      builder: (dialogCtx) {
+        return StatefulBuilder(builder: (sbCtx, setStateSB) {
           List<dynamic> filtered = services;
           return AlertDialog(
             title: const Text('Tambah Service'),
@@ -90,7 +123,7 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
                     height: 180,
                     child: ListView.builder(
                       itemCount: filtered.length,
-                      itemBuilder: (context, i) {
+                      itemBuilder: (_, i) {
                         final s = filtered[i];
                         final sid = s['service_id'] ?? s['id'];
                         final name = s['service_name'] ?? s['name'] ?? '';
@@ -122,22 +155,28 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
+              TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('Batal')),
               ElevatedButton(
                 onPressed: () async {
-                  Navigator.pop(context);
+                  // Ambil nilai sebelum pop dialog
+                  final svcId = selectedServiceId;
+                  final addtl = additional.isNotEmpty ? additional : null;
                   double? price;
                   if (priceTxt.isNotEmpty) price = double.tryParse(priceTxt.replaceAll(',', ''));
+
+                  // Tutup dialog dulu
+                  Navigator.pop(dialogCtx);
+
+                  // Sekarang kode berjalan di context screen, bukan dialog
                   setState(() => _actionLoading = true);
-                  final ok = await _svc.addService(widget.emergencyId, serviceId: selectedServiceId, additionalService: additional.isNotEmpty ? additional : null, price: price);
+                  final ok = await _svc.addService(widget.emergencyId, serviceId: svcId, additionalService: addtl, price: price);
                   setState(() => _actionLoading = false);
                   if (ok) {
-                    if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service ditambahkan')));
-                    await _refreshDetail();
-                    final total = await _svc.getTotal(widget.emergencyId);
-                    if (mounted) setState(() => _total = total);
+                    if (mounted) scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Service ditambahkan')));
+                    // Refresh service list dari getTotal (sumber paling akurat)
+                    await _refreshServices();
                   } else {
-                    if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal menambahkan service')));
+                    if (mounted) scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Gagal menambahkan service')));
                   }
                 },
                 child: const Text('Simpan'),
@@ -165,9 +204,130 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
     final ok = await _svc.proceedToPayment(widget.emergencyId);
     setState(() => _actionLoading = false);
     if (ok) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Proses pembayaran dimulai')));
+      if (mounted) {
+        // Calculate grand total (subtotal + 11% tax)
+        double subtotal = 0;
+        if (_total != null) {
+          final tp = _total!['data']?['total_price'] ?? _total!['total_price'];
+          if (tp != null) subtotal = double.tryParse(tp.toString()) ?? 0;
+        } else {
+          for (var s in _services) {
+            final p = s['price'] ?? s['base_price'] ?? 0;
+            subtotal += double.tryParse(p.toString()) ?? 0;
+          }
+        }
+        final grandTotal = subtotal + (subtotal * 0.11);
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => EmergencyPaymentScreen(
+              emergencyId: widget.emergencyId,
+              totalAmount: grandTotal,
+            ),
+          ),
+        );
+      }
     } else {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal melanjutkan pembayaran')));
+    }
+  }
+
+  Future<void> _cancelOrder() async {
+    // Tampilkan dialog konfirmasi
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: AppColors.danger, size: 28),
+            SizedBox(width: 8),
+            Text('Batalkan Order?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          ],
+        ),
+        content: const Text(
+          'Apakah Anda yakin ingin membatalkan order ini? Tindakan ini tidak dapat dibatalkan.\n\nGunakan fitur ini jika order terbukti fiktif.',
+          style: TextStyle(fontSize: 14, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Kembali', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.danger,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Ya, Batalkan', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _actionLoading = true);
+    final ok = await _svc.cancelEmergency(widget.emergencyId);
+    setState(() => _actionLoading = false);
+
+    if (ok) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Order berhasil dibatalkan'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        // Kembali ke halaman sebelumnya (Emergency Screen)
+        Navigator.pop(context);
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Gagal membatalkan order'),
+            backgroundColor: AppColors.danger,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _removeService(int serviceId) async {
+    // Tampilkan konfirmasi
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus Service?'),
+        content: const Text('Apakah Anda yakin ingin menghapus service ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _actionLoading = true);
+    final ok = await _svc.removeService(widget.emergencyId, serviceId);
+    setState(() => _actionLoading = false);
+
+    if (ok) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service dihapus')));
+      await _refreshServices();
+    } else {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal menghapus service')));
     }
   }
 
@@ -178,7 +338,6 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
     final payload = data['data'] ?? data;
     final client = payload?['client'] ?? {};
     final vehicle = payload?['vehicle'] ?? {};
-    final order = payload?['order'] ?? {};
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -221,8 +380,9 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
                   ),
                   const SizedBox(height: 32),
                   InvoiceServiceList(
-                    services: order['services'] as List<dynamic>? ?? [],
+                    services: _services, // ← pakai _services dari getTotal
                     onAdd: _openAddServiceModal,
+                    onRemove: _removeService,
                     totalData: _total,
                   ),
                   const SizedBox(height: 32),
@@ -231,6 +391,40 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
                     onProceedPayment: _proceedPayment,
                     loading: _actionLoading,
                   ),
+                  const SizedBox(height: 16),
+                  // Tombol Batalkan Order
+                  Container(
+                    width: double.infinity,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: AppColors.danger.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.danger.withOpacity(0.2)),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: _actionLoading ? null : _cancelOrder,
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.cancel_outlined, color: AppColors.danger, size: 20),
+                            SizedBox(width: 8),
+                            Text(
+                              'Batalkan Order',
+                              style: TextStyle(
+                                fontFamily: 'Plus Jakarta Sans',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.danger,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -238,4 +432,3 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
     );
   }
 }
-

@@ -4,17 +4,23 @@ import 'package:motocare/core/theme/app_colors.dart';
 class InvoiceServiceList extends StatelessWidget {
   final List<dynamic> services;
   final VoidCallback? onAdd;
+  final Function(int)? onRemove;
   final Map<String, dynamic>? totalData;
 
   const InvoiceServiceList({
     super.key,
     this.services = const [],
     this.onAdd,
+    this.onRemove,
     this.totalData,
   });
 
   @override
   Widget build(BuildContext context) {
+    final subtotal = _calcSubtotal();
+    final tax = subtotal * 0.11;
+    final grandTotal = subtotal + tax;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -69,35 +75,62 @@ class InvoiceServiceList extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Dynamic service items
-          for (var i = 0; i < services.length; i++) ...[
-            _buildInvoiceItem(
-              services[i]['service_name'] ?? services[i]['additional_service'] ?? 'Layanan',
-              (services[i]['price'] ?? services[i]['base_price'] ?? '0').toString(),
-            ),
-            const SizedBox(height: 16),
-          ],
+          if (services.isEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Column(
+                children: [
+                  Icon(Icons.build_circle_outlined, size: 40, color: Colors.grey.shade400),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Belum ada servis ditambahkan',
+                    style: TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 14,
+                      color: Colors.grey.shade500,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            for (var i = 0; i < services.length; i++) ...[
+                _buildInvoiceItem(
+                  services[i]['service_name'] ?? services[i]['additional_service'] ?? 'Layanan',
+                  (services[i]['price'] ?? services[i]['base_price'] ?? '0').toString(),
+                  () {
+                    final serviceId = services[i]['id'];
+                    if (serviceId != null && onRemove != null) {
+                      onRemove!(int.tryParse(serviceId.toString()) ?? 0);
+                    }
+                  },
+                ),
+              const SizedBox(height: 16),
+            ],
           
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
             child: Divider(color: Color(0xFFE6E8EA), thickness: 2),
           ),
 
-          // 4. Telemetry Style Totals
+          // 4. Telemetry Style Totals — Now Dynamic
           IntrinsicHeight(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // Left Side (Subtotal & Taxes)
-                const Column(
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('SUBTOTAL', style: TextStyle(fontFamily: 'Manrope', fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF707881), letterSpacing: 1)),
-                    SizedBox(height: 4),
-                    Text('IDR 270.000', style: TextStyle(fontFamily: 'Manrope', fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF3F4850))),
-                    SizedBox(height: 16),
-                    Text('TAXES (11%)', style: TextStyle(fontFamily: 'Manrope', fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF707881), letterSpacing: 1)),
-                    SizedBox(height: 4),
-                    Text('IDR 29.700', style: TextStyle(fontFamily: 'Manrope', fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF3F4850))),
+                    const Text('SUBTOTAL', style: TextStyle(fontFamily: 'Manrope', fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF707881), letterSpacing: 1)),
+                    const SizedBox(height: 4),
+                    Text(_formatCurrency(subtotal), style: const TextStyle(fontFamily: 'Manrope', fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF3F4850))),
+                    const SizedBox(height: 16),
+                    const Text('TAXES (11%)', style: TextStyle(fontFamily: 'Manrope', fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF707881), letterSpacing: 1)),
+                    const SizedBox(height: 4),
+                    Text(_formatCurrency(tax), style: const TextStyle(fontFamily: 'Manrope', fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF3F4850))),
                   ],
                 ),
                 
@@ -112,10 +145,10 @@ class InvoiceServiceList extends StatelessWidget {
                       const Text('TOTAL AMOUNT', style: TextStyle(fontFamily: 'Manrope', fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.primary, letterSpacing: 2.2)),
                       const SizedBox(height: 8),
                       Text(
-                        _formatTotal(),
+                        _formatCurrency(grandTotal),
                         style: const TextStyle(
                           fontFamily: 'Manrope',
-                          fontSize: 26, // Disesuaikan agar muat di layar mobile
+                          fontSize: 26,
                           fontWeight: FontWeight.w800,
                           color: Color(0xFF191C1E),
                           letterSpacing: -1.5,
@@ -132,27 +165,51 @@ class InvoiceServiceList extends StatelessWidget {
     );
   }
 
-  String _formatTotal() {
+  /// Hitung subtotal dari service list atau total_price dari backend
+  double _calcSubtotal() {
+    // Prioritas 1: dari totalData (backend total_price)
     if (totalData != null) {
-      // try common keys
-      final t = totalData!['total'] ?? totalData!['data']?['total'] ?? totalData!['data']?['grand_total'] ?? totalData!['grand_total'];
-      if (t != null) return 'Rp. ${t.toString()}';
+      final tp = totalData!['data']?['total_price'] ?? totalData!['total_price'];
+      if (tp != null) {
+        return double.tryParse(tp.toString()) ?? 0;
+      }
     }
-    // fallback: sum prices in services
+    // Prioritas 2: sum manual dari services
     try {
       double sum = 0;
       for (var s in services) {
         final p = s['price'] ?? s['base_price'] ?? 0;
         sum += double.tryParse(p.toString()) ?? 0;
       }
-      return 'Rp. ${sum.toStringAsFixed(0)}';
+      return sum;
     } catch (_) {
-      return 'Rp. 0';
+      return 0;
     }
   }
 
+  String _formatCurrency(double value) {
+    // Format angka dengan pemisah ribuan
+    final intVal = value.round();
+    final str = intVal.toString();
+    final buffer = StringBuffer();
+    for (var i = 0; i < str.length; i++) {
+      if (i > 0 && (str.length - i) % 3 == 0) {
+        buffer.write('.');
+      }
+      buffer.write(str[i]);
+    }
+    return 'Rp $buffer';
+  }
+
   // Helper Widget untuk Form Input Jasa & Harga
-  Widget _buildInvoiceItem(String title, String price) {
+  Widget _buildInvoiceItem(String title, String price, VoidCallback? onRemoveItem) {
+    // Format harga
+    String formattedPrice = price;
+    final numPrice = double.tryParse(price);
+    if (numPrice != null) {
+      formattedPrice = _formatCurrency(numPrice).replaceFirst('Rp ', '');
+    }
+
     return Row(
       children: [
         // Kolom Deskripsi Servis
@@ -193,7 +250,7 @@ class InvoiceServiceList extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 alignment: Alignment.centerRight,
-                child: Text(price, style: const TextStyle(fontFamily: 'Manrope', fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF191C1E))),
+                child: Text(formattedPrice, style: const TextStyle(fontFamily: 'Manrope', fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF191C1E))),
               ),
             ],
           ),
@@ -201,7 +258,7 @@ class InvoiceServiceList extends StatelessWidget {
         const SizedBox(width: 8),
         // Icon Delete/Remove
         IconButton(
-          onPressed: () {},
+          onPressed: onRemoveItem,
           icon: const Icon(Icons.remove_circle_outline, color: Colors.grey, size: 20),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
