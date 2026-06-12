@@ -6,6 +6,8 @@ import 'servis_selesai_card.dart';
 import 'profile_menu_card.dart';
 import '../screens/work_history_screen.dart';
 import 'package:motocare/main.dart';
+import 'package:motocare/core/services/auth_service.dart';
+import 'package:motocare/features/auth/login/screens/login_screen.dart';
 
 class ProfileContent extends StatefulWidget {
   const ProfileContent({super.key});
@@ -198,10 +200,10 @@ class _ProfileContentState extends State<ProfileContent> {
     );
   }
 
-  void _showLogoutDialog(BuildContext context) {
+  void _showLogoutDialog(BuildContext pageContext) {
     showDialog(
-      context: context,
-      builder: (context) {
+      context: pageContext,
+      builder: (dialogContext) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -216,25 +218,46 @@ class _ProfileContentState extends State<ProfileContent> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pop(dialogContext);
               },
               child: const Text("Batal", style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // Navigasi kembali ke halaman pemilihan role (main.dart)
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const MyApp()),
-                  (route) => false,
-                );
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Berhasil keluar dari akun."),
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: Colors.red,
-                  ),
-                );
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+                if (pageContext.mounted) {
+                  ScaffoldMessenger.of(pageContext).showSnackBar(
+                    const SnackBar(content: Text('Memproses logout...')),
+                  );
+                }
+                try {
+                  final res = await AuthService().logout();
+                  final msg = res['message'] ??
+                      (res['success'] == true
+                          ? 'Berhasil keluar dari akun.'
+                          : 'Gagal logout');
+                  if (pageContext.mounted) {
+                    ScaffoldMessenger.of(pageContext).showSnackBar(SnackBar(
+                      content: Text(msg),
+                      backgroundColor:
+                          res['success'] == true ? Colors.green : Colors.red,
+                    ));
+                  }
+                } catch (e) {
+                  if (pageContext.mounted) {
+                    ScaffoldMessenger.of(pageContext).showSnackBar(SnackBar(
+                      content: Text('Terjadi kesalahan saat logout: $e'),
+                      backgroundColor: Colors.red,
+                    ));
+                  }
+                }
+                // Navigasi kembali ke halaman login dan hapus history
+                if (pageContext.mounted) {
+                  Navigator.of(pageContext).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,

@@ -62,7 +62,14 @@ class EmergencyService {
         'emergency_type': emergencyType,
       };
 
-      final response = await http.post(uri, headers: _getHeaders(), body: jsonEncode(payload));
+      final response = await http.post(
+        uri,
+        headers: {
+          ..._getHeaders(),
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(payload),
+      );
       return jsonDecode(response.body);
     } catch (e) {
       print('EmergencyService.createEmergency Error: $e');

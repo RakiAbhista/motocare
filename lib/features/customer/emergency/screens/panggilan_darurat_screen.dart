@@ -171,7 +171,7 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
                   label: 'Tahun / Model',
                   hint: 'Masukkan tahun atau model kendaraan',
                   controller: _modelController,
-                  isRequired: false,
+                  isRequired: true,
                 ),
                 CustomTextField(
                   label: 'Nomor Plat',
@@ -469,6 +469,33 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
   }
 
   Future<void> _submitEmergency(String type) async {
+    // Validasi input kendaraan manual
+    if (_selectedVehicle == null) {
+      if (_merkController.text.trim().isEmpty ||
+          _tipeController.text.trim().isEmpty ||
+          _modelController.text.trim().isEmpty ||
+          _platController.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Semua detail kendaraan wajib diisi jika tidak memilih dari daftar.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+    }
+
+    // Validasi input keluhan
+    if (_keluhanController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Keluhan / kerusakan wajib diisi.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isSubmitting = true);
 
     try {
