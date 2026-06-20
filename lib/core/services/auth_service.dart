@@ -9,7 +9,7 @@ class AuthService {
 
   // Untuk Android Emulator gunakan 10.0.2.2, untuk device gunakan IP mesin development
   // Contoh: 'http://192.168.1.X:8000/api/v1' atau 'http://10.0.2.2:8000/api/v1'
-  final String baseUrl = 'http://192.168.20.124:8000/api/v1';
+  final String baseUrl = 'http://10.0.2.2:8000/api/v1';
   // final String baseUrl = 'http://192.168.100.11:8000/api/v1';
 
   String? _accessToken;
@@ -24,7 +24,9 @@ class AuthService {
       final prefs = await SharedPreferences.getInstance();
       _accessToken = prefs.getString('access_token');
       _role = prefs.getString('user_role');
-      print('🔵 [AuthService] Loaded token from storage: ${_accessToken != null ? 'SUCCESS' : 'EMPTY'}');
+      print(
+        '🔵 [AuthService] Loaded token from storage: ${_accessToken != null ? 'SUCCESS' : 'EMPTY'}',
+      );
       print('🔵 [AuthService] Loaded role from storage: $_role');
     } catch (e) {
       print('❌ [AuthService] Error loading auth data: $e');
@@ -63,33 +65,29 @@ class AuthService {
         headers: {'Accept': 'application/json'},
         body: {'email': email, 'password': password},
       );
-      
+
       final data = jsonDecode(response.body);
       print('🔵 [Login] Status: ${response.statusCode}');
       print('🔵 [Login] Response: ${response.body}');
-      
+
       if (response.statusCode == 200) {
         _accessToken = data['access_token'];
         _role = data['user']?['role'] ?? 'customer';
         await _saveAuthToStorage(_accessToken!, _role!);
       }
-      
+
       return {
         'success': response.statusCode == 200,
         'role': data['user']?['role'],
         'access_token': data['access_token'],
         'user': data['user'],
-        'message': data['message']
+        'message': data['message'],
       };
-    } 
-    catch (e, stackTrace) {
+    } catch (e, stackTrace) {
       print('❌ [Login] ERROR: $e');
       print(stackTrace);
-      return {
-        'success': false,
-        'message': 'Gagal terhubung ke server'
-      };
-    }  
+      return {'success': false, 'message': 'Gagal terhubung ke server'};
+    }
   }
 
   Future<Map<String, dynamic>> register(Map<String, String> data) async {
@@ -100,16 +98,16 @@ class AuthService {
         body: data,
       );
       final body = jsonDecode(response.body);
-      
+
       if (response.statusCode == 201) {
         _accessToken = body['access_token'];
       }
-      
+
       return {
         'success': response.statusCode == 201,
         'access_token': body['access_token'],
         'user': body['user'],
-        'message': body['message'] ?? 'Berhasil'
+        'message': body['message'] ?? 'Berhasil',
       };
     } catch (e) {
       return {'success': false, 'message': 'Koneksi ke server gagal'};
@@ -124,7 +122,10 @@ class AuthService {
         body: {'email': email},
       );
       final body = jsonDecode(response.body);
-      return {'success': response.statusCode == 200, 'message': body['message']};
+      return {
+        'success': response.statusCode == 200,
+        'message': body['message'],
+      };
     } catch (e) {
       return {'success': false, 'message': 'Koneksi ke server gagal'};
     }
@@ -138,16 +139,16 @@ class AuthService {
         body: data,
       );
       final body = jsonDecode(response.body);
-      
+
       if (response.statusCode == 200) {
         _accessToken = body['access_token'];
         _role = body['user']?['role'] ?? _role ?? 'customer';
         await _saveAuthToStorage(_accessToken!, _role!);
       }
-      
+
       return {
         'success': response.statusCode == 200,
-        'message': body['message']
+        'message': body['message'],
       };
     } catch (e) {
       return {'success': false, 'message': 'Koneksi ke server gagal'};
@@ -162,7 +163,10 @@ class AuthService {
         body: {'email': email, 'otp': otp},
       );
       final body = jsonDecode(response.body);
-      return {'success': response.statusCode == 200, 'message': body['message']};
+      return {
+        'success': response.statusCode == 200,
+        'message': body['message'],
+      };
     } catch (e) {
       return {'success': false, 'message': 'Koneksi gagal'};
     }
@@ -178,19 +182,19 @@ class AuthService {
           if (_accessToken != null) 'Authorization': 'Bearer $_accessToken',
         },
       );
-      
+
       print('🔵 [Logout] Status: ${response.statusCode}');
       print('🔵 [Logout] Response: ${response.body}');
-      
+
       // Clear token, role, dan storage regardless of response
       _accessToken = null;
       _role = null;
       await _clearStorage();
-      
+
       final body = jsonDecode(response.body);
       return {
         'success': response.statusCode == 200,
-        'message': body['message'] ?? 'Logout berhasil'
+        'message': body['message'] ?? 'Logout berhasil',
       };
     } catch (e) {
       print('❌ [Logout] Error: $e');

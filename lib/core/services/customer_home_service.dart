@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'auth_service.dart';
 
 class CustomerHomeService {
-  final String baseUrl = 'http://10.0.2.2:8000/api/v1';
+  String get baseUrl => AuthService().baseUrl;
 
   Future<Map<String, dynamic>> getHomeData() async {
     try {

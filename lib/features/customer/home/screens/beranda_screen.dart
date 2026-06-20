@@ -163,12 +163,13 @@ class _BerandaScreenState extends State<BerandaScreen> {
                   children: [
                         const Text('Poin Saya', style: AppTheme.bodySmall),
                     const SizedBox(height: 4),
-                    Row(
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 6,
+                      runSpacing: 6,
                       children: [
                         Text('$points', style: TextStyle(color: AppColors.primary, fontSize: 28, fontWeight: FontWeight.bold)),
-                        const SizedBox(width: 4),
                         Text('Poin', style: TextStyle(color: AppColors.primary.withValues(alpha: 0.7), fontSize: 14, fontWeight: FontWeight.w600)),
-                        const SizedBox(width: 12),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(

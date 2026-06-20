@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:motocare/core/services/auth_service.dart';
 import 'package:motocare/features/cs/home/models/order_detail_model.dart';
@@ -71,6 +72,120 @@ class OrderService {
     } catch (e) {
       print('Orders Error: $e');
       return {'success': false, 'message': 'Gagal terhubung ke server'};
+    }
+  }
+
+  Future<List<dynamic>> getServices() async {
+    try {
+      final token = AuthService().accessToken;
+      final baseUrl = AuthService().baseUrl;
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/customer-service/orders/services'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return body['data'] as List<dynamic>? ?? [];
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<Map<String, dynamic>?> getTotal(int orderId) async {
+    try {
+      final token = AuthService().accessToken;
+      final baseUrl = AuthService().baseUrl;
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/customer-service/orders/$orderId/total'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<bool> addService(
+    int orderId, {
+    int? serviceId,
+    String? additionalService,
+    double? price,
+  }) async {
+    try {
+      final token = AuthService().accessToken;
+      final baseUrl = AuthService().baseUrl;
+
+      final Map<String, dynamic> requestBody = {};
+      if (serviceId != null) requestBody['service_id'] = serviceId;
+      if (additionalService != null) requestBody['additional_service'] = additionalService;
+      if (price != null) requestBody['price'] = price;
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/customer-service/orders/$orderId/add-service'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> removeService(int orderId, int serviceId) async {
+    try {
+      final token = AuthService().accessToken;
+      final baseUrl = AuthService().baseUrl;
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/customer-service/orders/$orderId/service/$serviceId'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+  Future<bool> completePayment(int orderId, {File? paymentProof, String paymentType = 'transfer'}) async {
+    final token = AuthService().accessToken;
+    final baseUrl = AuthService().baseUrl;
+    final uri = Uri.parse('$baseUrl/customer-service/orders/$orderId/complete-payment');
+    final request = http.MultipartRequest('POST', uri);
+    request.headers['Accept'] = 'application/json';
+    if (token != null && token.isNotEmpty) request.headers['Authorization'] = 'Bearer $token';
+    request.fields['payment_type'] = paymentType;
+    if (paymentProof != null && await paymentProof.exists()) {
+      request.files.add(await http.MultipartFile.fromPath('payment_proof', paymentProof.path));
+    }
+    try {
+      final streamed = await request.send();
+      final res = await http.Response.fromStream(streamed);
+      return res.statusCode == 200;
+    } catch (e) {
+      return false;
     }
   }
 

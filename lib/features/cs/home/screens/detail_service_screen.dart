@@ -4,12 +4,9 @@ import 'package:motocare/core/theme/app_colors.dart';
 
 import 'package:motocare/features/cs/shared/enums/service_status.dart';
 import 'package:motocare/features/cs/home/widgets/complaint_card.dart';
-import 'package:motocare/features/cs/home/widgets/add_item_bottom_sheet.dart';
-import 'package:motocare/features/cs/home/widgets/additional_service_chip.dart';
 import 'package:motocare/features/cs/home/widgets/damage_photo_section.dart';
-import 'package:motocare/features/cs/home/widgets/line_item_card.dart';
-import 'package:motocare/features/cs/home/widgets/service_summary_section.dart';
 import 'package:motocare/features/cs/home/widgets/wehicle_card.dart';
+import 'package:motocare/features/mechanic/emergency/widgets/invoice/invoice_service_list.dart';
 
 import 'package:motocare/features/cs/home/models/order_detail_model.dart';
 import 'package:motocare/features/cs/home/service/order_service.dart';
@@ -34,6 +31,12 @@ class _DetailServiceScreenState extends State<DetailServiceScreen> {
   bool _isLoading = true;
   String? _errorMessage;
 
+  // State untuk dynamic tambahan servis
+  List<dynamic> _availableServices = [];
+  List<dynamic> _services = [];
+  Map<String, dynamic>? _total;
+  bool _actionLoading = false;
+
   @override
   void initState() {
     super.initState();
@@ -46,11 +49,41 @@ class _DetailServiceScreenState extends State<DetailServiceScreen> {
       _errorMessage = null;
     });
 
-    final result = await _orderService.getOrderDetail(widget.orderId);
+    // Load order detail, available services, dan total secara paralel
+    final results = await Future.wait([
+      _orderService.getOrderDetail(widget.orderId),
+      _orderService.getServices(),
+    ]);
+
+    final result = results[0] as Map<String, dynamic>;
+    final availableServices = results[1] as List<dynamic>;
+
+    Map<String, dynamic>? total;
+    try {
+      total = await _orderService.getTotal(widget.orderId);
+    } catch (_) {}
 
     if (result['success']) {
+      final order = result['data'] as OrderDetailModel;
+
+      // Petakan services dari total (paling akurat) atau dari detail order
+      List<dynamic> serviceList = [];
+      if (total != null && total['data'] != null && total['data']['services'] != null) {
+        serviceList = total['data']['services'] as List<dynamic>;
+      } else {
+        serviceList = order.services.map((s) => {
+          'id': s.id,
+          'service_name': s.service?.serviceName ?? s.additionalService ?? 'Service',
+          'additional_service': s.additionalService,
+          'price': s.price ?? s.service?.basePrice ?? '0',
+        }).toList();
+      }
+
       setState(() {
-        _orderDetail = result['data'] as OrderDetailModel;
+        _orderDetail = order;
+        _availableServices = availableServices;
+        _services = serviceList;
+        _total = total;
         _isLoading = false;
       });
     } else {
@@ -58,6 +91,159 @@ class _DetailServiceScreenState extends State<DetailServiceScreen> {
         _errorMessage = result['message'];
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _refreshServices() async {
+    final total = await _orderService.getTotal(widget.orderId);
+    if (total != null && mounted) {
+      List<dynamic> serviceList = [];
+      if (total['data'] != null && total['data']['services'] != null) {
+        serviceList = total['data']['services'] as List<dynamic>;
+      }
+      setState(() {
+        _total = total;
+        _services = serviceList;
+      });
+    }
+  }
+
+  Future<void> _openAddServiceModal() async {
+    final services = _availableServices;
+    int? selectedServiceId;
+    String additional = '';
+    String priceTxt = '';
+
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    await showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return StatefulBuilder(builder: (sbCtx, setStateSB) {
+          List<dynamic> filtered = services;
+          return AlertDialog(
+            title: const Text('Tambah Service'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    decoration: const InputDecoration(hintText: 'Cari layanan atau ketik manual'),
+                    onChanged: (v) {
+                      setStateSB(() {
+                        final q = v.toLowerCase();
+                        filtered = services.where((s) {
+                          final name = (s['service_name'] ?? '').toString().toLowerCase();
+                          final id = s['service_id']?.toString() ?? s['id']?.toString() ?? '';
+                          return name.contains(q) || id.contains(q);
+                        }).toList();
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 180,
+                    child: ListView.builder(
+                      itemCount: filtered.length,
+                      itemBuilder: (_, i) {
+                        final s = filtered[i];
+                        final sid = s['service_id'] ?? s['id'];
+                        final name = s['service_name'] ?? s['name'] ?? '';
+                        final base = s['base_price']?.toString() ?? s['price']?.toString() ?? '';
+                        return ListTile(
+                          title: Text(name),
+                          subtitle: base.isNotEmpty ? Text('Rp $base') : null,
+                          trailing: Radio<int?>(
+                            value: sid is int ? sid : int.tryParse(sid.toString()),
+                            groupValue: selectedServiceId,
+                            onChanged: (v) => setStateSB(() => selectedServiceId = v),
+                          ),
+                          onTap: () => setStateSB(() => selectedServiceId = sid is int ? sid : int.tryParse(sid.toString())),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    decoration: const InputDecoration(labelText: 'Nama tambahan (optional)'),
+                    onChanged: (v) => setStateSB(() => additional = v),
+                  ),
+                  TextField(
+                    decoration: const InputDecoration(labelText: 'Harga (IDR)', hintText: '100000'),
+                    keyboardType: TextInputType.number,
+                    onChanged: (v) => setStateSB(() => priceTxt = v),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('Batal')),
+              ElevatedButton(
+                onPressed: () async {
+                  final svcId = selectedServiceId;
+                  final addtl = additional.isNotEmpty ? additional : null;
+                  double? price;
+                  if (priceTxt.isNotEmpty) price = double.tryParse(priceTxt.replaceAll(',', ''));
+
+                  Navigator.pop(dialogCtx);
+
+                  setState(() => _actionLoading = true);
+                  final ok = await _orderService.addService(
+                    widget.orderId,
+                    serviceId: svcId,
+                    additionalService: addtl,
+                    price: price,
+                  );
+                  setState(() => _actionLoading = false);
+
+                  if (ok) {
+                    if (mounted) scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Service ditambahkan')));
+                    await _refreshServices();
+                  } else {
+                    if (mounted) scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Gagal menambahkan service')));
+                  }
+                },
+                child: const Text('Simpan'),
+              ),
+            ],
+          );
+        });
+      },
+    );
+  }
+
+  Future<void> _removeService(int serviceId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus Service?'),
+        content: const Text('Apakah Anda yakin ingin menghapus service ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _actionLoading = true);
+    final ok = await _orderService.removeService(widget.orderId, serviceId);
+    setState(() => _actionLoading = false);
+
+    if (ok) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service dihapus')));
+      await _refreshServices();
+    } else {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal menghapus service')));
     }
   }
 
@@ -129,13 +315,13 @@ class _DetailServiceScreenState extends State<DetailServiceScreen> {
           const SizedBox(height: 10),
 
           /// CONTENT
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
                 "Service ID",
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w200),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.grey[700]),
               ),
             ),
           ),
@@ -145,7 +331,7 @@ class _DetailServiceScreenState extends State<DetailServiceScreen> {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                "Job ID #${order.transactionId ?? order.id}",
+                "${order.transactionId ?? order.id}",
                 style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
             ),
@@ -159,7 +345,7 @@ class _DetailServiceScreenState extends State<DetailServiceScreen> {
               vehicleName: '${order.vehicle.brand} ${order.vehicle.model}',
               ownerName: order.user.name ?? '-',
               plateNumber: order.vehicle.plateNumber ?? '-',
-              imagePath: "lib/features/cs/assets_dummy/motorcycle_1.jpg",
+              imagePath: "lib/features/cs/shared/assets_dummy/motorcycle_1.jpg",
             ),
           ),
 
@@ -199,112 +385,60 @@ class _DetailServiceScreenState extends State<DetailServiceScreen> {
             padding: EdgeInsets.symmetric(horizontal: 20),
             child: DamagePhotoSection(
               imagePaths: [
-                'lib/features/cs/assets_dummy/damage1.jpeg',
-                'lib/features/cs/assets_dummy/damage2.jpg',
+                'lib/features/cs/shared/assets_dummy/damage1.jpeg',
+                'lib/features/cs/shared/assets_dummy/damage2.jpg',
               ],
             ),
           ),
 
           const SizedBox(height: 20),
 
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Tambahan Service",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
+          // InvoiceServiceList: sama persis dengan tampilan mekanik
+          if (_actionLoading)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: LinearProgressIndicator(),
             ),
-          ),
-
-          const SizedBox(height: 20),
 
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Wrap(
-                alignment: WrapAlignment.start,
-                spacing: 12,
-                runSpacing: 12,
-                children: order.services.map((service) {
-                  return AdditionalServiceChip(
-                    title: service.service?.serviceName ?? service.additionalService ?? 'Service',
-                  );
-                }).toList(),
-              ),
+            child: InvoiceServiceList(
+              services: _services,
+              onAdd: _openAddServiceModal,
+              onRemove: _removeService,
+              totalData: _total,
             ),
           ),
 
-          const SizedBox(height: 20),
-
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Line Items",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                if (widget.status == ServiceStatus.inProgress)
-                  IconButton(
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) => const AddItemBottomSheet(),
-                      );
-                    },
-                    icon: const Icon(Icons.add, color: Colors.black, size: 28),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          ///Items
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              children: order.services.map((svc) {
-                final price = double.tryParse(svc.price ?? svc.service?.basePrice ?? '0') ?? 0;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 14),
-                  child: LineItemCard(
-                    itemName: svc.service?.serviceName ?? svc.additionalService ?? 'Item',
-                    quantity: 1,
-                    price: price.toInt(),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-
-          const SizedBox(height: 30),
-
-          ServiceSummarySection(
-            subtotal: double.tryParse(order.totalPrice)?.toInt() ?? 0,
-            taxPercent: 11, // Or whatever logic needed
-          ),
-
-          if (widget.status == ServiceStatus.waitingPayment)
+          if (widget.status == ServiceStatus.waitingPayment) ...[
+            const SizedBox(height: 24),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: SizedBox(
                 width: double.infinity,
                 height: 58,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: _actionLoading ? null : () {
+                    // Hitung grand total dari _total atau akumulasi _services
+                    double subtotal = 0;
+                    if (_total != null) {
+                      final tp = _total!['data']?['total_price'] ?? _total!['total_price'];
+                      if (tp != null) subtotal = double.tryParse(tp.toString()) ?? 0;
+                    } else {
+                      for (var s in _services) {
+                        final p = s['price'] ?? s['base_price'] ?? 0;
+                        subtotal += double.tryParse(p.toString()) ?? 0;
+                      }
+                    }
+                    final grandTotal = subtotal + (subtotal * 0.11);
+
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const PaymentServiceScreen(),
+                        builder: (_) => PaymentServiceScreen(
+                          totalAmount: grandTotal,
+                          orderId: widget.orderId,
+                        ),
                       ),
                     );
                   },
@@ -326,6 +460,7 @@ class _DetailServiceScreenState extends State<DetailServiceScreen> {
                 ),
               ),
             ),
+          ],
 
           const SizedBox(height: 30),
 
