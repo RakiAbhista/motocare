@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/core/theme/app_theme.dart';
 import 'package:motocare/core/theme/app_background.dart';
+import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'dart:async';
+import 'package:http/http.dart' as http;
 
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:motocare/widgets/main_wrapper.dart';
 import 'package:motocare/widgets/custom_text_field.dart';
 import 'package:motocare/widgets/custom_card.dart';
@@ -29,11 +34,94 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
   final TextEditingController _modelController = TextEditingController();
   final TextEditingController _platController = TextEditingController();
   final _service = EmergencyService();
-  bool _isSubmitting = false;
+  String? _submittingType;
   Vehicle? _selectedVehicle;
   Map<String, dynamic>? _nearestWorkshop;
   bool _loadingNearest = true;
   Position? _currentPosition;
+  String? _currentAddress;
+  late MapController mapController;
+  Timer? _debounce;
+  bool _isMapInteracting = false;
+
+  void _onRegionChanged() {
+    final region = mapController.listenerRegionIsChanging.value;
+    if (region != null) {
+      if (_debounce?.isActive ?? false) _debounce!.cancel();
+      _debounce = Timer(const Duration(milliseconds: 1000), () {
+        if (region.center != null) {
+          _updateLocationData(region.center!.latitude, region.center!.longitude);
+        }
+      });
+    }
+  }
+
+  Future<void> _updateLocationData(double lat, double lon) async {
+    setState(() { _loadingNearest = true; });
+    try {
+      final nearest = await _service.getNearestWorkshop(latitude: lat, longitude: lon);
+      
+      String? address;
+      try {
+        List<Placemark> placemarks = await placemarkFromCoordinates(lat, lon).timeout(const Duration(seconds: 6));
+        if (placemarks.isNotEmpty) {
+          Placemark place = placemarks[0];
+          List<String> parts = [];
+          if (place.street != null && place.street!.isNotEmpty) parts.add(place.street!);
+          if (place.subLocality != null && place.subLocality!.isNotEmpty) parts.add(place.subLocality!);
+          if (place.locality != null && place.locality!.isNotEmpty) parts.add(place.locality!);
+          
+          if (parts.isNotEmpty) {
+            address = parts.join(', ');
+          }
+        }
+      } catch (e) {
+        print('Native Geocoding error, falling back to Nominatim: $e');
+        try {
+          final url = Uri.parse('https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon');
+          final response = await http.get(url, headers: {'User-Agent': 'MotoCareApp'}).timeout(const Duration(seconds: 10));
+          if (response.statusCode == 200) {
+            final data = jsonDecode(response.body);
+            if (data != null && data['address'] != null) {
+              final addr = data['address'];
+              List<String> parts = [];
+              if (addr['road'] != null) parts.add(addr['road']);
+              if (addr['suburb'] != null || addr['village'] != null) parts.add(addr['suburb'] ?? addr['village']);
+              if (addr['city'] != null || addr['town'] != null || addr['county'] != null) parts.add(addr['city'] ?? addr['town'] ?? addr['county']);
+              if (parts.isNotEmpty) {
+                address = parts.join(', ');
+              } else if (data['display_name'] != null) {
+                address = data['display_name'];
+              }
+            }
+          }
+        } catch (fallbackError) {
+          print('Nominatim fallback error: $fallbackError');
+        }
+      }
+
+      if (mounted) setState(() {
+        _currentPosition = Position(
+          latitude: lat,
+          longitude: lon,
+          timestamp: DateTime.now(),
+          accuracy: 0,
+          altitude: 0,
+          heading: 0,
+          speed: 0,
+          speedAccuracy: 0,
+          altitudeAccuracy: 0,
+          headingAccuracy: 0,
+        );
+        _currentAddress = address;
+        _nearestWorkshop = nearest;
+        _loadingNearest = false;
+      });
+    } catch (e) {
+      if (mounted) setState(() { _loadingNearest = false; });
+      print('Update location error: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +135,7 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
       ),
       body: BengkelBackground(
         child: SingleChildScrollView(
+          physics: _isMapInteracting ? const NeverScrollableScrollPhysics() : const ScrollPhysics(),
           padding: AppTheme.pagePadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,27 +302,28 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: _isSubmitting ? null : () => _submitEmergency('mechanic'),
-                  icon: _isSubmitting ? const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2, color:Colors.white)) : const Icon(Icons.build_rounded, size: 18),
+                  onPressed: _submittingType != null ? null : () => _submitEmergency('mechanic'),
+                  icon: _submittingType == 'mechanic' ? const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2, color:Colors.white)) : const Icon(Icons.build_rounded, size: 18),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.dangerDark,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                     ),
+                    disabledBackgroundColor: AppColors.dangerDark.withValues(alpha: 0.5),
                   ),
-                  label: const Text('Panggil Mekanik'),
+                  label: Text('Panggil Mekanik', style: TextStyle(color: _submittingType != null ? Colors.white70 : Colors.white)),
                 ),
               ),
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: _isSubmitting ? null : () => _submitEmergency('towing'),
-                  icon: _isSubmitting ? const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)) : const Icon(Icons.local_shipping, color: AppColors.dangerDark),
+                  onPressed: _submittingType != null ? null : () => _submitEmergency('towing'),
+                  icon: _submittingType == 'towing' ? const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)) : Icon(Icons.local_shipping, color: _submittingType != null ? AppColors.dangerDark.withValues(alpha: 0.5) : AppColors.dangerDark),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.dangerDark),
-                    foregroundColor: AppColors.dangerDark,
+                    side: BorderSide(color: _submittingType != null ? AppColors.dangerDark.withValues(alpha: 0.5) : AppColors.dangerDark),
+                    foregroundColor: _submittingType != null ? AppColors.dangerDark.withValues(alpha: 0.5) : AppColors.dangerDark,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                   label: const Text(
@@ -252,6 +342,20 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
   @override
   void initState() {
     super.initState();
+    const jawgAccessToken = 'wqvsLL2FCdRtoX4DSOBM9T5MEZefn5HlwFMNB4ywlOS3r2M62s6Va1FVPVGVqb64';
+    mapController = MapController.customLayer(
+      initPosition: GeoPoint(latitude: -7.005145, longitude: 110.438126),
+      customTile: CustomTile(
+        sourceName: 'jawg-terrain',
+        tileExtension: '.png?access-token=$jawgAccessToken',
+        tileSize: 256,
+        urlsServers: [
+          TileURLs(url: 'https://tile.jawg.io/jawg-terrain/', subdomains: []),
+        ],
+      ),
+    );
+    mapController.listenerRegionIsChanging.addListener(_onRegionChanged);
+
     _initNearestWorkshop();
   }
 
@@ -279,12 +383,14 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
       }
 
       final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      final nearest = await _service.getNearestWorkshop(latitude: pos.latitude, longitude: pos.longitude);
-      if (mounted) setState(() {
-        _currentPosition = pos;
-        _nearestWorkshop = nearest;
-        _loadingNearest = false;
-      });
+      
+      await _updateLocationData(pos.latitude, pos.longitude);
+      
+      try {
+        await mapController.goToLocation(GeoPoint(latitude: pos.latitude, longitude: pos.longitude));
+        await mapController.setZoom(zoomLevel: 16);
+      } catch (_) {}
+
     } catch (e) {
       if (mounted) setState(() { _loadingNearest = false; });
       print('Init nearest error: $e');
@@ -293,6 +399,9 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
+    mapController.listenerRegionIsChanging.removeListener(_onRegionChanged);
+    mapController.dispose();
     _keluhanController.dispose();
     _merkController.dispose();
     _tipeController.dispose();
@@ -302,29 +411,107 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
   }
 
   Widget _buildLocationSection() {
-    return CustomCard(
-      accentColor: AppColors.danger,
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.primaryLight,
-              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-            ),
-            child: const Icon(Icons.location_on, color: AppColors.primary, size: 22),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomCard(
+          accentColor: AppColors.danger,
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                ),
+                child: const Icon(Icons.location_on, color: AppColors.primary, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _currentAddress != null 
+                          ? 'Lokasi: $_currentAddress'
+                          : _currentPosition != null
+                              ? 'Lokasi: ${_currentPosition!.latitude.toStringAsFixed(6)}, ${_currentPosition!.longitude.toStringAsFixed(6)}'
+                              : 'Menunggu lokasi perangkat...',
+                      style: AppTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Geser peta di bawah jika lokasi kurang tepat',
+                      style: TextStyle(fontSize: 11, color: AppColors.danger, fontStyle: FontStyle.italic),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              _currentPosition != null
-                  ? 'Lokasi: ${_currentPosition!.latitude.toStringAsFixed(6)}, ${_currentPosition!.longitude.toStringAsFixed(6)}'
-                  : 'Menunggu lokasi perangkat...',
-              style: AppTheme.bodyMedium,
+        ),
+        const SizedBox(height: 12),
+        Listener(
+          onPointerDown: (_) => setState(() => _isMapInteracting = true),
+          onPointerUp: (_) => setState(() => _isMapInteracting = false),
+          onPointerCancel: (_) => setState(() => _isMapInteracting = false),
+          child: Container(
+            height: 180,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            border: Border.all(color: AppColors.danger.withValues(alpha: 0.15)),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            child: Stack(
+              children: [
+                OSMFlutter(
+                  controller: mapController,
+                  osmOption: const OSMOption(
+                    zoomOption: ZoomOption(
+                      initZoom: 16,
+                      minZoomLevel: 3,
+                      maxZoomLevel: 19,
+                    ),
+                    showZoomController: false,
+                    enableRotationByGesture: false,
+                  ),
+                ),
+                Positioned(
+                  top: 8, right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 4),
+                      ],
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.touch_app, size: 14, color: AppColors.danger),
+                        SizedBox(width: 4),
+                        Text('Geser peta untuk mengubah lokasi', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.danger)),
+                      ],
+                    ),
+                  ),
+                ),
+                const IgnorePointer(
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: 24.0),
+                      child: Icon(Icons.location_pin, color: Colors.red, size: 48),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+        ),
+      ],
     );
   }
 
@@ -434,7 +621,7 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
             ],
           ),
         GestureDetector(
-          onTap: _pickImage,
+          onTap: _showImageSourcePicker,
           child: Container(
             width: 100,
             height: 100,
@@ -457,14 +644,85 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
     );
   }
 
-  Future<void> _pickImage() async {
+  void _showImageSourcePicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40, height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
+            ),
+            const Text('Pilih Sumber Gambar', style: TextStyle(fontFamily: 'Plus Jakarta Sans', fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF191C1E))),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(child: _buildSourceOption(icon: Icons.camera_alt_rounded, label: 'Kamera', color: AppColors.primary, onTap: () { Navigator.pop(ctx); _pickImage(ImageSource.camera); })),
+                const SizedBox(width: 16),
+                Expanded(child: _buildSourceOption(icon: Icons.photo_library_rounded, label: 'Galeri', color: AppColors.secondary, onTap: () { Navigator.pop(ctx); _pickImage(ImageSource.gallery); })),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSourceOption({required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: color.withValues(alpha: 0.15)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 56, height: 56,
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.15), shape: BoxShape.circle),
+                child: Icon(icon, color: color, size: 28),
+              ),
+              const SizedBox(height: 12),
+              Text(label, style: TextStyle(fontFamily: 'Plus Jakarta Sans', fontSize: 14, fontWeight: FontWeight.w700, color: color)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
     final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery, maxWidth: 2048, maxHeight: 2048, imageQuality: 80);
-    if (picked != null) {
-      setState(() {
-        _damagePhoto = File(picked.path);
-        isUploaded = true;
-      });
+    try {
+      final picked = await picker.pickImage(source: source, maxWidth: 2048, maxHeight: 2048, imageQuality: 80);
+      if (picked != null) {
+        setState(() {
+          _damagePhoto = File(picked.path);
+          isUploaded = true;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mengambil gambar: $e'), backgroundColor: AppColors.danger),
+        );
+      }
     }
   }
 
@@ -496,13 +754,13 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
       return;
     }
 
-    setState(() => _isSubmitting = true);
+    setState(() => _submittingType = type);
 
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location services are disabled')));
-        setState(() => _isSubmitting = false);
+        setState(() => _submittingType = null);
         return;
       }
 
@@ -511,14 +769,14 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location permission denied')));
-          setState(() => _isSubmitting = false);
+          setState(() => _submittingType = null);
           return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location permission permanently denied')));
-        setState(() => _isSubmitting = false);
+        setState(() => _submittingType = null);
         return;
       }
 
@@ -550,7 +808,7 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
     } finally {
-      if (mounted) setState(() => _isSubmitting = false);
+      if (mounted) setState(() => _submittingType = null);
     }
   }
 }

@@ -3,6 +3,7 @@ import 'package:motocare/features/cs/emergency/models/emergency_model.dart';
 import 'package:motocare/features/cs/emergency/service/emergency_service.dart';
 
 import '../../emergency/widgets/emergency_card.dart';
+import '../../emergency/widgets/emergency_empty_state.dart';
 import '../../shared/widgets/header_section.dart';
 
 class DaruratContent extends StatefulWidget {
@@ -15,7 +16,8 @@ class DaruratContent extends StatefulWidget {
 class _DaruratContentState extends State<DaruratContent> {
   final EmergencyService _emergencyService = EmergencyService();
 
-  List<EmergencyModel> _pendingEmergencies = [];
+  List<EmergencyModel> _newEmergencies = [];
+  List<EmergencyModel> _ongoingEmergencies = [];
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -36,9 +38,19 @@ class _DaruratContentState extends State<DaruratContent> {
     if (!mounted) return;
 
     if (result['success'] == true) {
-      final List<EmergencyModel> all = result['data'] as List<EmergencyModel>;
+      final List<EmergencyModel> allRaw = result['data'] as List<EmergencyModel>;
+      final List<EmergencyModel> all = allRaw.where((e) {
+        final statusLower = e.status.toLowerCase();
+        return statusLower == 'pending' || statusLower == 'dispatched';
+      }).toList();
+
       setState(() {
-        _pendingEmergencies = all.where((e) => e.isPending).toList();
+        // New: mechanic is not assigned
+        _newEmergencies = all.where((e) => e.mechanic == null || e.mechanic?.id == null).toList();
+        
+        // Ongoing: mechanic is assigned
+        _ongoingEmergencies = all.where((e) => e.mechanic != null && e.mechanic?.id != null).toList();
+        
         _isLoading = false;
       });
     } else {
@@ -53,82 +65,117 @@ class _DaruratContentState extends State<DaruratContent> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const HeaderSection(title: "Emergency Dashboard"),
-              const SizedBox(height: 20),
+        RefreshIndicator(
+          onRefresh: _loadEmergencies,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const HeaderSection(title: "Emergency Dashboard"),
+                const SizedBox(height: 20),
 
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Laporan darurat terbaru",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                /// CONTENT AREA
+                if (_isLoading)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(80),
+                      child: CircularProgressIndicator(),
                     ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              /// CONTENT AREA
-              if (_isLoading)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(40),
-                    child: CircularProgressIndicator(),
-                  ),
-                )
-              else if (_errorMessage != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    children: [
-                      Text(
-                        _errorMessage!,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                      TextButton(
-                        onPressed: _loadEmergencies,
-                        child: const Text('Coba Lagi'),
-                      ),
-                    ],
-                  ),
-                )
-              else if (_pendingEmergencies.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: Center(
+                  )
+                else if (_errorMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: [
+                        Text(
+                          _errorMessage!,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                        TextButton(
+                          onPressed: _loadEmergencies,
+                          child: const Text('Coba Lagi'),
+                        ),
+                      ],
+                    ),
+                  )
+                else ...[
+                  // SECTION 1: BARU DATANG / BELUM DIASSIGN
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
-                      "Tidak ada panggilan darurat saat ini",
+                      "Panggilan Darurat Baru",
                       style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
                       ),
                     ),
                   ),
-                )
-              else
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: _pendingEmergencies.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 16),
-                  itemBuilder: (context, index) {
-                    return EmergencyCard(
-                      emergency: _pendingEmergencies[index],
-                    );
-                  },
-                ),
+                  const SizedBox(height: 12),
+                  if (_newEmergencies.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: EmergencyEmptyState(
+                        title: "Tidak ada panggilan darurat baru saat ini",
+                      ),
+                    )
+                  else
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: _newEmergencies.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 16),
+                      itemBuilder: (context, index) {
+                        return EmergencyCard(
+                          emergency: _newEmergencies[index],
+                        );
+                      },
+                    ),
 
-              const SizedBox(height: 20),
-            ],
+                  const SizedBox(height: 32),
+
+                  // SECTION 2: SEDANG BERJALAN / AKTIF
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      "Panggilan Sedang Berjalan",
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (_ongoingEmergencies.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: EmergencyEmptyState(
+                        title: "Tidak ada panggilan darurat sedang berjalan",
+                      ),
+                    )
+                  else
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: _ongoingEmergencies.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 16),
+                      itemBuilder: (context, index) {
+                        return EmergencyCard(
+                          emergency: _ongoingEmergencies[index],
+                        );
+                      },
+                    ),
+                ],
+
+                const SizedBox(height: 40),
+              ],
+            ),
           ),
         ),
       ],

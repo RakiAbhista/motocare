@@ -31,6 +31,7 @@ class _DetailEmergencyScreenState extends State<DetailEmergencyScreen> {
   // ── State Variables Baru untuk Order & Vehicle Type ──
   int orderId = 0;
   String orderStatus = '';
+  String emergencyStatus = '';
   String isTowing = 'no';
   String totalPrice = '0';
   String vehicleType = '';
@@ -184,6 +185,7 @@ class _DetailEmergencyScreenState extends State<DetailEmergencyScreen> {
             emergencyId: widget.emergencyId ?? 0,
             orderId: orderId,                 // <-- Diperbarui dari state dinamis
             orderStatus: orderStatus,         // <-- Diperbarui dari state dinamis
+            emergencyStatus: emergencyStatus,
             isTowing: isTowing,               // <-- Diperbarui dari state dinamis
             totalPrice: totalPrice,           // <-- Diperbarui dari state dinamis
             vehicleType: vehicleType,         // <-- Diperbarui dari state dinamis
@@ -196,6 +198,11 @@ class _DetailEmergencyScreenState extends State<DetailEmergencyScreen> {
             plateNumber: plateNumber,
             damagePhoto: damagePhoto,
             highPriority: highPriority,
+            onRefresh: () {
+              if (widget.emergencyId != null) {
+                _loadDetail(widget.emergencyId!);
+              }
+            },
           ),
 
           // 6. Indikator Loading di atas screen jika data sedang diambil (Bebas error const)
@@ -238,6 +245,7 @@ class _DetailEmergencyScreenState extends State<DetailEmergencyScreen> {
         vehicleType = (data['vehicle'] != null) ? (data['vehicle']['vehicle_type'] ?? '') : '';
         
         damagePhoto = data['damage_photo'] ?? (data['vehicle'] != null ? data['vehicle']['damage_photo'] : null);
+        emergencyStatus = data['status'] ?? '';
         // conservative high priority detection
         highPriority = (data['priority'] != null && data['priority'].toString().toLowerCase() == 'high') || (data['status'] != null && data['status'].toString().toLowerCase().contains('priority'));
 

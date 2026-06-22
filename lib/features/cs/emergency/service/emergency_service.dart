@@ -122,7 +122,7 @@ class EmergencyService {
 
       final body = jsonDecode(response.body);
 
-      if (response.statusCode == 200 && body['success'] == true) {
+      if (response.statusCode == 200 && body['status'] == 'success') {
         return {
           'success': true,
           'data': body['data'],

@@ -135,58 +135,8 @@ class _EmergencyActiveAlertState extends State<EmergencyActiveAlert> {
           // Row 4: Tombol Aksi
           Row(
             children: [
-              if (!_accepted) ...[
-                // Tombol Terima Panggilan (Primary)
-                ElevatedButton(
-                  onPressed: () async {
-                    try {
-                      final svc = MechanicEmergencyService();
-                      final id = _emergency?['emergency_id'] as int? ?? _emergency?['id'] as int?;
-                      if (id == null) {
-                        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ID panggilan tidak ditemukan')));
-                        return;
-                      }
-                      final ok = await svc.acceptEmergency(id);
-                      if (ok) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Panggilan diterima')));
-                          setState(() => _accepted = true);
-                          // Navigate to detail page with the emergency id so backend will be queried
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => DetailEmergencyScreen(emergencyId: id)),
-                          );
-                        }
-                      } else {
-                        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal menerima panggilan')));
-                      }
-                    } catch (e) {
-                      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppColors.danger,
-                    elevation: 5,
-                    shadowColor: Colors.black.withOpacity(0.1),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(9999),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  ),
-                  child: const Text(
-                    'Terima Panggilan',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-              ],
-
-              // Tombol Lihat Detail (Secondary)
-              OutlinedButton(
+              // Tombol Lihat Detail (Primary)
+              ElevatedButton(
                 onPressed: () {
                   final id = _emergency?['emergency_id'] as int? ?? _emergency?['id'] as int?;
                   Navigator.push(
@@ -196,16 +146,15 @@ class _EmergencyActiveAlertState extends State<EmergencyActiveAlert> {
                     ),
                   );
                 },
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: BorderSide(
-                    color: Colors.white.withOpacity(0.3),
-                    width: 1,
-                  ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppColors.danger,
+                  elevation: 5,
+                  shadowColor: Colors.black.withOpacity(0.1),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(9999),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 ),
                 child: const Text(
                   'Lihat Detail',

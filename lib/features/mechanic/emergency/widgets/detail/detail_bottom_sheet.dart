@@ -8,6 +8,7 @@ class DetailBottomSheet extends StatelessWidget {
   final int emergencyId;
   final int orderId;
   final String orderStatus;
+  final String emergencyStatus;
   final String isTowing;
   final String totalPrice;
   final String vehicleType;
@@ -20,12 +21,14 @@ class DetailBottomSheet extends StatelessWidget {
   final String plateNumber;
   final String? damagePhoto;
   final bool highPriority;
+  final VoidCallback? onRefresh;
 
   const DetailBottomSheet({
     super.key,
     required this.emergencyId,
     required this.orderId,
     required this.orderStatus,
+    required this.emergencyStatus,
     required this.isTowing,
     required this.totalPrice,
     required this.vehicleType,
@@ -38,6 +41,7 @@ class DetailBottomSheet extends StatelessWidget {
     required this.plateNumber,
     this.damagePhoto,
     this.highPriority = false,
+    this.onRefresh,
   });
 
   @override
@@ -449,157 +453,224 @@ class DetailBottomSheet extends StatelessWidget {
               ),
               const SizedBox(height: 32),
 
-              // ── Tombol Sudah Sampai ──────────────────────────
-              Container(
-                width: double.infinity,
-                height: 55,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(9999),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
+              if (emergencyStatus.toLowerCase() == 'pending' || emergencyStatus.toLowerCase() == 'searching' || emergencyStatus.isEmpty) ...[
+                // ── Tombol Terima Panggilan ──────────────────────
+                Container(
+                  width: double.infinity,
+                  height: 55,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
                     borderRadius: BorderRadius.circular(9999),
-                    onTap: () async {
-                      final svc = MechanicEmergencyService();
-                      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Memproses kedatangan...')));
-                      try {
-                        final ok = await svc.arrived(emergencyId);
-                        if (ok) {
-                          if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Berhasil menandai sudah sampai')));
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EmergencyInvoiceScreen(
-                                emergencyId: emergencyId,
-                                orderId: orderId,
-                              ),
-                            ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(9999),
+                      onTap: () async {
+                        final svc = MechanicEmergencyService();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Menerima panggilan...')),
                           );
-                        } else {
-                          if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal menandai sudah sampai')));
                         }
-                      } catch (e) {
-                        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
-                      }
-                    },
-                    child: const Center(
-                      child: Text(
-                        'Sudah Sampai',
-                        style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
+                        try {
+                          final ok = await svc.acceptEmergency(emergencyId);
+                          if (ok) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Panggilan berhasil diterima')),
+                              );
+                            }
+                            onRefresh?.call();
+                          } else {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Gagal menerima panggilan')),
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Terjadi kesalahan: $e')),
+                            );
+                          }
+                        }
+                      },
+                      child: const Center(
+                        child: Text(
+                          'Terima Panggilan',
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-
-              // ── Tombol Navigasi ──────────────────────────────
-              Container(
-                width: double.infinity,
-                height: 55,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: AppColors.primary, width: 2),
-                  borderRadius: BorderRadius.circular(9999),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
+              ] else ...[
+                // ── Tombol Sudah Sampai ──────────────────────────
+                Container(
+                  width: double.infinity,
+                  height: 55,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
                     borderRadius: BorderRadius.circular(9999),
-                    onTap: () async {
-                      final Uri url = Uri.parse(
-                        'https://www.google.com/maps/dir/?api=1&destination=$customerLatitude,$customerLongitude',
-                      );
-                      try {
-                        final bool launched = await launchUrl(url,
-                            mode: LaunchMode.externalApplication);
-                        if (!launched && context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content:
-                                    Text('Tidak dapat membuka Google Maps')),
-                          );
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(9999),
+                      onTap: () async {
+                        final svc = MechanicEmergencyService();
+                        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Memproses kedatangan...')));
+                        try {
+                          final ok = await svc.arrived(emergencyId);
+                          if (ok) {
+                            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Berhasil menandai sudah sampai')));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EmergencyInvoiceScreen(
+                                  emergencyId: emergencyId,
+                                  orderId: orderId,
+                                ),
+                              ),
+                            );
+                          } else {
+                            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal menandai sudah sampai')));
+                          }
+                        } catch (e) {
+                          if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
                         }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text(
-                                    'Gagal membuka Google Maps: $e')),
-                          );
-                        }
-                      }
-                    },
-                    child: const Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.map_outlined,
-                              color: AppColors.primary, size: 20),
-                          SizedBox(width: 8),
-                          Text(
-                            'Navigasi (Google Maps)',
-                            style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.primary,
-                            ),
+                      },
+                      child: const Center(
+                        child: Text(
+                          'Sudah Sampai',
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // ── Tombol Batalkan ──────────────────────────────
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.close, color: Color(0xFF1E293B), size: 20),
-                    SizedBox(width: 8),
-                    Text(
-                      'Batalkan',
-                      style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1E293B),
+                // ── Tombol Navigasi ──────────────────────────────
+                Container(
+                  width: double.infinity,
+                  height: 55,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: AppColors.primary, width: 2),
+                    borderRadius: BorderRadius.circular(9999),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(9999),
+                      onTap: () async {
+                        final Uri url = Uri.parse(
+                          'https://www.google.com/maps/dir/?api=1&destination=$customerLatitude,$customerLongitude',
+                        );
+                        try {
+                          final bool launched = await launchUrl(url,
+                              mode: LaunchMode.externalApplication);
+                          if (!launched && context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text('Tidak dapat membuka Google Maps')),
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text(
+                                      'Gagal membuka Google Maps: $e')),
+                            );
+                          }
+                        }
+                      },
+                      child: const Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.map_outlined,
+                                color: AppColors.primary, size: 20),
+                            SizedBox(width: 8),
+                            Text(
+                              'Navigasi (Google Maps)',
+                              style: TextStyle(
+                                fontFamily: 'Plus Jakarta Sans',
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
+                const SizedBox(height: 16),
+
+                // ── Tombol Batalkan ──────────────────────────────
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.close, color: Color(0xFF1E293B), size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Batalkan',
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 40),
             ],
           ),

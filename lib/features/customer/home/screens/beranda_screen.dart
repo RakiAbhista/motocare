@@ -69,6 +69,8 @@ class _BerandaScreenState extends State<BerandaScreen> {
     return Scaffold(
       body: BengkelBackground(
         child: SafeArea(
+          bottom: false,
+          top: false,
           child: isLoading
               ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
               : Column(

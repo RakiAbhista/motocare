@@ -24,7 +24,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: BengkelBackground(
-        child: SafeArea(
+        child: SafeArea(top: false, bottom: false,
           child: SingleChildScrollView(
             child: Column(
               children: [

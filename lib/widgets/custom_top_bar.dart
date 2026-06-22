@@ -24,64 +24,65 @@ class CustomTopBar extends StatelessWidget {
               bottomRight: Radius.circular(30),
             ),
           ),
-          child: SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+        // Use MediaQuery padding to include status bar height and avoid SafeArea
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: MediaQuery.of(context).padding.top + 16,
+          bottom: 28,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.location_on,
+                color: AppColors.primary,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.location_on,
-                      color: AppColors.primary,
-                      size: 22,
+                  Text(
+                    'Lokasi Anda',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Lokasi Anda',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.8),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          location,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: onNotificationTap,
-                    child: const Icon(
-                      Icons.notifications,
+                  const SizedBox(height: 2),
+                  Text(
+                    location,
+                    style: const TextStyle(
                       color: Colors.white,
-                      size: 26,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
             ),
-          ),
+            GestureDetector(
+              onTap: onNotificationTap,
+              child: const Icon(
+                Icons.notifications,
+                color: Colors.white,
+                size: 26,
+              ),
+            ),
+          ],
+        ),
         ),
         Positioned(
           bottom: 0,

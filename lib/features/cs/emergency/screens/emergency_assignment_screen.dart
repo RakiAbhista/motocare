@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 
+import '../../home/screens/beranda_screen.dart';
 import '../widgets/assign_mechanic_bottom_sheet.dart';
 import '../widgets/emergency_app_bar.dart';
 import '../widgets/emergency_customer_card.dart';
@@ -74,11 +75,23 @@ class _EmergencyAssignmentScreenState extends State<EmergencyAssignmentScreen> {
       mechanicId: _selectedMechanic!.id,
     );
 
+    print('🔵 assignMechanic result: $result');
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
     if (result['success'] == true) {
-      _showSuccessDialog();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Mekanik Berhasil Di-assign!"),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const BerandaScreen(initialIndex: 1)),
+        (route) => false,
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -89,54 +102,6 @@ class _EmergencyAssignmentScreenState extends State<EmergencyAssignmentScreen> {
         ),
       );
     }
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.check_circle, color: Colors.blue, size: 64),
-            const SizedBox(height: 16),
-            const Text(
-              "Mekanik Berhasil Di-assign!",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "${_selectedMechanic!.name} telah ditugaskan untuk menangani emergency ini.",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // tutup dialog
-                  Navigator.of(context).pop(); // kembali ke list
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: const Text(
-                  "Kembali",
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   void _openAssignMechanicSheet() async {
@@ -270,40 +235,61 @@ class _EmergencyAssignmentScreenState extends State<EmergencyAssignmentScreen> {
 
                 const SizedBox(height: 24),
 
-                /// ASSIGN MECHANIC CARD
-                _AssignMechanicCard(
-                  selectedMechanic: _selectedMechanic,
-                  onTap: _openAssignMechanicSheet,
-                ),
-
-                /// CONFIRM BUTTON — only visible when mechanic is selected
-                ElevatedButton(
-                  onPressed: _isSubmitting ? null : _confirmAssignment,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
+                /// ASSIGN MECHANIC CARD OR ASSIGNED INFO
+                if (emergency.mechanic != null && emergency.mechanic?.id != null) ...[
+                  _AssignMechanicCard(
+                    title: emergency.mechanic?.name ?? 'Mekanik Ditugaskan',
+                    subtitle: "Mekanik telah ditugaskan untuk order ini",
+                    statusText: "ASSIGNED",
+                    isReadOnly: true,
                   ),
-                  child: _isSubmitting
-                      ? const SizedBox(
-                          height: 22,
-                          width: 45,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2.5,
-                          ),
-                        )
-                      : const Text(
-                          "Konfirmasi",
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                ] else ...[
+                  _AssignMechanicCard(
+                    title: _selectedMechanic != null ? _selectedMechanic!.name : "Belum ada Mekanik",
+                    subtitle: _selectedMechanic != null ? "Status: ${_selectedMechanic!.status}" : "Ketuk untuk memilih mekanik",
+                    statusText: _selectedMechanic != null ? _selectedMechanic!.status.toUpperCase() : null,
+                    isReadOnly: false,
+                    onTap: _openAssignMechanicSheet,
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  /// CONFIRM BUTTON — only visible when mechanic is selected
+                  if (_selectedMechanic != null)
+                    SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: ElevatedButton(
+                        onPressed: _isSubmitting ? null : _confirmAssignment,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
                           ),
                         ),
-                ),
+                        child: _isSubmitting
+                            ? const Center(
+                                child: SizedBox(
+                                  height: 22,
+                                  width: 22,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2.5,
+                                  ),
+                                ),
+                              )
+                            : const Text(
+                                "Konfirmasi Penugasan",
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                      ),
+                    ),
+                ],
                 const SizedBox(height: 10),
               ],
             ),
@@ -318,18 +304,25 @@ class _EmergencyAssignmentScreenState extends State<EmergencyAssignmentScreen> {
 // Assign Mechanic Card Widget
 // ─────────────────────────────────────────────
 class _AssignMechanicCard extends StatelessWidget {
-  final MechanicModel? selectedMechanic;
-  final VoidCallback onTap;
+  final String title;
+  final String subtitle;
+  final String? statusText;
+  final bool isReadOnly;
+  final VoidCallback? onTap;
 
   const _AssignMechanicCard({
-    required this.selectedMechanic,
-    required this.onTap,
+    required this.title,
+    required this.subtitle,
+    this.statusText,
+    this.isReadOnly = false,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final bool hasSelection = title != "Belum ada Mekanik";
     return GestureDetector(
-      onTap: onTap,
+      onTap: isReadOnly ? null : onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         width: double.infinity,
@@ -338,7 +331,7 @@ class _AssignMechanicCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selectedMechanic != null
+            color: hasSelection
                 ? Colors.blue.withOpacity(0.5)
                 : Colors.grey.shade200,
             width: 1.5,
@@ -361,7 +354,7 @@ class _AssignMechanicCard extends StatelessWidget {
                 color: const Color(0xFFF0F4FF),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: selectedMechanic != null
+              child: hasSelection
                   ? const Icon(
                       Icons.person,
                       color: Colors.blue,
@@ -378,80 +371,74 @@ class _AssignMechanicCard extends StatelessWidget {
 
             /// TEXT
             Expanded(
-              child: selectedMechanic != null
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  if (statusText != null) ...[
+                    Row(
                       children: [
-                        Text(
-                          selectedMechanic!.name,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: statusText!.toLowerCase() == 'available' || statusText!.toLowerCase() == 'assigned'
+                                ? Colors.blue[50]
+                                : Colors.grey[200],
+                            borderRadius: BorderRadius.circular(6),
                           ),
-                        ),
-                        const SizedBox(height: 3),
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 7, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: selectedMechanic!.status.toLowerCase() == 'available' ? Colors.blue[50] : Colors.grey[200],
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                selectedMechanic!.status.toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: selectedMechanic!.status.toLowerCase() == 'available' ? Colors.blue : Colors.grey[700],
-                                ),
-                              ),
+                          child: Text(
+                            statusText!,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: statusText!.toLowerCase() == 'available' || statusText!.toLowerCase() == 'assigned'
+                                  ? Colors.blue
+                                  : Colors.grey[700],
                             ),
-                          ],
-                        ),
-                      ],
-                    )
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "No Mechanic Assigned",
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          "Tap the button to browse available technicians",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[500],
                           ),
                         ),
                       ],
                     ),
-            ),
-
-            const SizedBox(width: 10),
-
-            /// PLUS BUTTON
-            Container(
-              width: 38,
-              height: 38,
-              decoration: const BoxDecoration(
-                color: Colors.blue,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                selectedMechanic != null ? Icons.edit : Icons.add,
-                color: Colors.white,
-                size: 20,
+                  ] else ...[
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
+
+            if (!isReadOnly) ...[
+              const SizedBox(width: 10),
+
+              /// PLUS / EDIT BUTTON
+              Container(
+                width: 38,
+                height: 38,
+                decoration: const BoxDecoration(
+                  color: Colors.blue,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  hasSelection ? Icons.edit : Icons.add,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ],
           ],
         ),
       ),

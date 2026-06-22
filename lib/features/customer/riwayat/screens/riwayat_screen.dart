@@ -75,7 +75,7 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: BengkelBackground(
-        child: SafeArea(
+        child: SafeArea(bottom: false, top: false,
           child: _isLoading
               ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
               : Column(

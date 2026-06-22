@@ -58,7 +58,7 @@ class _TerdekatScreenState extends State<TerdekatScreen> {
 
     // Pastikan mapReady baru dipanggil. Nanti onMapIsReady jg manggil ini kok sbg backup.
     if (_mapReady) {
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future.delayed(const Duration(milliseconds: 500));
       await _addWorkshopMarkers();
     }
   }
@@ -125,7 +125,7 @@ class _TerdekatScreenState extends State<TerdekatScreen> {
     // Wait a short moment and let the Flutter frame complete paint before
     // converting widget markers to PNGs inside the plugin. This avoids
     // '!debugNeedsPaint' crashes originating from _capturePng.
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 500));
 
     try {
       for (final w in _workshops) {

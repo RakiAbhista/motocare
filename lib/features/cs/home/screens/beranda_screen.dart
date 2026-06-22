@@ -6,7 +6,8 @@ import '../../emergency/screens/darurat_screen.dart';
 import '../../profile/screens/profile_screen.dart';
 
 class BerandaScreen extends StatefulWidget {
-  const BerandaScreen({super.key});
+  final int initialIndex;
+  const BerandaScreen({super.key, this.initialIndex = 0});
 
   @override
   State<BerandaScreen> createState() => _BerandaScreenState();
@@ -14,7 +15,13 @@ class BerandaScreen extends StatefulWidget {
 
 class _BerandaScreenState extends State<BerandaScreen> {
 
-  int currentIndex = 0;
+  late int currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    currentIndex = widget.initialIndex;
+  }
 
   final List<Widget> pages = [
     const HomeContent(),

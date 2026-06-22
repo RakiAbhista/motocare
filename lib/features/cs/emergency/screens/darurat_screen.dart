@@ -16,7 +16,7 @@ class _DaruratScreen extends State<DaruratScreen  > {
 
   final List<Widget> pages = [
     const DaruratContent(),
-    const DaruratScreen(),
+    const Center(child: Text('Dalam Pengembangan')),
   ];
 
   @override

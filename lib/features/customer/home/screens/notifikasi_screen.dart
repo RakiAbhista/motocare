@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/core/theme/app_theme.dart';
 import '../../booking/screens/booking_servis_screen.dart';
@@ -9,13 +10,15 @@ class NotifikasiScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pusat Notifikasi'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+      extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          title: const Text('Pusat Notifikasi'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
+          ),
+          systemOverlayStyle: SystemUiOverlayStyle.light,
         ),
-      ),
       body: SingleChildScrollView(
         padding: AppTheme.pagePadding,
         child: Column(

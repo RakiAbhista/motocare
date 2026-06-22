@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:motocare/core/services/auth_service.dart';
 
 class DashboardService {
-  String get baseUrl => AuthService().baseUrl;
+  final String baseUrl = AuthService().baseUrl;
 
   Future<Map<String, dynamic>> getDashboard() async {
     try {
