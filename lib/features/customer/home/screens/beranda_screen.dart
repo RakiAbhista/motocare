@@ -11,6 +11,7 @@ import 'notifikasi_screen.dart';
 import '../../kendaraan/widgets/detail_motor_bottom_sheet.dart';
 import '../../booking/screens/booking_servis_screen.dart';
 import 'package:motocare/core/services/customer_home_service.dart';
+import '../../emergency/screens/detail_emergency_screen.dart';
 
 class BerandaScreen extends StatefulWidget {
   final bool hasActiveBooking;
@@ -334,8 +335,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
 
   Widget _buildStatusDarurat() {
     final isMekanik = widget.daruratType == 'mekanik';
-    final title = isMekanik ? 'Bengkel 123' : 'Towing H 1234 HE';
-    final step2Label = isMekanik ? 'Mekanik Menuju Lokasi' : 'Towing Menuju Lokasi';
+    final serviceTypeLabel = isMekanik ? 'Panggilan Mekanik' : 'Panggilan Towing';
 
     return Container(
       decoration: BoxDecoration(
@@ -368,68 +368,45 @@ class _BerandaScreenState extends State<BerandaScreen> {
                 const SizedBox(width: 10),
                 const Expanded(
                   child: Text(
-                    'Status Panggilan Darurat',
+                    'Panggilan Darurat',
                     style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
                 StatusBadge.danger('Aktif'),
               ],
             ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Container(
-                  width: 4,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.danger,
-                    borderRadius: BorderRadius.circular(2),
+            const SizedBox(height: 16),
+            Text(serviceTypeLabel, style: AppTheme.titleMedium.copyWith(color: AppColors.danger)),
+            const SizedBox(height: 4),
+            const Text(
+              'Keluhan: Motor mogok di jalan, mesin tiba-tiba mati dan tidak bisa dihidupkan.',
+              style: AppTheme.bodySmall,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DetailEmergencyScreen(
+                        emergencyType: widget.daruratType ?? 'mekanik',
+                      ),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.danger,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: AppTheme.titleMedium.copyWith(color: AppColors.danger)),
-                    const SizedBox(height: 2),
-                    const Text('Sedang dalam penanganan...', style: AppTheme.bodySmall),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildTrackerNode(true, 'Peninjauan\nPanggilan'),
-                _buildTrackerLine(false),
-                _buildTrackerNode(false, step2Label),
-                _buildTrackerLine(false),
-                _buildTrackerNode(false, 'Servis\nBerlangsung'),
-                _buildTrackerLine(false),
-                _buildTrackerNode(false, 'Menunggu\nPembayaran'),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.danger.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 12, height: 12,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.danger),
-                    ),
-                    SizedBox(width: 8),
-                    Text('Menunggu konfirmasi mekanik...', style: TextStyle(color: AppColors.danger, fontSize: 12, fontWeight: FontWeight.w600)),
-                  ],
-                ),
+                child: const Text('Lihat Detail', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ),
           ],
