@@ -5,9 +5,10 @@ import 'work_status_card.dart';
 import 'servis_selesai_card.dart';
 import 'profile_menu_card.dart';
 import '../screens/work_history_screen.dart';
-import 'package:motocare/main.dart';
 import 'package:motocare/core/services/auth_service.dart';
 import 'package:motocare/features/auth/login/screens/login_screen.dart';
+import 'package:motocare/features/mechanic/profile/services/profile_service.dart';
+
 
 class ProfileContent extends StatefulWidget {
   const ProfileContent({super.key});
@@ -17,16 +18,92 @@ class ProfileContent extends StatefulWidget {
 }
 
 class _ProfileContentState extends State<ProfileContent> {
-  bool _isOnline = true;
-  String _phoneNumber = "0812-3456-7890";
+  final ProfileService _profileService = ProfileService();
+
+
+  bool _isLoading = true;
+  String _nama = '';
+  String _phoneNumber = '';
+  bool _isOnline = false;
+  int _totalServisSelesai = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    setState(() => _isLoading = true);
+
+    final result = await _profileService.getProfile();
+
+    if (!mounted) return;
+
+    if (result['success']) {
+      final data = result['data'];
+      setState(() {
+        _nama = data['nama'] ?? '';
+        _phoneNumber = data['nomor_telepon'] ?? '';
+        _isOnline = data['status_kerja'] ?? false;
+        _totalServisSelesai = data['total_servis_selesai'] ?? 0;
+        _isLoading = false;
+      });
+    } else {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Gagal memuat profil'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleStatusChanged(bool value) async {
+    final result = await _profileService.updateStatus(value);
+
+    if (!mounted) return;
+
+    if (result['success']) {
+      setState(() => _isOnline = value);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            value
+                ? 'Status Anda sekarang ONLINE. Siap menerima panggilan darurat & antrian!'
+                : 'Status Anda sekarang OFFLINE. Anda tidak akan menerima panggilan baru.',
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: value ? AppColors.success : AppColors.warning,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['message'] ?? 'Gagal mengubah status'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return SingleChildScrollView(
       child: Column(
         children: [
           /// HEADER SECTION
-          const ProfileHeader(name: "Budi Setiawan"),
+          ProfileHeader(name: _nama),
 
           const SizedBox(height: 24),
 
@@ -35,32 +112,16 @@ class _ProfileContentState extends State<ProfileContent> {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: WorkStatusCard(
               initialStatus: _isOnline,
-              onStatusChanged: (value) {
-                setState(() {
-                  _isOnline = value;
-                });
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      _isOnline
-                          ? "Status Anda sekarang ONLINE. Siap menerima panggilan darurat & antrian!"
-                          : "Status Anda sekarang OFFLINE. Anda tidak akan menerima panggilan baru.",
-                    ),
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: _isOnline ? AppColors.success : AppColors.warning,
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
-              },
+              onStatusChanged: _handleStatusChanged,
             ),
           ),
 
           const SizedBox(height: 16),
 
           /// SINGLE STAT SECTION (SERVIS SELESAI)
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24),
-            child: ServisSelesaiCard(count: "148"),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: ServisSelesaiCard(count: '$_totalServisSelesai'),
           ),
 
           const SizedBox(height: 24),
@@ -86,15 +147,13 @@ class _ProfileContentState extends State<ProfileContent> {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               children: [
-                /// EDIT PROFILE
+                /// EDIT PHONE
                 ProfileMenuCard(
                   icon: Icons.phone_android_rounded,
                   title: "Ubah Nomor Telepon",
                   iconColor: Colors.blue,
-                  info: _phoneNumber,
-                  onTap: () {
-                    _showEditPhoneDialog(context);
-                  },
+                  info: _phoneNumber.isNotEmpty ? _phoneNumber : '-',
+                  onTap: () => _showEditPhoneDialog(context),
                 ),
 
                 const SizedBox(height: 12),
@@ -123,12 +182,10 @@ class _ProfileContentState extends State<ProfileContent> {
                   title: "Keluar dari Akun",
                   iconColor: Colors.red,
                   info: "Akhiri sesi kerja saat ini",
-                  onTap: () {
-                    _showLogoutDialog(context);
-                  },
+                  onTap: () => _showLogoutDialog(context),
                 ),
 
-                const SizedBox(height: 120), // Spacer agar tidak tertutup bottom nav
+                const SizedBox(height: 120),
               ],
             ),
           ),
@@ -138,7 +195,8 @@ class _ProfileContentState extends State<ProfileContent> {
   }
 
   void _showEditPhoneDialog(BuildContext context) {
-    final TextEditingController phoneController = TextEditingController(text: _phoneNumber);
+    final TextEditingController phoneController =
+        TextEditingController(text: _phoneNumber);
 
     showDialog(
       context: context,
@@ -164,24 +222,36 @@ class _ProfileContentState extends State<ProfileContent> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
+              onPressed: () => Navigator.pop(context),
               child: const Text("Batal", style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 final newPhone = phoneController.text.trim();
-                if (newPhone.isNotEmpty) {
-                  setState(() {
-                    _phoneNumber = newPhone;
-                  });
-                  Navigator.pop(context);
+                if (newPhone.isEmpty) return;
+
+                Navigator.pop(context);
+
+                final result = await _profileService.updatePhone(newPhone);
+
+                if (!mounted) return;
+
+                if (result['success']) {
+                  setState(() => _phoneNumber = newPhone);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text("Nomor telepon berhasil diperbarui ke $newPhone"),
+                      content: Text(
+                          result['message'] ?? 'Nomor telepon berhasil diperbarui'),
                       behavior: SnackBarBehavior.floating,
                       backgroundColor: AppColors.success,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(result['message'] ?? 'Gagal memperbarui nomor'),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: Colors.red,
                     ),
                   );
                 }
@@ -217,9 +287,7 @@ class _ProfileContentState extends State<ProfileContent> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
-              },
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text("Batal", style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
@@ -251,7 +319,6 @@ class _ProfileContentState extends State<ProfileContent> {
                     ));
                   }
                 }
-                // Navigasi kembali ke halaman login dan hapus history
                 if (pageContext.mounted) {
                   Navigator.of(pageContext).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (_) => const LoginScreen()),
