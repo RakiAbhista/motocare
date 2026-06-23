@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/features/mechanic/home/screens/beranda_screen.dart' as mechanic;
 import 'package:motocare/features/cs/home/screens/beranda_screen.dart' as cs;
+import 'package:motocare/core/services/background_location_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +17,7 @@ void main() async {
     statusBarBrightness: Brightness.dark,
   ));
   await AuthService().loadTokenFromStorage();
+  await initializeBackgroundService();
   runApp(const MyApp());
 }
 

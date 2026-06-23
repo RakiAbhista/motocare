@@ -1,13 +1,16 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/core/theme/app_theme.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:motocare/core/services/customer_home_service.dart';
 
 class DetailEmergencyScreen extends StatefulWidget {
   final String emergencyType; // 'mekanik' or 'towing'
-  const DetailEmergencyScreen({super.key, required this.emergencyType});
+  final int emergencyId;
+  const DetailEmergencyScreen({super.key, required this.emergencyType, required this.emergencyId});
 
   @override
   State<DetailEmergencyScreen> createState() => _DetailEmergencyScreenState();
@@ -15,17 +18,19 @@ class DetailEmergencyScreen extends StatefulWidget {
 
 class _DetailEmergencyScreenState extends State<DetailEmergencyScreen> {
   late MapController mapController;
+  Timer? _timer;
   
-  // Dummy coordinates for Mechanic and Customer
+  // Dynamic data from API
   double? customerLat;
   double? customerLon;
-  final double mechanicLat = -7.054447;
-  final double mechanicLon = 110.433991;
+  double? mechanicLat;
+  double? mechanicLon;
 
-  // Dummy mechanic data
-  final String mechanicName = 'Budi Santoso';
-  final String mechanicPhone = '081234567890';
-  final String status = 'process'; // pending, process, payment
+  String mechanicName = 'Menunggu...';
+  String mechanicPhone = '-';
+  String status = 'pending'; // pending, process, payment
+
+  bool _isLoading = true;
 
   bool _isMapReady = false;
 
@@ -48,6 +53,60 @@ class _DetailEmergencyScreenState extends State<DetailEmergencyScreen> {
       ),
     );
     _initLocation();
+    _fetchEmergencyDetail(isInitial: true);
+    
+    _timer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      _fetchEmergencyDetail(isInitial: false);
+    });
+  }
+
+  Future<void> _fetchEmergencyDetail({bool isInitial = false}) async {
+    if (isInitial) {
+      setState(() => _isLoading = true);
+    }
+    
+    final result = await CustomerHomeService().getEmergencyDetail(widget.emergencyId);
+    if (result['success'] == true && result['data'] != null) {
+      final data = result['data'];
+      if (mounted) {
+        setState(() {
+          status = data['emergency_status'] ?? 'pending';
+          mechanicName = data['mechanic_name'] ?? 'Mekanik Belum Ditemukan';
+          mechanicPhone = data['mechanic_phone'] ?? '-';
+          
+          if (data['mechanic_location'] != null) {
+            mechanicLat = double.tryParse(data['mechanic_location']['latitude'].toString());
+            mechanicLon = double.tryParse(data['mechanic_location']['longitude'].toString());
+          }
+          if (data['customer_location'] != null) {
+            customerLat = double.tryParse(data['customer_location']['latitude'].toString());
+            customerLon = double.tryParse(data['customer_location']['longitude'].toString());
+          }
+          if (isInitial) {
+            _isLoading = false;
+          }
+        });
+        
+        // Perbarui marker statis secara dinamis tanpa merefresh seluruh peta
+        if (_isMapReady && mechanicLat != null && mechanicLon != null) {
+          try {
+            await mapController.setStaticPosition(
+              [GeoPoint(latitude: mechanicLat!, longitude: mechanicLon!)],
+              "mechanic",
+            );
+          } catch (_) {}
+        }
+        
+        _drawRouteIfReady(zoomInto: isInitial);
+      }
+    } else {
+      if (mounted && isInitial) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['message'] ?? 'Gagal mengambil data')),
+        );
+      }
+    }
   }
 
   Future<void> _initLocation() async {
@@ -71,21 +130,22 @@ class _DetailEmergencyScreenState extends State<DetailEmergencyScreen> {
         customerLat = pos.latitude;
         customerLon = pos.longitude;
       });
-      _drawRouteIfReady();
+      _drawRouteIfReady(zoomInto: true);
     }
   }
 
-  void _drawRouteIfReady() async {
-    if (_isMapReady && customerLat != null && customerLon != null) {
+  void _drawRouteIfReady({bool zoomInto = false}) async {
+    if (_isMapReady && customerLat != null && customerLon != null && mechanicLat != null && mechanicLon != null) {
       try {
+        await mapController.clearAllRoads();
         await mapController.drawRoad(
-          GeoPoint(latitude: mechanicLat, longitude: mechanicLon),
+          GeoPoint(latitude: mechanicLat!, longitude: mechanicLon!),
           GeoPoint(latitude: customerLat!, longitude: customerLon!),
           roadType: RoadType.car,
-          roadOption: const RoadOption(
+          roadOption: RoadOption(
             roadWidth: 10,
             roadColor: AppColors.primary,
-            zoomInto: true,
+            zoomInto: zoomInto,
           ),
         );
       } catch (_) {}
@@ -94,6 +154,7 @@ class _DetailEmergencyScreenState extends State<DetailEmergencyScreen> {
 
   @override
   void dispose() {
+    _timer?.cancel();
     mapController.dispose();
     super.dispose();
   }
@@ -102,9 +163,11 @@ class _DetailEmergencyScreenState extends State<DetailEmergencyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          // 1. Map
+      body: _isLoading 
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : Stack(
+              children: [
+                // 1. Map
           Positioned.fill(
             child: OSMFlutter(
               controller: mapController,
@@ -121,13 +184,14 @@ class _DetailEmergencyScreenState extends State<DetailEmergencyScreen> {
                       ),
                       [GeoPoint(latitude: customerLat!, longitude: customerLon!)],
                     ),
-                  StaticPositionGeoPoint(
-                    "mechanic",
-                    const MarkerIcon(
-                      icon: Icon(Icons.build_circle, color: AppColors.primary, size: 48),
+                  if (mechanicLat != null && mechanicLon != null)
+                    StaticPositionGeoPoint(
+                      "mechanic",
+                      const MarkerIcon(
+                        icon: Icon(Icons.build_circle, color: AppColors.primary, size: 48),
+                      ),
+                      [GeoPoint(latitude: mechanicLat!, longitude: mechanicLon!)],
                     ),
-                    [GeoPoint(latitude: mechanicLat, longitude: mechanicLon)],
-                  ),
                 ],
               ),
               onMapIsReady: (isReady) async {
@@ -187,28 +251,6 @@ class _DetailEmergencyScreenState extends State<DetailEmergencyScreen> {
                     ),
                   ),
                 ],
-              ),
-            ),
-          ),
-
-          // 3. Tombol Recenter
-          Positioned(
-            bottom: 300,
-            right: 20,
-            child: InkWell(
-              onTap: () async {
-                await mapController.currentLocation();
-              },
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 4)),
-                  ],
-                ),
-                child: const Icon(Icons.my_location, color: AppColors.primary, size: 24),
               ),
             ),
           ),

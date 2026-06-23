@@ -90,7 +90,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
                               const SizedBox(height: 24),
                               _buildPointsVoucherCard(context),
                               const SizedBox(height: 24),
-                              if (widget.daruratType != null) ...[
+                              if (homeData?['active_emergency'] != null) ...[
                                 _buildStatusDarurat(),
                                 const SizedBox(height: 24),
                               ],
@@ -334,7 +334,20 @@ class _BerandaScreenState extends State<BerandaScreen> {
   }
 
   Widget _buildStatusDarurat() {
-    final isMekanik = widget.daruratType == 'mekanik';
+    final activeEmergency = homeData?['active_emergency'] as Map<String, dynamic>?;
+    if (activeEmergency == null) return const SizedBox.shrink();
+
+    final idString = activeEmergency['id'].toString();
+    final emergencyId = int.tryParse(idString.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+    final complaint = activeEmergency['complaint'] ?? 'Keluhan tidak disertakan';
+    final status = activeEmergency['emergency_status'] ?? 'pending';
+
+    String statusLabel = 'Aktif';
+    if (status == 'searching') statusLabel = 'Mencari Mekanik';
+    else if (status == 'process') statusLabel = 'Sedang Diproses';
+    else if (status == 'payment') statusLabel = 'Menunggu Pembayaran';
+
+    final isMekanik = widget.daruratType != 'towing';
     final serviceTypeLabel = isMekanik ? 'Panggilan Mekanik' : 'Panggilan Towing';
 
     return Container(
@@ -366,20 +379,20 @@ class _BerandaScreenState extends State<BerandaScreen> {
                   child: const Icon(Icons.warning_amber_rounded, color: AppColors.danger, size: 18),
                 ),
                 const SizedBox(width: 10),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Panggilan Darurat',
-                    style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold, fontSize: 16),
+                    idString,
+                    style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
-                StatusBadge.danger('Aktif'),
+                StatusBadge.danger(statusLabel),
               ],
             ),
             const SizedBox(height: 16),
             Text(serviceTypeLabel, style: AppTheme.titleMedium.copyWith(color: AppColors.danger)),
             const SizedBox(height: 4),
-            const Text(
-              'Keluhan: Motor mogok di jalan, mesin tiba-tiba mati dan tidak bisa dihidupkan.',
+            Text(
+              'Keluhan: $complaint',
               style: AppTheme.bodySmall,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -394,6 +407,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
                     MaterialPageRoute(
                       builder: (context) => DetailEmergencyScreen(
                         emergencyType: widget.daruratType ?? 'mekanik',
+                        emergencyId: emergencyId,
                       ),
                     ),
                   );

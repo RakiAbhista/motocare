@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/features/cs/home/service/mechanic_emergency_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:motocare/core/services/auth_service.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../screens/emergency_invoice_screen.dart';
 
 class DetailBottomSheet extends StatelessWidget {
@@ -488,6 +493,7 @@ class DetailBottomSheet extends StatelessWidget {
                                 const SnackBar(content: Text('Panggilan berhasil diterima')),
                               );
                             }
+                            await _requestBackgroundLocationPermission(context);
                             onRefresh?.call();
                           } else {
                             if (context.mounted) {
@@ -544,6 +550,7 @@ class DetailBottomSheet extends StatelessWidget {
                         try {
                           final ok = await svc.arrived(emergencyId);
                           if (ok) {
+                            FlutterBackgroundService().invoke('stopService');
                             if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Berhasil menandai sudah sampai')));
                             Navigator.push(
                               context,
@@ -704,4 +711,51 @@ class DetailBottomSheet extends StatelessWidget {
       ],
     );
   }
-}
+
+  Future<void> _requestBackgroundLocationPermission(BuildContext context) async {
+    // 1. Minta izin lokasi dasar dulu
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    // 2. Izin baterai (Opsional tapi disarankan)
+    await Permission.ignoreBatteryOptimizations.request();
+
+    // 3. Kalau sudah granted "while in use", baru minta "always"
+    if (permission == LocationPermission.whileInUse) {
+      // Untuk Android 11+ background location dipisah dari foreground
+      await Permission.locationAlways.request();
+      permission = await Geolocator.checkPermission();
+    }
+
+    if (permission == LocationPermission.always || permission == LocationPermission.whileInUse) {
+      // Simpan data konfigurasi untuk dibaca oleh isolate service
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('bg_mechanic_id', AuthService().mechanicId ?? AuthService().userId ?? 0);
+      await prefs.setString('bg_token', AuthService().accessToken ?? '');
+      await prefs.setString('bg_base_url', AuthService().baseUrl);
+
+      // Boleh start tracking
+      final service = FlutterBackgroundService();
+      await service.startService();
+    } else {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Izin Diperlukan'),
+            content: const Text('Aplikasi butuh izin lokasi sepanjang waktu agar pelanggan dapat melacak Anda saat perjalanan.'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Tutup')),
+              TextButton(onPressed: () {
+                Navigator.pop(context);
+                Geolocator.openAppSettings();
+              }, child: const Text('Buka Pengaturan')),
+            ],
+          ),
+        );
+      }
+    }
+  }
+}
