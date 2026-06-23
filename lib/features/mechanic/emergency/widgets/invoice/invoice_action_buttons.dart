@@ -17,7 +17,7 @@ class InvoiceActionButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Quick Action Button: Ajukan Layanan Towing
+        // Quick Action Button: Layanan Towing
         Container(
           width: double.infinity,
           height: 56,
@@ -36,7 +36,7 @@ class InvoiceActionButtons extends StatelessWidget {
                   const Icon(Icons.local_shipping_outlined, color: AppColors.danger, size: 24),
                   const SizedBox(width: 8),
                   Text(
-                    'Ajukan Layanan Towing',
+                    'Layanan Towing',
                     style: const TextStyle(
                       fontFamily: 'Plus Jakarta Sans',
                       fontSize: 14,

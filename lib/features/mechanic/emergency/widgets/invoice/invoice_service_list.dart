@@ -52,24 +52,25 @@ class InvoiceServiceList extends StatelessWidget {
                   letterSpacing: -0.45,
                 ),
               ),
-              TextButton.icon(
-                onPressed: onAdd,
-                icon: const Icon(Icons.add_circle, color: AppColors.primary, size: 18),
-                label: const Text(
-                  'Tambah',
-                  style: TextStyle(
-                    fontFamily: 'Manrope',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
+              if (onAdd != null)
+                TextButton.icon(
+                  onPressed: onAdd,
+                  icon: const Icon(Icons.add_circle, color: AppColors.primary, size: 18),
+                  label: const Text(
+                    'Tambah',
+                    style: TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -257,12 +258,13 @@ class InvoiceServiceList extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         // Icon Delete/Remove
-        IconButton(
-          onPressed: onRemoveItem,
-          icon: const Icon(Icons.remove_circle_outline, color: Colors.grey, size: 20),
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
-        )
+        if (onRemoveItem != null)
+          IconButton(
+            onPressed: onRemoveItem,
+            icon: const Icon(Icons.remove_circle_outline, color: Colors.grey, size: 20),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
       ],
     );
   }

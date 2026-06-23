@@ -55,7 +55,7 @@ class _DetailEmergencyScreenState extends State<DetailEmergencyScreen> {
     _initLocation();
     _fetchEmergencyDetail(isInitial: true);
     
-    _timer = Timer.periodic(const Duration(seconds: 30), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 11), (timer) {
       _fetchEmergencyDetail(isInitial: false);
     });
   }

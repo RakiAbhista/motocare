@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/features/cs/home/service/order_service.dart';
+import 'package:motocare/features/cs/home/screens/beranda_screen.dart';
 
 class PaymentServiceScreen extends StatefulWidget {
   final double totalAmount;
@@ -144,22 +145,26 @@ class _PaymentServiceScreenState extends State<PaymentServiceScreen>
     }
 
     setState(() => _uploading = true);
-    final ok = await _orderService.completePayment(
+    final error = await _orderService.completePayment(
       widget.orderId,
       paymentProof: _paymentProof,
       paymentType: _paymentType,
     );
     setState(() => _uploading = false);
 
-    if (ok && mounted) {
+    if (error == null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Bukti pembayaran berhasil dikirim!'), backgroundColor: AppColors.success),
       );
-      // Kembali ke beranda CS
-      Navigator.popUntil(context, (route) => route.isFirst);
+      // Kembali ke beranda CS dan reload
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const BerandaScreen()),
+        (route) => false,
+      );
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal mengirim bukti pembayaran'), backgroundColor: AppColors.danger),
+        SnackBar(content: Text(error ?? 'Gagal mengirim bukti pembayaran'), backgroundColor: AppColors.danger), 
       );
     }
   }

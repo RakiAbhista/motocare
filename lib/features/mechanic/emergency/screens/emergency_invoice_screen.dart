@@ -6,6 +6,7 @@ import '../widgets/invoice/invoice_vehicle_details.dart';
 import '../widgets/invoice/invoice_service_list.dart';
 import '../widgets/invoice/invoice_action_buttons.dart';
 import '../screens/emergency_payment_screen.dart';
+import '../../home/screens/beranda_screen.dart';
 
 class EmergencyInvoiceScreen extends StatefulWidget {
   final int emergencyId;
@@ -193,7 +194,14 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
     final ok = await _svc.requestTowing(widget.emergencyId);
     setState(() => _actionLoading = false);
     if (ok) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Permintaan towing terkirim')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Permintaan towing terkirim')));
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const MechanicDashboard()),
+          (route) => false,
+        );
+      }
     } else {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal mengirim permintaan towing')));
     }

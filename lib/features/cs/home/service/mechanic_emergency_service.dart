@@ -268,4 +268,22 @@ class MechanicEmergencyService {
       return false;
     }
   }
+
+  Future<bool> clearLocation() async {
+    final uri = Uri.parse('$_baseUrl/mechanic/emergencies/clear-location');
+    try {
+      print('🔵 [MechanicEmergencyService] POST $uri');
+      final res = await http.post(uri, headers: _headers());
+      print('🔵 [MechanicEmergencyService] POST $uri -> ${res.statusCode}');
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        print('🟢 [MechanicEmergencyService] clearLocation success: ${res.body}');
+        return true;
+      }
+      print('🔴 [MechanicEmergencyService] clearLocation failed: ${res.statusCode} ${res.body}');
+      return false;
+    } catch (e) {
+      print('🔴 [MechanicEmergencyService] clearLocation exception: $e');
+      return false;
+    }
+  }
 }

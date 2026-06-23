@@ -315,22 +315,7 @@ class _PanggilanDaruratScreenState extends State<PanggilanDaruratScreen> {
                   label: Text('Panggil Mekanik', style: TextStyle(color: _submittingType != null ? Colors.white70 : Colors.white)),
                 ),
               ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: _submittingType != null ? null : () => _submitEmergency('towing'),
-                  icon: _submittingType == 'towing' ? const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)) : Icon(Icons.local_shipping, color: _submittingType != null ? AppColors.dangerDark.withValues(alpha: 0.5) : AppColors.dangerDark),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: _submittingType != null ? AppColors.dangerDark.withValues(alpha: 0.5) : AppColors.dangerDark),
-                    foregroundColor: _submittingType != null ? AppColors.dangerDark.withValues(alpha: 0.5) : AppColors.dangerDark,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  label: const Text(
-                    'Panggil Towing',
-                  ),
-                ),
-              ),
+
               const SizedBox(height: 40),
             ],
           ),

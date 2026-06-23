@@ -89,7 +89,7 @@ void onStart(ServiceInstance service) async {
     service.stopSelf();
   });
 
-  Timer.periodic(const Duration(seconds: 25), (timer) async {
+  Timer.periodic(const Duration(seconds: 10), (timer) async {
     final prefs = await SharedPreferences.getInstance();
     final mechanicId = prefs.getInt('bg_mechanic_id');
     final token = prefs.getString('bg_token');

@@ -551,6 +551,7 @@ class DetailBottomSheet extends StatelessWidget {
                           final ok = await svc.arrived(emergencyId);
                           if (ok) {
                             FlutterBackgroundService().invoke('stopService');
+                            await svc.clearLocation();
                             if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Berhasil menandai sudah sampai')));
                             Navigator.push(
                               context,

@@ -169,7 +169,7 @@ class OrderService {
       return false;
     }
   }
-  Future<bool> completePayment(int orderId, {File? paymentProof, String paymentType = 'transfer'}) async {
+  Future<String?> completePayment(int orderId, {File? paymentProof, String paymentType = 'transfer'}) async {
     final token = AuthService().accessToken;
     final baseUrl = AuthService().baseUrl;
     final uri = Uri.parse('$baseUrl/customer-service/orders/$orderId/complete-payment');
@@ -183,9 +183,17 @@ class OrderService {
     try {
       final streamed = await request.send();
       final res = await http.Response.fromStream(streamed);
-      return res.statusCode == 200;
+      print('🔵 [OrderService] completePayment -> ${res.statusCode} ${res.body}');
+      if (res.statusCode == 200 || res.statusCode == 201) return null; // success
+      try {
+        final data = jsonDecode(res.body);
+        return data['message'] ?? 'Gagal memproses (Code: ${res.statusCode})';
+      } catch (_) {
+        return 'Error ${res.statusCode}';
+      }
     } catch (e) {
-      return false;
+      print('🔴 [OrderService] completePayment Error: $e');
+      return e.toString();
     }
   }
 

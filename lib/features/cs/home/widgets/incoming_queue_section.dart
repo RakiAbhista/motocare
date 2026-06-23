@@ -3,6 +3,7 @@ import 'package:motocare/features/cs/home/models/latest_order_model.dart';
 import 'package:motocare/features/cs/home/widgets/queue_card.dart';
 import '../../shared/enums/service_status.dart';
 import '../screens/detail_service_screen.dart';
+import '../screens/detail_order_screen.dart';
 
 class IncomingQueueSection extends StatelessWidget {
   final List<LatestOrderModel> orders;
@@ -18,10 +19,13 @@ class IncomingQueueSection extends StatelessWidget {
   ServiceStatus _mapStatus(String status) {
     switch (status.toLowerCase()) {
       case 'in_progress':
+      case 'process':
         return ServiceStatus.inProgress;
       case 'completed':
         return ServiceStatus.completed;
       case 'pending':
+        return ServiceStatus.pending;
+      case 'payment':
       case 'waiting_payment':
       default:
         return ServiceStatus.waitingPayment;
@@ -30,11 +34,12 @@ class IncomingQueueSection extends StatelessWidget {
 
   String _buttonText(ServiceStatus status) {
     switch (status) {
-      case ServiceStatus.pending:
       case ServiceStatus.waitingPayment:
         return 'Pembayaran';
+      case ServiceStatus.pending:
       case ServiceStatus.inProgress:
       case ServiceStatus.completed:
+      default:
         return 'Detail';
     }
   }
@@ -58,6 +63,7 @@ class IncomingQueueSection extends StatelessWidget {
       children: List.generate(filtered.length, (index) {
         final order = filtered[index];
         final serviceStatus = _mapStatus(order.status);
+        final btnText = _buttonText(serviceStatus);
 
         return Column(
           children: [
@@ -66,17 +72,29 @@ class IncomingQueueSection extends StatelessWidget {
               vehicle: '${order.vehicleBrand} ${order.vehicleModel}',
               plate: order.plateNumber,
               status: serviceStatus,
-              buttonText: _buttonText(serviceStatus),
+              buttonText: btnText,
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => DetailServiceScreen(
-                      orderId: order.id,
-                      status: serviceStatus,
+                if (btnText == 'Pembayaran') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => DetailServiceScreen(
+                        orderId: order.id,
+                        status: serviceStatus,
+                      ),
                     ),
-                  ),
-                );
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => DetailOrderScreen(
+                        orderId: order.id,
+                        status: serviceStatus,
+                      ),
+                    ),
+                  );
+                }
               },
             ),
             if (index < filtered.length - 1) const SizedBox(height: 14),
