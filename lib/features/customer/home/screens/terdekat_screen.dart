@@ -22,7 +22,6 @@ class _TerdekatScreenState extends State<TerdekatScreen> {
   bool _loadingNearest = false;
   bool _mapReady = false;
   final Set<int> _addedWorkshopIds = {};
-  
 
   @override
   void initState() {
@@ -92,7 +91,9 @@ class _TerdekatScreenState extends State<TerdekatScreen> {
         permission = await Geolocator.requestPermission();
       }
       if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) return;
+          permission == LocationPermission.deniedForever) {
+        return;
+      }
 
       final pos = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
@@ -211,14 +212,14 @@ class _TerdekatScreenState extends State<TerdekatScreen> {
                 await Future.delayed(const Duration(milliseconds: 500));
 
                 try {
-                  LocationPermission permission = await Geolocator.checkPermission();
+                  LocationPermission permission =
+                      await Geolocator.checkPermission();
                   if (permission == LocationPermission.denied) {
                     permission = await Geolocator.requestPermission();
                   }
 
                   if (permission != LocationPermission.denied &&
                       permission != LocationPermission.deniedForever) {
-
                     final pos = await Geolocator.getCurrentPosition(
                       desiredAccuracy: LocationAccuracy.high,
                     );
@@ -227,7 +228,9 @@ class _TerdekatScreenState extends State<TerdekatScreen> {
                     // currentLocation() otomatis pindah map ke posisi user & nampilin icon biru.
                     try {
                       await mapController.currentLocation();
-                      await Future.delayed(const Duration(milliseconds: 300)); // jeda sebelum zoom
+                      await Future.delayed(
+                        const Duration(milliseconds: 300),
+                      ); // jeda sebelum zoom
                       await mapController.setZoom(zoomLevel: 13);
                     } catch (_) {}
 
@@ -274,8 +277,7 @@ class _TerdekatScreenState extends State<TerdekatScreen> {
                           color: Colors.black54,
                           fontFamily: 'Poppins',
                         ),
-                        prefixIcon:
-                            Icon(Icons.search, color: Colors.black54),
+                        prefixIcon: Icon(Icons.search, color: Colors.black54),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(vertical: 15),
                       ),
@@ -326,8 +328,9 @@ class _TerdekatScreenState extends State<TerdekatScreen> {
                         offset: const Offset(0, -6),
                       ),
                     ],
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(28)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(28),
+                    ),
                   ),
                   child: Column(
                     children: [
@@ -343,21 +346,27 @@ class _TerdekatScreenState extends State<TerdekatScreen> {
                       const SizedBox(height: 6),
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 8),
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text(
                               'Bengkel Terdekat',
                               style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
                             Text(
                               _loadingNearest
                                   ? 'Mencari...'
                                   : '${_nearest.isNotEmpty ? _nearest.length : _workshops.length} ditemukan',
                               style: TextStyle(
-                                  color: Colors.grey.shade500, fontSize: 13),
+                                color: Colors.grey.shade500,
+                                fontSize: 13,
+                              ),
                             ),
                           ],
                         ),
@@ -369,7 +378,8 @@ class _TerdekatScreenState extends State<TerdekatScreen> {
                             : ListView.builder(
                                 controller: scrollController,
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 18),
+                                  horizontal: 18,
+                                ),
                                 itemCount: _nearest.isNotEmpty
                                     ? _nearest.length
                                     : _workshops.length,
@@ -377,20 +387,26 @@ class _TerdekatScreenState extends State<TerdekatScreen> {
                                   if (_nearest.isNotEmpty) {
                                     final item = _nearest[index];
                                     final name = item['name'] ?? '-';
-                                    final lat = double.tryParse(
-                                            item['latitude']?.toString() ??
-                                                '') ??
+                                    final lat =
+                                        double.tryParse(
+                                          item['latitude']?.toString() ?? '',
+                                        ) ??
                                         0.0;
-                                    final lon = double.tryParse(
-                                            item['longitude']?.toString() ??
-                                                '') ??
+                                    final lon =
+                                        double.tryParse(
+                                          item['longitude']?.toString() ?? '',
+                                        ) ??
                                         0.0;
                                     final distance =
                                         item['distance_meters'] != null
-                                            ? '${item['distance_meters']}m'
-                                            : '-';
+                                        ? '${item['distance_meters']}m'
+                                        : '-';
                                     return _buildBengkelItem(
-                                        name, distance, lat, lon);
+                                      name,
+                                      distance,
+                                      lat,
+                                      lon,
+                                    );
                                   } else {
                                     final w = _workshops[index];
                                     final lat =
@@ -398,7 +414,11 @@ class _TerdekatScreenState extends State<TerdekatScreen> {
                                     final lon =
                                         double.tryParse(w.longitude) ?? 0.0;
                                     return _buildBengkelItem(
-                                        w.name, '-', lat, lon);
+                                      w.name,
+                                      '-',
+                                      lat,
+                                      lon,
+                                    );
                                   }
                                 },
                               ),
@@ -414,8 +434,7 @@ class _TerdekatScreenState extends State<TerdekatScreen> {
     );
   }
 
-  Widget _buildBengkelItem(
-      String nama, String jarak, double lat, double lon) {
+  Widget _buildBengkelItem(String nama, String jarak, double lat, double lon) {
     return InkWell(
       onTap: () async {
         try {
@@ -427,8 +446,9 @@ class _TerdekatScreenState extends State<TerdekatScreen> {
           print('Error moving to workshop: $e');
         }
         if (mounted) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('Pilih: $nama')));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Pilih: $nama')));
         }
       },
       child: Container(
@@ -478,8 +498,11 @@ class _TerdekatScreenState extends State<TerdekatScreen> {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Icon(Icons.location_on,
-                            size: 12, color: Colors.grey.shade400),
+                        Icon(
+                          Icons.location_on,
+                          size: 12,
+                          color: Colors.grey.shade400,
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
@@ -499,8 +522,10 @@ class _TerdekatScreenState extends State<TerdekatScreen> {
               ),
               const SizedBox(width: 8),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.primary,
                   borderRadius: BorderRadius.circular(12),

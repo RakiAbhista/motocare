@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/features/cs/widgets/stat_box.dart';
@@ -17,8 +16,10 @@ class WelcomeCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("SERVICE OPERATIONS",
-              style: TextStyle(color: Colors.white70, fontSize: 12)),
+          const Text(
+            "SERVICE OPERATIONS",
+            style: TextStyle(color: Colors.white70, fontSize: 12),
+          ),
           const SizedBox(height: 8),
           const Text(
             "Hello, Joshua Jisoo",
@@ -36,7 +37,7 @@ class WelcomeCard extends StatelessWidget {
               const SizedBox(width: 10),
               StatBox(title: "Avg. Wait", value: "24 Mins"),
             ],
-          )
+          ),
         ],
       ),
     );

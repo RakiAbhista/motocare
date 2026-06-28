@@ -9,7 +9,7 @@ class AuthService {
 
   // Untuk Android Emulator gunakan 10.0.2.2, untuk device gunakan IP mesin development
   // Contoh: 'http://192.168.1.X:8000/api/v1' atau 'http://10.0.2.2:8000/api/v1'
-  final String baseUrl = 'http://10.0.2.2:8000/api/v1';
+  final String baseUrl = 'http://192.168.0.110:8000/api/v1';
   // final String baseUrl = 'http://172.16.162.206:8000/api/v1';
   // final String baseUrl = 'http://192.168.1.7:8000/api/v1';
   // final String baseUrl = 'http://192.168.1.12:8000/api/v1';
@@ -43,7 +43,12 @@ class AuthService {
     }
   }
 
-  Future<void> _saveAuthToStorage(String token, String role, int userId, {int? mechanicId}) async {
+  Future<void> _saveAuthToStorage(
+    String token,
+    String role,
+    int userId, {
+    int? mechanicId,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('access_token', token);
@@ -91,7 +96,12 @@ class AuthService {
         _userId = data['user']?['id'];
         _mechanicId = data['user']?['mechanic_id'];
         if (_userId != null) {
-          await _saveAuthToStorage(_accessToken!, _role!, _userId!, mechanicId: _mechanicId);
+          await _saveAuthToStorage(
+            _accessToken!,
+            _role!,
+            _userId!,
+            mechanicId: _mechanicId,
+          );
         }
       }
 
@@ -165,7 +175,12 @@ class AuthService {
         _userId = body['user']?['id'] ?? _userId;
         _mechanicId = body['user']?['mechanic_id'] ?? _mechanicId;
         if (_userId != null) {
-          await _saveAuthToStorage(_accessToken!, _role!, _userId!, mechanicId: _mechanicId);
+          await _saveAuthToStorage(
+            _accessToken!,
+            _role!,
+            _userId!,
+            mechanicId: _mechanicId,
+          );
         }
       }
 

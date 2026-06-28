@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/core/theme/app_theme.dart';
-import 'package:motocare/core/theme/app_background.dart';
 import 'package:motocare/widgets/custom_top_bar.dart';
 import 'package:motocare/widgets/custom_card.dart';
 import 'package:motocare/widgets/section_header.dart';
@@ -12,11 +12,17 @@ import '../../kendaraan/widgets/detail_motor_bottom_sheet.dart';
 import '../../booking/screens/booking_servis_screen.dart';
 import 'package:motocare/core/services/customer_home_service.dart';
 import '../../emergency/screens/detail_emergency_screen.dart';
+import 'package:motocare/widgets/main_wrapper.dart';
+import '../../riwayat/widgets/service_detail_bottom_sheet.dart';
 
 class BerandaScreen extends StatefulWidget {
   final bool hasActiveBooking;
   final String? daruratType;
-  const BerandaScreen({super.key, this.hasActiveBooking = false, this.daruratType});
+  const BerandaScreen({
+    super.key,
+    this.hasActiveBooking = false,
+    this.daruratType,
+  });
 
   @override
   State<BerandaScreen> createState() => _BerandaScreenState();
@@ -68,46 +74,50 @@ class _BerandaScreenState extends State<BerandaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BengkelBackground(
-        child: SafeArea(
-          bottom: false,
-          top: false,
-          child: isLoading
-              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(context),
-                    const SizedBox(height: 12),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: AppTheme.pagePaddingH,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              PromoBannerCarousel(banners: homeData?['banners'] as List<dynamic>? ?? []),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        bottom: false,
+        top: false,
+        child: isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(context),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: AppTheme.pagePaddingH,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            PromoBannerCarousel(
+                              banners:
+                                  homeData?['banners'] as List<dynamic>? ?? [],
+                            ),
+                            const SizedBox(height: 24),
+                            _buildPointsVoucherCard(context),
+                            const SizedBox(height: 24),
+                            if (homeData?['active_emergency'] != null) ...[
+                              _buildStatusDarurat(),
                               const SizedBox(height: 24),
-                              _buildPointsVoucherCard(context),
-                              const SizedBox(height: 24),
-                              if (homeData?['active_emergency'] != null) ...[
-                                _buildStatusDarurat(),
-                                const SizedBox(height: 24),
-                              ],
-                              _buildKendaraanCard(context),
-                              const SizedBox(height: 24),
-                              _buildServiceSection(context),
-                              const SizedBox(height: 24),
-                              _buildRecentServiceHistory(),
-                              const SizedBox(height: 100),
                             ],
-                          ),
+                            _buildKendaraanCard(context),
+                            const SizedBox(height: 24),
+                            _buildServiceSection(context),
+                            const SizedBox(height: 24),
+                            _buildRecentServiceHistory(),
+                            const SizedBox(height: 100),
+                          ],
                         ),
                       ),
                     ),
-                  ],
-                ),
-        ),
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -124,26 +134,15 @@ class _BerandaScreenState extends State<BerandaScreen> {
   Widget _buildPointsVoucherCard(BuildContext context) {
     final userSummary = homeData?['user_summary'];
     final points = userSummary?['points'] ?? 0;
-    final voucherCount = userSummary?['active_vouchers_count'] ?? userSummary?['active_vouchers'] ?? 0;
+    final voucherCount =
+        userSummary?['active_vouchers_count'] ??
+        userSummary?['active_vouchers'] ??
+        0;
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primary.withValues(alpha: 0.08),
-            AppColors.primary.withValues(alpha: 0.02),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppColors.primary.withValues(alpha: 0.05),
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppTheme.radiusLg - 1),
@@ -157,24 +156,45 @@ class _BerandaScreenState extends State<BerandaScreen> {
                   color: AppColors.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 ),
-                child: const Icon(Icons.stars_rounded, color: AppColors.primary, size: 28),
+                child: const Icon(
+                  Icons.stars_rounded,
+                  color: AppColors.primary,
+                  size: 28,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                        const Text('Poin Saya', style: AppTheme.bodySmall),
+                    const Text('Poin Saya', style: AppTheme.bodySmall),
                     const SizedBox(height: 4),
                     Wrap(
                       crossAxisAlignment: WrapCrossAlignment.center,
                       spacing: 6,
                       runSpacing: 6,
                       children: [
-                        Text('$points', style: TextStyle(color: AppColors.primary, fontSize: 28, fontWeight: FontWeight.bold)),
-                        Text('Poin', style: TextStyle(color: AppColors.primary.withValues(alpha: 0.7), fontSize: 14, fontWeight: FontWeight.w600)),
+                        Text(
+                          '$points',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          'Poin',
+                          style: TextStyle(
+                            color: AppColors.primary.withValues(alpha: 0.7),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.warning.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(20),
@@ -182,9 +202,20 @@ class _BerandaScreenState extends State<BerandaScreen> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.local_activity, size: 12, color: AppColors.warning),
+                              const Icon(
+                                Icons.local_activity,
+                                size: 12,
+                                color: AppColors.warning,
+                              ),
                               const SizedBox(width: 4),
-                              Text('$voucherCount Voucher', style: const TextStyle(color: AppColors.warning, fontSize: 11, fontWeight: FontWeight.w600)),
+                              Text(
+                                '$voucherCount Voucher',
+                                style: const TextStyle(
+                                  color: AppColors.warning,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -211,9 +242,20 @@ class _BerandaScreenState extends State<BerandaScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text('Tukar', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                      const Text(
+                        'Tukar',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       const SizedBox(width: 4),
-                      Icon(Icons.chevron_right, color: Colors.white.withValues(alpha: 0.7), size: 16),
+                      Icon(
+                        Icons.chevron_right,
+                        color: Colors.white.withValues(alpha: 0.7),
+                        size: 16,
+                      ),
                     ],
                   ),
                 ),
@@ -227,8 +269,12 @@ class _BerandaScreenState extends State<BerandaScreen> {
 
   Widget _buildKendaraanCard(BuildContext context) {
     final vehicles = homeData?['vehicles'] as List<dynamic>?;
-    final vehicle = (vehicles != null && vehicles.isNotEmpty) ? vehicles.first : null;
-    final vehicleName = vehicle != null ? '${vehicle['brand']} ${vehicle['model']}' : 'Tidak ada kendaraan';
+    final vehicle = (vehicles != null && vehicles.isNotEmpty)
+        ? vehicles.first
+        : null;
+    final vehicleName = vehicle != null
+        ? '${vehicle['brand']} ${vehicle['model']}'
+        : 'Tidak ada kendaraan';
     final plateNumber = vehicle?['plate_number'] ?? '-';
 
     return CustomCard(
@@ -246,12 +292,19 @@ class _BerandaScreenState extends State<BerandaScreen> {
                   SizedBox(width: 8),
                   Text(
                     'Kendaraan Anda',
-                    style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.success.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -259,9 +312,20 @@ class _BerandaScreenState extends State<BerandaScreen> {
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.check_circle, size: 12, color: AppColors.success),
+                    Icon(
+                      Icons.check_circle,
+                      size: 12,
+                      color: AppColors.success,
+                    ),
                     SizedBox(width: 4),
-                    Text('Aktif', style: TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.w600)),
+                    Text(
+                      'Aktif',
+                      style: TextStyle(
+                        color: AppColors.success,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -284,7 +348,11 @@ class _BerandaScreenState extends State<BerandaScreen> {
                     ),
                   ],
                 ),
-                child: const Icon(Icons.motorcycle, size: 50, color: AppColors.primary),
+                child: const Icon(
+                  Icons.motorcycle,
+                  size: 50,
+                  color: AppColors.primary,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -293,19 +361,31 @@ class _BerandaScreenState extends State<BerandaScreen> {
                   children: [
                     Row(
                       children: [
-                        Expanded(child: Text(vehicleName, style: AppTheme.titleLarge)),
+                        Expanded(
+                          child: Text(vehicleName, style: AppTheme.titleLarge),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 2),
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.primary.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: Text(plateNumber, style: const TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w600)),
+                          child: Text(
+                            plateNumber,
+                            style: const TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                         const SizedBox(width: 8),
                         const Text('2020', style: AppTheme.bodySmall),
@@ -315,12 +395,20 @@ class _BerandaScreenState extends State<BerandaScreen> {
                     SizedBox(
                       height: 32,
                       child: OutlinedButton(
-                        onPressed: () => DetailMotorBottomSheet.show(context, vehicle: vehicle),
+                        onPressed: () => DetailMotorBottomSheet.show(
+                          context,
+                          vehicle: vehicle,
+                        ),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
-                          side: BorderSide(color: AppColors.primary.withValues(alpha: 0.4)),
+                          side: BorderSide(
+                            color: AppColors.primary.withValues(alpha: 0.4),
+                          ),
                         ),
-                        child: const Text('Detail Kendaraan', style: TextStyle(fontSize: 12)),
+                        child: const Text(
+                          'Detail Kendaraan',
+                          style: TextStyle(fontSize: 12),
+                        ),
                       ),
                     ),
                   ],
@@ -334,21 +422,29 @@ class _BerandaScreenState extends State<BerandaScreen> {
   }
 
   Widget _buildStatusDarurat() {
-    final activeEmergency = homeData?['active_emergency'] as Map<String, dynamic>?;
+    final activeEmergency =
+        homeData?['active_emergency'] as Map<String, dynamic>?;
     if (activeEmergency == null) return const SizedBox.shrink();
 
     final idString = activeEmergency['id'].toString();
-    final emergencyId = int.tryParse(idString.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-    final complaint = activeEmergency['complaint'] ?? 'Keluhan tidak disertakan';
+    final emergencyId =
+        int.tryParse(idString.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+    final complaint =
+        activeEmergency['complaint'] ?? 'Keluhan tidak disertakan';
     final status = activeEmergency['emergency_status'] ?? 'pending';
 
     String statusLabel = 'Aktif';
-    if (status == 'searching') statusLabel = 'Mencari Mekanik';
-    else if (status == 'process') statusLabel = 'Sedang Diproses';
-    else if (status == 'payment') statusLabel = 'Menunggu Pembayaran';
+    if (status == 'searching') {
+      statusLabel = 'Mencari Mekanik';
+    } else if (status == 'process')
+      statusLabel = 'Sedang Diproses';
+    else if (status == 'payment')
+      statusLabel = 'Menunggu Pembayaran';
 
     final isMekanik = widget.daruratType != 'towing';
-    final serviceTypeLabel = isMekanik ? 'Panggilan Mekanik' : 'Panggilan Towing';
+    final serviceTypeLabel = isMekanik
+        ? 'Panggilan Mekanik'
+        : 'Panggilan Towing';
 
     return Container(
       decoration: BoxDecoration(
@@ -376,20 +472,31 @@ class _BerandaScreenState extends State<BerandaScreen> {
                     color: AppColors.danger.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                   ),
-                  child: const Icon(Icons.warning_amber_rounded, color: AppColors.danger, size: 18),
+                  child: const Icon(
+                    Icons.warning_amber_rounded,
+                    color: AppColors.danger,
+                    size: 18,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     idString,
-                    style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold, fontSize: 16),
+                    style: const TextStyle(
+                      color: AppColors.danger,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
                 StatusBadge.danger(statusLabel),
               ],
             ),
             const SizedBox(height: 16),
-            Text(serviceTypeLabel, style: AppTheme.titleMedium.copyWith(color: AppColors.danger)),
+            Text(
+              serviceTypeLabel,
+              style: AppTheme.titleMedium.copyWith(color: AppColors.danger),
+            ),
             const SizedBox(height: 4),
             Text(
               'Keluhan: $complaint',
@@ -420,7 +527,10 @@ class _BerandaScreenState extends State<BerandaScreen> {
                     borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                   ),
                 ),
-                child: const Text('Lihat Detail', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Lihat Detail',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],
@@ -431,8 +541,12 @@ class _BerandaScreenState extends State<BerandaScreen> {
 
   Widget _buildServiceSection(BuildContext context) {
     final vehicles = homeData?['vehicles'] as List<dynamic>?;
-    final vehicle = (vehicles != null && vehicles.isNotEmpty) ? vehicles.first : null;
-    final vehicleName = vehicle != null ? '${vehicle['brand']} ${vehicle['model']}' : 'Tidak ada kendaraan';
+    final vehicle = (vehicles != null && vehicles.isNotEmpty)
+        ? vehicles.first
+        : null;
+    final vehicleName = vehicle != null
+        ? '${vehicle['brand']} ${vehicle['model']}'
+        : 'Tidak ada kendaraan';
     final plateNumber = vehicle?['plate_number'] ?? '-';
 
     // Check if there's an active order
@@ -442,22 +556,8 @@ class _BerandaScreenState extends State<BerandaScreen> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primary.withValues(alpha: 0.06),
-            Colors.white,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppColors.primary.withValues(alpha: 0.04),
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.12)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -472,12 +572,20 @@ class _BerandaScreenState extends State<BerandaScreen> {
                     color: AppColors.primaryLight,
                     borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                   ),
-                  child: const Icon(Icons.build_rounded, color: AppColors.primary, size: 18),
+                  child: const Icon(
+                    Icons.build_rounded,
+                    color: AppColors.primary,
+                    size: 18,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 const Text(
                   'Status Servis',
-                  style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
               ],
             ),
@@ -486,15 +594,20 @@ class _BerandaScreenState extends State<BerandaScreen> {
               Row(
                 children: [
                   Container(
-                    width: 48, height: 48,
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
                       color: AppColors.primaryLight,
                       borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                     ),
-                    child: const Icon(Icons.motorcycle, size: 28, color: AppColors.primary),
+                    child: const Icon(
+                      Icons.motorcycle,
+                      size: 28,
+                      color: AppColors.primary,
+                    ),
                   ),
                   const SizedBox(width: 14),
-                        Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -513,7 +626,9 @@ class _BerandaScreenState extends State<BerandaScreen> {
                 child: ElevatedButton.icon(
                   onPressed: () => Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const BookingServisScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const BookingServisScreen(),
+                    ),
                   ),
                   icon: const Icon(Icons.build_rounded, size: 18),
                   label: const Text('Booking Servis Sekarang'),
@@ -523,12 +638,17 @@ class _BerandaScreenState extends State<BerandaScreen> {
               Row(
                 children: [
                   Container(
-                    width: 48, height: 48,
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
                       color: AppColors.primaryLight,
                       borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                     ),
-                    child: const Icon(Icons.motorcycle, size: 28, color: AppColors.primary),
+                    child: const Icon(
+                      Icons.motorcycle,
+                      size: 28,
+                      color: AppColors.primary,
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -550,9 +670,14 @@ class _BerandaScreenState extends State<BerandaScreen> {
               Center(
                 child: Column(
                   children: [
-                    StatusBadge.primary(_getStatusLabel(activeOrder['status'] as String?)),
+                    StatusBadge.primary(
+                      _getStatusLabel(activeOrder['status'] as String?),
+                    ),
                     const SizedBox(height: 8),
-                    Text('Tanggal: ${((activeOrder['booking_date'] as String?) ?? '-').split('T').first}', style: AppTheme.labelSmall),
+                    Text(
+                      'Tanggal: ${((activeOrder['booking_date'] as String?) ?? '-').split('T').first}',
+                      style: AppTheme.labelSmall,
+                    ),
                   ],
                 ),
               ),
@@ -605,7 +730,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
   Widget _buildTrackerWithStatus(String? status) {
     final steps = ['Ditinjau', 'Dimulai', 'Pembayaran'];
     final currentStep = _getStatusStep(status);
-    
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -666,92 +791,182 @@ class _BerandaScreenState extends State<BerandaScreen> {
       width: 32,
       height: 2,
       decoration: BoxDecoration(
-        gradient: isActive
-            ? const LinearGradient(
-                colors: [AppColors.primary, AppColors.secondary],
-              )
-            : null,
-        color: isActive ? null : Colors.grey.shade300,
+        color: isActive ? AppColors.primary : Colors.grey.shade300,
       ),
       margin: const EdgeInsets.only(top: 13),
     );
   }
 
   Widget _buildRecentServiceHistory() {
+    final serviceHistory = homeData?['service_history'] as List<dynamic>? ?? [];
+    final recentServices = serviceHistory.take(3).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionHeader(
+        SectionHeader(
           title: 'Riwayat Servis',
           actionLabel: 'Lihat Semua',
+          onActionTap: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const MainWrapper(initialIndex: 1),
+              ),
+              (route) => false,
+            );
+          },
         ),
         const SizedBox(height: 14),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            border: Border.all(color: AppColors.success.withValues(alpha: 0.15)),
-            color: AppColors.success.withValues(alpha: 0.03),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.success.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            child: InkWell(
+        if (recentServices.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              onTap: () {},
-              child: Padding(
+              border: Border.all(color: Colors.grey.shade200),
+              color: Colors.grey.shade50,
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.history_rounded,
+                  size: 36,
+                  color: Colors.grey.shade300,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Belum ada riwayat servis',
+                  style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+        ...recentServices.map((order) {
+          final orderMap = order as Map<String, dynamic>;
+          final services = List<Map<String, dynamic>>.from(
+            orderMap['services'] ?? [],
+          );
+          final workshop = orderMap['workshop'] as Map<String, dynamic>?;
+          final bookingDate = orderMap['booking_date'] as String?;
+          final status = orderMap['status'] ?? 'completed';
+
+          final serviceNamesFull = services
+              .map((s) => s['service_name'] ?? '')
+              .join(', ');
+          String serviceNames = serviceNamesFull;
+          if (serviceNamesFull.length > 24) {
+            serviceNames = serviceNamesFull.substring(0, 24).trim();
+            final lastComma = serviceNames.lastIndexOf(',');
+            if (lastComma > 0 && lastComma > 16) {
+              serviceNames = serviceNames.substring(0, lastComma);
+            }
+            serviceNames = '$serviceNames...';
+          }
+
+          IconData icon = Icons.build_rounded;
+          if (serviceNames.toLowerCase().contains('oli'))
+            icon = Icons.oil_barrel_rounded;
+          else if (serviceNames.toLowerCase().contains('aki'))
+            icon = Icons.battery_charging_full_rounded;
+          else if (serviceNames.toLowerCase().contains('rem'))
+            icon = Icons.disc_full_rounded;
+
+          String formattedDate = '-';
+          if (bookingDate != null) {
+            try {
+              final date = DateTime.parse(bookingDate);
+              formattedDate = DateFormat('dd-MM-yyyy').format(date);
+            } catch (_) {
+              formattedDate = bookingDate;
+            }
+          }
+
+          String statusLabel = 'Selesai';
+          if (status == 'pending') statusLabel = 'Ditinjau';
+          if (status == 'process') statusLabel = 'Proses';
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: GestureDetector(
+              onTap: () =>
+                  ServiceDetailBottomSheet.show(context, orderData: orderMap),
+              child: Container(
                 padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  border: Border.all(color: Colors.grey.shade100),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
                 child: Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.success.withValues(alpha: 0.1),
+                        color: AppColors.primaryLight,
                         borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                       ),
-                      child: const Icon(Icons.check_circle, color: AppColors.success, size: 26),
+                      child: Icon(icon, color: AppColors.primary, size: 24),
                     ),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Ganti Oli & Tune Up', style: AppTheme.titleMedium),
+                          Text(
+                            serviceNames.isNotEmpty ? serviceNames : 'Service',
+                            style: AppTheme.titleMedium,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              Icon(Icons.calendar_today, size: 10, color: Colors.grey.shade400),
+                              Icon(
+                                Icons.location_on,
+                                size: 12,
+                                color: Colors.grey.shade400,
+                              ),
                               const SizedBox(width: 4),
-                              Text('28 Apr 2026', style: AppTheme.labelSmall),
-                              const SizedBox(width: 12),
-                              Icon(Icons.location_on, size: 10, color: Colors.grey.shade400),
-                              const SizedBox(width: 4),
-                              Text('Bengkel MotoCare', style: AppTheme.labelSmall),
+                              Text(
+                                workshop?['name'] ?? '-',
+                                style: AppTheme.bodySmall,
+                              ),
                             ],
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.all(6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
-                        color: AppColors.success.withValues(alpha: 0.1),
+                        color: AppColors.primaryLight,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Icon(Icons.chevron_right, color: AppColors.success, size: 18),
+                      child: Text(
+                        formattedDate,
+                        style: AppTheme.labelSmall.copyWith(
+                          color: AppColors.primary,
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
-          ),
-        ),
+          );
+        }),
       ],
     );
   }

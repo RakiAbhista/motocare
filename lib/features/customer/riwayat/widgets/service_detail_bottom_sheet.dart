@@ -6,12 +6,12 @@ import 'package:motocare/core/theme/app_theme.dart';
 class ServiceDetailBottomSheet extends StatelessWidget {
   final Map<String, dynamic> orderData;
 
-  const ServiceDetailBottomSheet({
-    super.key,
-    required this.orderData,
-  });
+  const ServiceDetailBottomSheet({super.key, required this.orderData});
 
-  static void show(BuildContext context, {required Map<String, dynamic> orderData}) {
+  static void show(
+    BuildContext context, {
+    required Map<String, dynamic> orderData,
+  }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -100,13 +100,17 @@ class _ServiceCostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final services = List<Map<String, dynamic>>.from(orderData['services'] ?? []);
+    final services = List<Map<String, dynamic>>.from(
+      orderData['services'] ?? [],
+    );
     final workshop = orderData['workshop'] as Map<String, dynamic>?;
     final bookingDate = orderData['booking_date'] as String?;
     final totalPrice = orderData['total_price'];
 
     // Build service names string
-    final serviceNames = services.map((s) => s['service_name'] ?? '').join(', ');
+    final serviceNames = services
+        .map((s) => s['service_name'] ?? '')
+        .join(', ');
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -125,22 +129,36 @@ class _ServiceCostCard extends StatelessWidget {
                   color: AppColors.primaryLight,
                   borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                 ),
-                child: const Icon(Icons.manage_history, size: 28, color: AppColors.primary),
+                child: const Icon(
+                  Icons.manage_history,
+                  size: 28,
+                  color: AppColors.primary,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(serviceNames.isNotEmpty ? serviceNames : 'Service', style: AppTheme.titleLarge),
+                    Text(
+                      serviceNames.isNotEmpty ? serviceNames : 'Service',
+                      style: AppTheme.titleLarge,
+                    ),
                     const SizedBox(height: 2),
                     Text(_formatDate(bookingDate), style: AppTheme.bodySmall),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.location_on, size: 14, color: Colors.grey.shade600),
+                        Icon(
+                          Icons.location_on,
+                          size: 14,
+                          color: Colors.grey.shade600,
+                        ),
                         const SizedBox(width: 4),
-                        Text(workshop?['name'] ?? '-', style: AppTheme.bodySmall),
+                        Text(
+                          workshop?['name'] ?? '-',
+                          style: AppTheme.bodySmall,
+                        ),
                       ],
                     ),
                   ],
@@ -151,10 +169,15 @@ class _ServiceCostCard extends StatelessWidget {
           const SizedBox(height: 16),
           const Divider(),
           const SizedBox(height: 8),
-          ...services.map((s) => Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: _buildCostRow(s['service_name'] ?? '', _formatCurrency(s['base_price'])),
-          )).toList(),
+          ...services.map(
+            (s) => Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: _buildCostRow(
+                s['service_name'] ?? '',
+                _formatCurrency(s['base_price']),
+              ),
+            ),
+          ),
           const SizedBox(height: 8),
           const Divider(),
           const SizedBox(height: 8),
@@ -179,9 +202,14 @@ class _ServiceCostCard extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: AppTheme.titleLarge),
-        Text(value,
-            style:
-                const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary)),
+        Text(
+          value,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: AppColors.primary,
+          ),
+        ),
       ],
     );
   }
@@ -217,8 +245,13 @@ class _DocumentationCard extends StatelessWidget {
               Expanded(child: Divider(color: Colors.grey.shade300)),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 12),
-                child: Text('Lihat Semua Foto',
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 10)),
+                child: Text(
+                  'Lihat Semua Foto',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 10,
+                  ),
+                ),
               ),
               Expanded(child: Divider(color: Colors.grey.shade300)),
             ],
@@ -265,7 +298,9 @@ class _ReceiptCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final services = List<Map<String, dynamic>>.from(orderData['services'] ?? []);
+    final services = List<Map<String, dynamic>>.from(
+      orderData['services'] ?? [],
+    );
     final workshop = orderData['workshop'] as Map<String, dynamic>?;
     final orderId = orderData['id'] ?? orderData['order_id'] ?? '-';
     final bookingDate = orderData['booking_date'] as String?;
@@ -291,8 +326,14 @@ class _ReceiptCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Receipt',
-              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16)),
+          const Text(
+            'Receipt',
+            style: TextStyle(
+              color: AppColors.primary,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
           const SizedBox(height: 16),
           _receiptRow('Order ID', '#$orderId'),
           const SizedBox(height: 8),
@@ -302,10 +343,15 @@ class _ReceiptCard extends StatelessWidget {
           const SizedBox(height: 12),
           const Divider(height: 1, thickness: 1),
           const SizedBox(height: 12),
-          ...services.map((s) => Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: _receiptRow(s['service_name'] ?? '', _formatCurrency(s['base_price'])),
-          )).toList(),
+          ...services.map(
+            (s) => Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: _receiptRow(
+                s['service_name'] ?? '',
+                _formatCurrency(s['base_price']),
+              ),
+            ),
+          ),
           const SizedBox(height: 4),
           const Divider(height: 1, thickness: 1),
           const SizedBox(height: 12),

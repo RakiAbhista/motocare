@@ -38,7 +38,8 @@ class _DaruratContentState extends State<DaruratContent> {
     if (!mounted) return;
 
     if (result['success'] == true) {
-      final List<EmergencyModel> allRaw = result['data'] as List<EmergencyModel>;
+      final List<EmergencyModel> allRaw =
+          result['data'] as List<EmergencyModel>;
       final List<EmergencyModel> all = allRaw.where((e) {
         final statusLower = e.status.toLowerCase();
         return statusLower == 'pending' || statusLower == 'dispatched';
@@ -46,11 +47,15 @@ class _DaruratContentState extends State<DaruratContent> {
 
       setState(() {
         // New: mechanic is not assigned
-        _newEmergencies = all.where((e) => e.mechanic == null || e.mechanic?.id == null).toList();
-        
+        _newEmergencies = all
+            .where((e) => e.mechanic == null || e.mechanic?.id == null)
+            .toList();
+
         // Ongoing: mechanic is assigned
-        _ongoingEmergencies = all.where((e) => e.mechanic != null && e.mechanic?.id != null).toList();
-        
+        _ongoingEmergencies = all
+            .where((e) => e.mechanic != null && e.mechanic?.id != null)
+            .toList();
+
         _isLoading = false;
       });
     } else {
@@ -127,11 +132,9 @@ class _DaruratContentState extends State<DaruratContent> {
                       physics: const NeverScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       itemCount: _newEmergencies.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 16),
+                      separatorBuilder: (_, _) => const SizedBox(height: 16),
                       itemBuilder: (context, index) {
-                        return EmergencyCard(
-                          emergency: _newEmergencies[index],
-                        );
+                        return EmergencyCard(emergency: _newEmergencies[index]);
                       },
                     ),
 
@@ -164,7 +167,7 @@ class _DaruratContentState extends State<DaruratContent> {
                       physics: const NeverScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       itemCount: _ongoingEmergencies.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 16),
+                      separatorBuilder: (_, _) => const SizedBox(height: 16),
                       itemBuilder: (context, index) {
                         return EmergencyCard(
                           emergency: _ongoingEmergencies[index],

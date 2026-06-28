@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:motocare/features/cs/home/screens/scanner_plate_screen.dart';
 import 'package:motocare/features/cs/shared/widgets/header_section.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/features/cs/home/models/latest_order_model.dart';
@@ -49,9 +48,12 @@ class _HomeContentState extends State<HomeContent> {
       setState(() {
         _csName = data['cs_name'] ?? 'Customer Service';
         _totalOrder = (statistics['total_orders'] as num?)?.toInt() ?? 0;
-        _totalCompleted = (statistics['completed_repairs'] as num?)?.toInt() ?? 0;
+        _totalCompleted =
+            (statistics['completed_repairs'] as num?)?.toInt() ?? 0;
         _latestOrders = rawList
-            .map((item) => LatestOrderModel.fromJson(item as Map<String, dynamic>))
+            .map(
+              (item) => LatestOrderModel.fromJson(item as Map<String, dynamic>),
+            )
             .toList();
         _isLoading = false;
       });
@@ -65,10 +67,8 @@ class _HomeContentState extends State<HomeContent> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        SingleChildScrollView(
-          child: Column(
+    return SingleChildScrollView(
+      child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const HeaderSection(title: "Service Dashboard"),
@@ -134,30 +134,12 @@ class _HomeContentState extends State<HomeContent> {
                     else
                       IncomingQueueSection(orders: _latestOrders),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
             ],
           ),
-        ),
-
-        /// Floating Button
-        Positioned(
-          bottom: 80,
-          right: 20,
-          child: FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ScannerPlateScreen()),
-              );
-            },
-            backgroundColor: AppColors.secondary,
-            child: const Icon(Icons.add, color: Colors.white),
-          ),
-        ),
-      ],
     );
   }
 }

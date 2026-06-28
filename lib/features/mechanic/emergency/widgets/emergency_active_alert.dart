@@ -13,7 +13,7 @@ class EmergencyActiveAlert extends StatefulWidget {
 class _EmergencyActiveAlertState extends State<EmergencyActiveAlert> {
   Map<String, dynamic>? _emergency;
   bool _loading = true;
-  bool _accepted = false;
+  final bool _accepted = false;
 
   @override
   void initState() {
@@ -26,7 +26,9 @@ class _EmergencyActiveAlertState extends State<EmergencyActiveAlert> {
       final svc = MechanicEmergencyService();
       final list = await svc.getEmergencies();
       if (list.isNotEmpty) {
-        setState(() => _emergency = Map<String, dynamic>.from(list.first as Map));
+        setState(
+          () => _emergency = Map<String, dynamic>.from(list.first as Map),
+        );
       }
     } catch (_) {}
     if (mounted) setState(() => _loading = false);
@@ -53,7 +55,11 @@ class _EmergencyActiveAlertState extends State<EmergencyActiveAlert> {
     final plate = _emergency?['vehicle']?['plate_number']?.toString() ?? '-';
     final brand = _emergency?['vehicle']?['brand']?.toString() ?? '';
     final model = _emergency?['vehicle']?['model']?.toString() ?? '';
-    final title = (_emergency?['status']?.toString() ?? _emergency?['order_status']?.toString() ?? '-').toUpperCase();
+    final title =
+        (_emergency?['status']?.toString() ??
+                _emergency?['order_status']?.toString() ??
+                '-')
+            .toUpperCase();
     final time = _formatTime(_emergency?['created_at']?.toString());
 
     return Container(
@@ -77,7 +83,10 @@ class _EmergencyActiveAlertState extends State<EmergencyActiveAlert> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(9999),
@@ -103,9 +112,9 @@ class _EmergencyActiveAlertState extends State<EmergencyActiveAlert> {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Row 2: Judul Masalah
           Text(
             title,
@@ -116,9 +125,9 @@ class _EmergencyActiveAlertState extends State<EmergencyActiveAlert> {
               height: 1.25,
             ),
           ),
-          
+
           const SizedBox(height: 8),
-          
+
           // Row 3: Detail Keluhan
           Text(
             'Plat nomor: $plate. Pengguna: $clientName ${clientPhone.isNotEmpty ? "($clientPhone)" : ''}\nKendaraan: $brand $model',
@@ -129,20 +138,23 @@ class _EmergencyActiveAlertState extends State<EmergencyActiveAlert> {
               height: 1.62,
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Row 4: Tombol Aksi
           Row(
             children: [
               // Tombol Lihat Detail (Primary)
               ElevatedButton(
                 onPressed: () {
-                  final id = _emergency?['emergency_id'] as int? ?? _emergency?['id'] as int?;
+                  final id =
+                      _emergency?['emergency_id'] as int? ??
+                      _emergency?['id'] as int?;
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => DetailEmergencyScreen(emergencyId: id),
+                      builder: (context) =>
+                          DetailEmergencyScreen(emergencyId: id),
                     ),
                   );
                 },
@@ -154,14 +166,14 @@ class _EmergencyActiveAlertState extends State<EmergencyActiveAlert> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(9999),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 14,
+                  ),
                 ),
                 child: const Text(
                   'Lihat Detail',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                 ),
               ),
             ],

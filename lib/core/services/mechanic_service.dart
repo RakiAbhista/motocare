@@ -21,7 +21,9 @@ class MechanicService {
   /// Fetch mechanic dashboard data
   Future<Map<String, dynamic>?> getDashboardData() async {
     try {
-      print('🔵 [MechanicService] Fetching dashboard from: $baseUrl/mechanic/dashboard');
+      print(
+        '🔵 [MechanicService] Fetching dashboard from: $baseUrl/mechanic/dashboard',
+      );
       final response = await http.get(
         Uri.parse('$baseUrl/mechanic/dashboard'),
         headers: _getHeaders(),
@@ -33,7 +35,9 @@ class MechanicService {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        print('❌ [MechanicService] Failed: ${response.statusCode} - ${response.body}');
+        print(
+          '❌ [MechanicService] Failed: ${response.statusCode} - ${response.body}',
+        );
         return null;
       }
     } catch (e, stack) {
