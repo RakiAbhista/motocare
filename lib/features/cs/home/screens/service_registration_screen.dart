@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:motocare/features/cs/home/screens/confirmation_service_screen.dart';
+import 'package:motocare/features/customer/booking/models/booking_models.dart';
+import 'package:motocare/features/cs/home/widgets/cs_pilih_layanan_bottom_sheet.dart';
 
 // ===========================
 // VehicleInfo Widget (dipindah keluar dari class lain)
@@ -55,9 +57,15 @@ class ServiceRegistrationScreen extends StatefulWidget {
 
 class _ServiceRegistrationScreenState extends State<ServiceRegistrationScreen> {
   final merkController = TextEditingController();
-  final typeController = TextEditingController();
+  final typeController = TextEditingController(); // acts as model
   final yearController = TextEditingController();
   final complaintController = TextEditingController();
+  
+  final guestNameController = TextEditingController();
+  final guestPhoneController = TextEditingController();
+  final vehicleTypeController = TextEditingController();
+
+  List<ServiceModel> _selectedServices = [];
 
   @override
   void dispose() {
@@ -65,6 +73,9 @@ class _ServiceRegistrationScreenState extends State<ServiceRegistrationScreen> {
     typeController.dispose();
     yearController.dispose();
     complaintController.dispose();
+    guestNameController.dispose();
+    guestPhoneController.dispose();
+    vehicleTypeController.dispose();
     super.dispose();
   }
 
@@ -167,7 +178,13 @@ class _ServiceRegistrationScreenState extends State<ServiceRegistrationScreen> {
                     if (widget.isVehicleRegistered)
                       buildRegisteredVehicleCard(),
 
+                    if (!widget.isVehicleRegistered) buildGuestForm(),
+                    if (!widget.isVehicleRegistered) const SizedBox(height: 20),
                     if (!widget.isVehicleRegistered) buildManualVehicleForm(),
+
+                    const SizedBox(height: 20),
+                    
+                    _buildServiceDropdown(context),
 
                     const SizedBox(height: 20),
 
@@ -181,23 +198,38 @@ class _ServiceRegistrationScreenState extends State<ServiceRegistrationScreen> {
                       height: 58,
                       child: ElevatedButton(
                         onPressed: () {
+                          if (_selectedServices.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Silakan pilih minimal satu layanan servis')),
+                            );
+                            return;
+                          }
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => ConfirmationServiceScreen(
                                 plateNumber: widget.plateNumber,
-                                vehicleName:
-                                    widget.vehicleData?['model'] ?? "NMAX 155",
-                                ownerName: widget.vehicleData?['user']
-                                        ?['name'] ??
-                                    "Aditama Pratama",
+                                vehicleName: widget.isVehicleRegistered 
+                                    ? (widget.vehicleData?['model'] ?? "-")
+                                    : ("${merkController.text} ${typeController.text}".trim().isEmpty 
+                                        ? "-" 
+                                        : "${merkController.text} ${typeController.text}".trim()),
+                                ownerName: widget.isVehicleRegistered
+                                    ? (widget.vehicleData?['user']?['name'] ?? "-")
+                                    : (guestNameController.text.isEmpty ? "-" : guestNameController.text),
                                 complaint: complaintController.text,
                                 userId: widget.vehicleData?['user']?['id'] ?? 0,
                                 vehicleId: widget.vehicleData?['id'] ?? 0,
+                                guestName: guestNameController.text,
+                                guestPhone: guestPhoneController.text,
+                                vehicleBrand: merkController.text,
+                                vehicleModel: typeController.text,
+                                vehicleType: vehicleTypeController.text,
+                                manufacturingYear: yearController.text,
+                                selectedServices: _selectedServices,
 
-                                // INI GIMANA YA ? , Workshop ID sama Service ID nya
+                                // INI GIMANA YA ? , Workshop ID
                                 workshopId: 1,  // ← langsung angka, bukan widget.workshopId
-                                serviceId: 1,   // ← langsung angka, bukan widget.serviceId
                               ),
                             ),
                           );
@@ -227,6 +259,76 @@ class _ServiceRegistrationScreenState extends State<ServiceRegistrationScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // ===========================
+  // SERVICE SELECTION DROPDOWN
+  // ===========================
+  Widget _buildServiceDropdown(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.build_rounded, color: Colors.blue, size: 18),
+              SizedBox(width: 8),
+              Text('Pilih Layanan Servis *',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          InkWell(
+            onTap: () async {
+              final result = await CsPilihLayananBottomSheet.show(
+                context,
+                initialSelected: _selectedServices,
+              );
+              if (result != null) {
+                setState(() => _selectedServices = result);
+              }
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      _selectedServices.isEmpty
+                          ? 'Pilih Layanan'
+                          : _selectedServices.map((s) => s.serviceName).join(', '),
+                      style: const TextStyle(color: Color(0xFF1A1A1A), fontSize: 14),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const Icon(Icons.arrow_drop_down, color: Colors.blue),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -280,7 +382,7 @@ class _ServiceRegistrationScreenState extends State<ServiceRegistrationScreen> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      widget.vehicleData?['model'] ?? "NMAX 155",
+                      widget.vehicleData?['model'] ?? "-",
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -291,7 +393,7 @@ class _ServiceRegistrationScreenState extends State<ServiceRegistrationScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "Owner: ${widget.vehicleData?['user']?['name'] ?? 'Aditama Pratama'}",
+                      "Owner: ${widget.vehicleData?['user']?['name'] ?? '-'}",
                       style: const TextStyle(fontSize: 13),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
@@ -368,17 +470,64 @@ class _ServiceRegistrationScreenState extends State<ServiceRegistrationScreen> {
             children: [
               VehicleInfo(
                 title: "BRAND",
-                value: widget.vehicleData?['brand'] ?? "Yamaha",
+                value: widget.vehicleData?['brand'] ?? "-",
               ),
               VehicleInfo(
                 title: "TYPE",
-                value: widget.vehicleData?['type'] ?? "Matic",
+                value: widget.vehicleData?['vehicle_type'] ?? "-",
               ),
               VehicleInfo(
                 title: "YEAR",
-                value: widget.vehicleData?['year']?.toString() ?? "2022",
+                value: widget.vehicleData?['manufacturing_year']?.toString() ?? "-",
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ===========================
+  // GUEST FORM (untuk pengguna tanpa akun)
+  // ===========================
+  Widget buildGuestForm() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Guest Information",
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            label: "Guest Name",
+            hint: "e.g. John Doe",
+            controller: guestNameController,
+            icon: Icons.person,
+          ),
+          const SizedBox(height: 12),
+          _buildTextField(
+            label: "Phone Number",
+            hint: "e.g. 08123456789",
+            controller: guestPhoneController,
+            icon: Icons.phone,
+            keyboardType: TextInputType.phone,
           ),
         ],
       ),
@@ -423,12 +572,21 @@ class _ServiceRegistrationScreenState extends State<ServiceRegistrationScreen> {
           ),
           const SizedBox(height: 12),
 
-          // Tipe
+          // Tipe / Model
           _buildTextField(
-            label: "Type",
+            label: "Model",
             hint: "e.g. NMAX 155",
             controller: typeController,
             icon: Icons.two_wheeler,
+          ),
+          const SizedBox(height: 12),
+
+          // Vehicle Type
+          _buildTextField(
+            label: "Vehicle Type",
+            hint: "e.g. Motor Roda 2",
+            controller: vehicleTypeController,
+            icon: Icons.category,
           ),
           const SizedBox(height: 12),
 

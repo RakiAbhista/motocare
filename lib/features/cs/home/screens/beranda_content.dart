@@ -147,11 +147,12 @@ class _HomeContentState extends State<HomeContent> {
           bottom: 80,
           right: 20,
           child: FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const ScannerPlateScreen()),
               );
+              _loadDashboardData();
             },
             backgroundColor: AppColors.secondary,
             child: const Icon(Icons.add, color: Colors.white),

@@ -8,7 +8,7 @@ class AuthService {
   AuthService._internal();
 
   // Untuk Android Emulator gunakan 10.0.2.2, untuk device gunakan IP mesin development
-  // Contoh: 'http://192.168.1.X:8000/api/v1' atau 'http://10.0.2.2:8000/api/v1'
+  // Contoh: 'http://192.168.1.X:8000/api/v172.16.163.631' atau 'http://10.0.2.2:8000/api/v1'
   final String baseUrl = 'http://10.0.2.2:8000/api/v1';
   // final String baseUrl = 'http://172.16.162.206:8000/api/v1';
   // final String baseUrl = 'http://192.168.1.7:8000/api/v1';

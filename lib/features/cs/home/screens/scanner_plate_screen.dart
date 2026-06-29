@@ -357,7 +357,9 @@ class _ScannerPlateScreenState extends State<ScannerPlateScreen> {
             // Actually, I can just write the logic here and import it at the top later.
             try {
               final service = motovehicle.VehicleService(); // using alias if I add it
+              print("ScannerPlateScreen - Sending Plate: $detectedPlate");
               final result = await service.findByPlate(detectedPlate);
+              print("ScannerPlateScreen - Result: $result");
               
               if (context.mounted) Navigator.pop(context); // Tutup loading
 

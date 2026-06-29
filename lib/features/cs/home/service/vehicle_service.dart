@@ -20,6 +20,13 @@ class VehicleService {
         }),
       );
 
+      print("--- API REQUEST: findByPlate ---");
+      print("URL: $baseUrl/customer-service/vehicles/find-by-plate");
+      print("Plate: $plateNumber");
+      print("Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+      print("--------------------------------");
+
       final body = jsonDecode(response.body);
 
       if (response.statusCode == 200) {

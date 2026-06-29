@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:motocare/core/services/auth_service.dart';
 import 'package:motocare/features/cs/home/models/order_detail_model.dart';
+import 'package:motocare/features/customer/booking/models/booking_models.dart';
 
 class OrderService {
   Future<Map<String, dynamic>> getOrderDetail(int orderId) async {
@@ -75,7 +76,7 @@ class OrderService {
     }
   }
 
-  Future<List<dynamic>> getServices() async {
+  Future<List<ServiceModel>> getServices() async {
     try {
       final token = AuthService().accessToken;
       final baseUrl = AuthService().baseUrl;
@@ -90,7 +91,8 @@ class OrderService {
 
       final body = jsonDecode(response.body);
       if (response.statusCode == 200) {
-        return body['data'] as List<dynamic>? ?? [];
+        final data = body['data'] as List? ?? [];
+        return data.map((e) => ServiceModel.fromJson(e)).toList();
       }
       return [];
     } catch (e) {
@@ -198,10 +200,17 @@ class OrderService {
   }
 
   Future<Map<String, dynamic>> createOrder({
-    required int userId,
-    required int vehicleId,
+    int? userId,
+    int? vehicleId,
+    String? guestName,
+    String? guestPhone,
+    String? vehicleBrand,
+    String? vehicleModel,
+    String? vehicleType,
+    String? plateNumber,
+    String? manufacturingYear,
     required int workshopId,
-    required int serviceId,
+    required List<int> serviceIds,
     required String complaint,
     String? damagePhoto,
   }) async {
@@ -210,13 +219,28 @@ class OrderService {
       final baseUrl = AuthService().baseUrl;
 
       final Map<String, dynamic> requestBody = {
-        'user_id': userId,
-        'vehicle_id': vehicleId,
         'workshop_id': workshopId,
-        'service_id': serviceId,
+        'service_ids': serviceIds,
         'complaint': complaint,
-        'damage_photo': damagePhoto,
+        if (damagePhoto != null) 'damage_photo': damagePhoto,
       };
+
+      if (userId != null && userId > 0) {
+        requestBody['user_id'] = userId;
+      } else {
+        if (guestName != null) requestBody['guest_name'] = guestName;
+        if (guestPhone != null) requestBody['guest_phone'] = guestPhone;
+      }
+
+      if (vehicleId != null && vehicleId > 0) {
+        requestBody['vehicle_id'] = vehicleId;
+      } else {
+        if (vehicleBrand != null) requestBody['vehicle_brand'] = vehicleBrand;
+        if (vehicleModel != null) requestBody['vehicle_model'] = vehicleModel;
+        if (vehicleType != null) requestBody['vehicle_type'] = vehicleType;
+        if (plateNumber != null) requestBody['plate_number'] = plateNumber;
+        if (manufacturingYear != null) requestBody['manufacturing_year'] = manufacturingYear;
+      }
 
       final response = await http.post(
         Uri.parse('$baseUrl/customer-service/orders'),

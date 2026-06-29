@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../home/widgets/wehicle_card.dart';
 import 'package:motocare/features/cs/home/service/order_service.dart';
+import 'package:motocare/features/customer/booking/models/booking_models.dart';
 
 class ConfirmationServiceScreen extends StatefulWidget {
   final String plateNumber;
@@ -10,7 +11,13 @@ class ConfirmationServiceScreen extends StatefulWidget {
   final int userId;
   final int vehicleId;
   final int workshopId;
-  final int serviceId;
+  final String? guestName;
+  final String? guestPhone;
+  final String? vehicleBrand;
+  final String? vehicleModel;
+  final String? vehicleType;
+  final String? manufacturingYear;
+  final List<ServiceModel> selectedServices;
 
   const ConfirmationServiceScreen({
     super.key,
@@ -21,7 +28,13 @@ class ConfirmationServiceScreen extends StatefulWidget {
     required this.userId,
     required this.vehicleId,
     required this.workshopId,
-    required this.serviceId,
+    this.guestName,
+    this.guestPhone,
+    this.vehicleBrand,
+    this.vehicleModel,
+    this.vehicleType,
+    this.manufacturingYear,
+    required this.selectedServices,
   });
 
   @override
@@ -33,24 +46,43 @@ class _ConfirmationServiceScreenState
     extends State<ConfirmationServiceScreen> {
   bool _isLoading = false;
 
+  String _formatPrice(double price) {
+    final formatted = price.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (m) => '${m[1]}.',
+        );
+    return 'Rp $formatted';
+  }
+
+  double get _totalServicePrice => widget.selectedServices.fold(
+      0, (sum, s) => sum + (double.tryParse(s.basePrice) ?? 0));
+
   Future<void> _submitOrder() async {
     setState(() => _isLoading = true);
 
     final result = await OrderService().createOrder(
       userId: widget.userId,
       vehicleId: widget.vehicleId,
+      guestName: widget.guestName,
+      guestPhone: widget.guestPhone,
+      vehicleBrand: widget.vehicleBrand,
+      vehicleModel: widget.vehicleModel,
+      vehicleType: widget.vehicleType,
+      plateNumber: widget.plateNumber,
+      manufacturingYear: widget.manufacturingYear,
       workshopId: widget.workshopId,
-      serviceId: widget.serviceId,
+      serviceIds: widget.selectedServices.map((e) => e.id).toList(),
       complaint: widget.complaint,
       damagePhoto: null,
     );
 
     if (!mounted) return;
-    setState(() => _isLoading = false);
 
     if (result['success'] == true) {
+      setState(() => _isLoading = false);
       _showSuccessDialog();
     } else {
+      setState(() => _isLoading = false);
       _showErrorSnackbar(result['message'] ?? 'Gagal membuat order');
     }
   }
@@ -248,11 +280,14 @@ class _ConfirmationServiceScreenState
                             ],
                           ),
                           const SizedBox(height: 25),
-                          buildInfoRow("Service Type", "General Service"),
+                          buildInfoRow(
+                            "Service Type",
+                            widget.selectedServices.map((s) => s.serviceName).join(', '),
+                          ),
                           const SizedBox(height: 18),
-                          buildInfoRow("Estimated Duration", "45 Minutes"),
+                          buildInfoRow("Estimated Duration", "Menunggu Pemeriksaan"),
                           const SizedBox(height: 18),
-                          buildInfoRow("Estimated Cost", "Rp 150.000"),
+                          buildInfoRow("Estimated Cost", _formatPrice(_totalServicePrice)),
                           const SizedBox(height: 25),
                           const Text(
                             "CUSTOMER COMPLAINT",
@@ -351,14 +386,19 @@ class _ConfirmationServiceScreenState
   Widget buildInfoRow(String title, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
           style: TextStyle(color: Colors.grey[700], fontSize: 15),
         ),
-        Text(
-          value,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+          ),
         ),
       ],
     );
