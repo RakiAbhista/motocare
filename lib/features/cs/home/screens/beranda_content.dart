@@ -140,25 +140,6 @@ class _HomeContentState extends State<HomeContent> {
               ),
             ],
           ),
-        ),
-
-        /// Floating Button
-        Positioned(
-          bottom: 80,
-          right: 20,
-          child: FloatingActionButton(
-            onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ScannerPlateScreen()),
-              );
-              _loadDashboardData();
-            },
-            backgroundColor: AppColors.secondary,
-            child: const Icon(Icons.add, color: Colors.white),
-          ),
-        ),
-      ],
     );
   }
 }
