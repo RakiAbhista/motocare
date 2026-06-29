@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/core/theme/app_theme.dart';
-import 'package:motocare/core/theme/app_background.dart';
+
 import 'package:motocare/widgets/custom_card.dart';
 import 'package:motocare/widgets/status_badge.dart';
 import '../widgets/service_detail_bottom_sheet.dart';
@@ -74,8 +74,8 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BengkelBackground(
-        child: SafeArea(bottom: false, top: false,
+      backgroundColor: Colors.white,
+      body: SafeArea(bottom: false, top: false,
           child: _isLoading
               ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
               : Column(
@@ -142,7 +142,6 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
                   ],
                 ),
         ),
-      ),
     );
   }
 }

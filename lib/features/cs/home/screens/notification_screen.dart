@@ -13,10 +13,8 @@ import '../../home/widgets/wehicle_card.dart';
 import '../../home/widgets/notification_card.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 
-
 class NotificationScreen extends StatelessWidget {
-
- NotificationScreen({super.key});
+  const NotificationScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -72,32 +70,34 @@ class NotificationScreen extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-             NotificationCard(
+            NotificationCard(
               title: "Pembayaran Berhasil",
-              message: "Pembayaran untuk servis motor B 1234 XYZ telah diterima sebesar Rp 150.000.",
+              message:
+                  "Pembayaran untuk servis motor B 1234 XYZ telah diterima sebesar Rp 150.000.",
               time: "2m ago",
               isUnread: true,
               icon: Icons.check_circle_outline,
               iconColor: AppColors.success,
             ),
-             NotificationCard(
+            NotificationCard(
               title: "Pekerjaan Selesai",
-              message: "Mekanik telah menyelesaikan perbaikan untuk kendaraan AD 5678 JK.",
+              message:
+                  "Mekanik telah menyelesaikan perbaikan untuk kendaraan AD 5678 JK.",
               time: "1h ago",
               isUnread: false,
               icon: Icons.build_circle_outlined,
               iconColor: AppColors.primary,
             ),
-             NotificationCard(
+            NotificationCard(
               title: "Komplain Baru",
-              message: "Pelanggan mengajukan komplain untuk servis kemaren. Mohon segera ditindaklanjuti.",
+              message:
+                  "Pelanggan mengajukan komplain untuk servis kemaren. Mohon segera ditindaklanjuti.",
               time: "3h ago",
               isUnread: false,
               icon: Icons.warning_amber_rounded,
               iconColor: AppColors.danger,
             ),
             const SizedBox(height: 40),
-
           ],
         ),
       ),

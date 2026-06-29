@@ -48,7 +48,9 @@ class _EmergencyAssignmentScreenState extends State<EmergencyAssignmentScreen> {
       _errorMessage = null;
     });
 
-    final result = await _emergencyService.getEmergencyDetail(widget.emergencyId);
+    final result = await _emergencyService.getEmergencyDetail(
+      widget.emergencyId,
+    );
 
     if (result['success']) {
       setState(() {
@@ -89,7 +91,9 @@ class _EmergencyAssignmentScreenState extends State<EmergencyAssignmentScreen> {
       );
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => const BerandaScreen(initialIndex: 1)),
+        MaterialPageRoute(
+          builder: (context) => const BerandaScreen(initialIndex: 1),
+        ),
         (route) => false,
       );
     } else {
@@ -98,7 +102,9 @@ class _EmergencyAssignmentScreenState extends State<EmergencyAssignmentScreen> {
           content: Text(result['message'] ?? 'Gagal assign mekanik'),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     }
@@ -130,20 +136,20 @@ class _EmergencyAssignmentScreenState extends State<EmergencyAssignmentScreen> {
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _errorMessage != null
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('Error: $_errorMessage'),
-                        const SizedBox(height: 10),
-                        ElevatedButton(
-                          onPressed: _loadEmergencyDetail,
-                          child: const Text('Coba Lagi'),
-                        ),
-                      ],
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Error: $_errorMessage'),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: _loadEmergencyDetail,
+                      child: const Text('Coba Lagi'),
                     ),
-                  )
-                : _buildContent(context, _emergency!),
+                  ],
+                ),
+              )
+            : _buildContent(context, _emergency!),
       ),
     );
   }
@@ -223,20 +229,24 @@ class _EmergencyAssignmentScreenState extends State<EmergencyAssignmentScreen> {
                 /// CUSTOMER DETAILS
                 EmergencyCustomerCard(
                   customerName: emergency.customerName,
-                  vehicle: "${emergency.vehicleBrand} ${emergency.vehicleModel}",
+                  vehicle:
+                      "${emergency.vehicleBrand} ${emergency.vehicleModel}",
                 ),
 
                 const SizedBox(height: 24),
 
                 /// INITIAL REPORT
                 EmergencyInitialReport(
-                  description: emergency.description ?? "Tidak ada deskripsi keluhan yang diberikan",
+                  description:
+                      emergency.description ??
+                      "Tidak ada deskripsi keluhan yang diberikan",
                 ),
 
                 const SizedBox(height: 24),
 
                 /// ASSIGN MECHANIC CARD OR ASSIGNED INFO
-                if (emergency.mechanic != null && emergency.mechanic?.id != null) ...[
+                if (emergency.mechanic != null &&
+                    emergency.mechanic?.id != null) ...[
                   _AssignMechanicCard(
                     title: emergency.mechanic?.name ?? 'Mekanik Ditugaskan',
                     subtitle: "Mekanik telah ditugaskan untuk order ini",
@@ -245,9 +255,13 @@ class _EmergencyAssignmentScreenState extends State<EmergencyAssignmentScreen> {
                   ),
                 ] else ...[
                   _AssignMechanicCard(
-                    title: _selectedMechanic != null ? _selectedMechanic!.name : "Belum ada Mekanik",
-                    subtitle: _selectedMechanic != null ? "Status: ${_selectedMechanic!.status}" : "Ketuk untuk memilih mekanik",
-                    statusText: _selectedMechanic != null ? _selectedMechanic!.status.toUpperCase() : null,
+                    title: _selectedMechanic != null
+                        ? _selectedMechanic!.name
+                        : "Belum ada Mekanik",
+                    subtitle: _selectedMechanic != null
+                        ? "Status: ${_selectedMechanic!.status}"
+                        : "Ketuk untuk memilih mekanik",
+                    statusText: _selectedMechanic?.status.toUpperCase(),
                     isReadOnly: false,
                     onTap: _openAssignMechanicSheet,
                   ),
@@ -355,11 +369,7 @@ class _AssignMechanicCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: hasSelection
-                  ? const Icon(
-                      Icons.person,
-                      color: Colors.blue,
-                      size: 28,
-                    )
+                  ? const Icon(Icons.person, color: Colors.blue, size: 28)
                   : const Icon(
                       Icons.engineering_outlined,
                       color: Colors.blue,
@@ -388,9 +398,13 @@ class _AssignMechanicCard extends StatelessWidget {
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 7, vertical: 2),
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
-                            color: statusText!.toLowerCase() == 'available' || statusText!.toLowerCase() == 'assigned'
+                            color:
+                                statusText!.toLowerCase() == 'available' ||
+                                    statusText!.toLowerCase() == 'assigned'
                                 ? Colors.blue[50]
                                 : Colors.grey[200],
                             borderRadius: BorderRadius.circular(6),
@@ -400,7 +414,9 @@ class _AssignMechanicCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: statusText!.toLowerCase() == 'available' || statusText!.toLowerCase() == 'assigned'
+                              color:
+                                  statusText!.toLowerCase() == 'available' ||
+                                      statusText!.toLowerCase() == 'assigned'
                                   ? Colors.blue
                                   : Colors.grey[700],
                             ),
@@ -411,10 +427,7 @@ class _AssignMechanicCard extends StatelessWidget {
                   ] else ...[
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[500],
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                     ),
                   ],
                 ],

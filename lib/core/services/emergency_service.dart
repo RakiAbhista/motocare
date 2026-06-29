@@ -35,15 +35,20 @@ class EmergencyService {
 
         request.fields['latitude'] = latitude.toString();
         request.fields['longitude'] = longitude.toString();
-        if (vehicleId != null) request.fields['vehicle_id'] = vehicleId.toString();
-        if (vehicleBrand != null) request.fields['vehicle_brand'] = vehicleBrand;
+        if (vehicleId != null)
+          request.fields['vehicle_id'] = vehicleId.toString();
+        if (vehicleBrand != null)
+          request.fields['vehicle_brand'] = vehicleBrand;
         if (vehicleType != null) request.fields['vehicle_type'] = vehicleType;
-        if (vehicleModel != null) request.fields['vehicle_model'] = vehicleModel;
+        if (vehicleModel != null)
+          request.fields['vehicle_model'] = vehicleModel;
         if (plateNumber != null) request.fields['plate_number'] = plateNumber;
         if (complaint != null) request.fields['complaint'] = complaint;
         request.fields['emergency_type'] = emergencyType;
 
-        request.files.add(await http.MultipartFile.fromPath('damage_photo', damagePhoto.path));
+        request.files.add(
+          await http.MultipartFile.fromPath('damage_photo', damagePhoto.path),
+        );
 
         final streamed = await request.send();
         final response = await http.Response.fromStream(streamed);
@@ -53,27 +58,27 @@ class EmergencyService {
       final payload = {
         'latitude': latitude,
         'longitude': longitude,
-        if (vehicleId != null) 'vehicle_id': vehicleId,
-        if (vehicleBrand != null) 'vehicle_brand': vehicleBrand,
-        if (vehicleType != null) 'vehicle_type': vehicleType,
-        if (vehicleModel != null) 'vehicle_model': vehicleModel,
-        if (plateNumber != null) 'plate_number': plateNumber,
-        if (complaint != null) 'complaint': complaint,
+        'vehicle_id': ?vehicleId,
+        'vehicle_brand': ?vehicleBrand,
+        'vehicle_type': ?vehicleType,
+        'vehicle_model': ?vehicleModel,
+        'plate_number': ?plateNumber,
+        'complaint': ?complaint,
         'emergency_type': emergencyType,
       };
 
       final response = await http.post(
         uri,
-        headers: {
-          ..._getHeaders(),
-          'Content-Type': 'application/json',
-        },
+        headers: {..._getHeaders(), 'Content-Type': 'application/json'},
         body: jsonEncode(payload),
       );
       return jsonDecode(response.body);
     } catch (e) {
       print('EmergencyService.createEmergency Error: $e');
-      return {'success': false, 'message': 'Gagal mengirim permintaan emergency: $e'};
+      return {
+        'success': false,
+        'message': 'Gagal mengirim permintaan emergency: $e',
+      };
     }
   }
 
@@ -92,15 +97,22 @@ class EmergencyService {
     }
   }
 
-  Future<Map<String, dynamic>?> getNearestWorkshop({required double latitude, required double longitude}) async {
+  Future<Map<String, dynamic>?> getNearestWorkshop({
+    required double latitude,
+    required double longitude,
+  }) async {
     try {
-      final uri = Uri.parse('$baseUrl/customer/emergency/nearest-workshop?latitude=$latitude&longitude=$longitude');
+      final uri = Uri.parse(
+        '$baseUrl/customer/emergency/nearest-workshop?latitude=$latitude&longitude=$longitude',
+      );
       final response = await http.get(uri, headers: _getHeaders());
       final body = jsonDecode(response.body);
       if (response.statusCode == 200 && body['success'] == true) {
         return body['data'] as Map<String, dynamic>;
       }
-      print('EmergencyService.getNearestWorkshop failed: ${response.statusCode} ${response.body}');
+      print(
+        'EmergencyService.getNearestWorkshop failed: ${response.statusCode} ${response.body}',
+      );
       return null;
     } catch (e) {
       print('EmergencyService.getNearestWorkshop Error: $e');

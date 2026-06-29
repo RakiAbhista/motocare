@@ -48,7 +48,9 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
 
     // Ambil service list: prioritaskan dari getTotal, fallback dari showEmergency
     List<dynamic> serviceList = [];
-    if (total != null && total['data'] != null && total['data']['services'] != null) {
+    if (total != null &&
+        total['data'] != null &&
+        total['data']['services'] != null) {
       serviceList = total['data']['services'] as List<dynamic>;
     } else if (detail != null) {
       final payload = detail['data'] ?? detail;
@@ -97,94 +99,135 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
     await showDialog(
       context: context,
       builder: (dialogCtx) {
-        return StatefulBuilder(builder: (sbCtx, setStateSB) {
-          List<dynamic> filtered = services;
-          return AlertDialog(
-            title: const Text('Tambah Service'),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    decoration: const InputDecoration(hintText: 'Cari layanan atau ketik manual'),
-                    onChanged: (v) {
-                      setStateSB(() {
-                        final q = v.toLowerCase();
-                        filtered = services.where((s) {
-                          final name = (s['service_name'] ?? '').toString().toLowerCase();
-                          final id = s['service_id']?.toString() ?? s['id']?.toString() ?? '';
-                          return name.contains(q) || id.contains(q);
-                        }).toList();
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    height: 180,
-                    child: ListView.builder(
-                      itemCount: filtered.length,
-                      itemBuilder: (_, i) {
-                        final s = filtered[i];
-                        final sid = s['service_id'] ?? s['id'];
-                        final name = s['service_name'] ?? s['name'] ?? '';
-                        final base = s['base_price']?.toString() ?? s['price']?.toString() ?? '';
-                        return ListTile(
-                          title: Text(name),
-                          subtitle: base.isNotEmpty ? Text('Rp $base') : null,
-                          trailing: Radio<int?>(
-                            value: sid is int ? sid : int.tryParse(sid.toString()),
-                            groupValue: selectedServiceId,
-                            onChanged: (v) => setStateSB(() => selectedServiceId = v),
-                          ),
-                          onTap: () => setStateSB(() => selectedServiceId = sid is int ? sid : int.tryParse(sid.toString())),
-                        );
+        return StatefulBuilder(
+          builder: (sbCtx, setStateSB) {
+            List<dynamic> filtered = services;
+            return AlertDialog(
+              title: const Text('Tambah Service'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      decoration: const InputDecoration(
+                        hintText: 'Cari layanan atau ketik manual',
+                      ),
+                      onChanged: (v) {
+                        setStateSB(() {
+                          final q = v.toLowerCase();
+                          filtered = services.where((s) {
+                            final name = (s['service_name'] ?? '')
+                                .toString()
+                                .toLowerCase();
+                            final id =
+                                s['service_id']?.toString() ??
+                                s['id']?.toString() ??
+                                '';
+                            return name.contains(q) || id.contains(q);
+                          }).toList();
+                        });
                       },
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    decoration: const InputDecoration(labelText: 'Nama tambahan (optional)'),
-                    onChanged: (v) => setStateSB(() => additional = v),
-                  ),
-                  TextField(
-                    decoration: const InputDecoration(labelText: 'Harga (IDR)', hintText: '100000'),
-                    keyboardType: TextInputType.number,
-                    onChanged: (v) => setStateSB(() => priceTxt = v),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 180,
+                      child: ListView.builder(
+                        itemCount: filtered.length,
+                        itemBuilder: (_, i) {
+                          final s = filtered[i];
+                          final sid = s['service_id'] ?? s['id'];
+                          final name = s['service_name'] ?? s['name'] ?? '';
+                          final base =
+                              s['base_price']?.toString() ??
+                              s['price']?.toString() ??
+                              '';
+                          return ListTile(
+                            title: Text(name),
+                            subtitle: base.isNotEmpty ? Text('Rp $base') : null,
+                            trailing: Radio<int?>(
+                              value: sid is int
+                                  ? sid
+                                  : int.tryParse(sid.toString()),
+                              groupValue: selectedServiceId,
+                              onChanged: (v) =>
+                                  setStateSB(() => selectedServiceId = v),
+                            ),
+                            onTap: () => setStateSB(
+                              () => selectedServiceId = sid is int
+                                  ? sid
+                                  : int.tryParse(sid.toString()),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'Nama tambahan (optional)',
+                      ),
+                      onChanged: (v) => setStateSB(() => additional = v),
+                    ),
+                    TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'Harga (IDR)',
+                        hintText: '100000',
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (v) => setStateSB(() => priceTxt = v),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('Batal')),
-              ElevatedButton(
-                onPressed: () async {
-                  // Ambil nilai sebelum pop dialog
-                  final svcId = selectedServiceId;
-                  final addtl = additional.isNotEmpty ? additional : null;
-                  double? price;
-                  if (priceTxt.isNotEmpty) price = double.tryParse(priceTxt.replaceAll(',', ''));
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogCtx),
+                  child: const Text('Batal'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    // Ambil nilai sebelum pop dialog
+                    final svcId = selectedServiceId;
+                    final addtl = additional.isNotEmpty ? additional : null;
+                    double? price;
+                    if (priceTxt.isNotEmpty)
+                      price = double.tryParse(priceTxt.replaceAll(',', ''));
 
-                  // Tutup dialog dulu
-                  Navigator.pop(dialogCtx);
+                    // Tutup dialog dulu
+                    Navigator.pop(dialogCtx);
 
-                  // Sekarang kode berjalan di context screen, bukan dialog
-                  setState(() => _actionLoading = true);
-                  final ok = await _svc.addService(widget.emergencyId, serviceId: svcId, additionalService: addtl, price: price);
-                  setState(() => _actionLoading = false);
-                  if (ok) {
-                    if (mounted) scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Service ditambahkan')));
-                    // Refresh service list dari getTotal (sumber paling akurat)
-                    await _refreshServices();
-                  } else {
-                    if (mounted) scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Gagal menambahkan service')));
-                  }
-                },
-                child: const Text('Simpan'),
-              ),
-            ],
-          );
-        });
+                    // Sekarang kode berjalan di context screen, bukan dialog
+                    setState(() => _actionLoading = true);
+                    final ok = await _svc.addService(
+                      widget.emergencyId,
+                      serviceId: svcId,
+                      additionalService: addtl,
+                      price: price,
+                    );
+                    setState(() => _actionLoading = false);
+                    if (ok) {
+                      if (mounted)
+                        scaffoldMessenger.showSnackBar(
+                          const SnackBar(content: Text('Service ditambahkan')),
+                        );
+                      // Refresh service list dari getTotal (sumber paling akurat)
+                      await _refreshServices();
+                    } else {
+                      if (mounted)
+                        scaffoldMessenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('Gagal menambahkan service'),
+                          ),
+                        );
+                    }
+                  },
+                  child: const Text('Simpan'),
+                ),
+              ],
+            );
+          },
+        );
       },
     );
   }
@@ -195,7 +238,9 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
     setState(() => _actionLoading = false);
     if (ok) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Permintaan towing terkirim')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Permintaan towing terkirim')),
+        );
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const MechanicDashboard()),
@@ -203,7 +248,10 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
         );
       }
     } else {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal mengirim permintaan towing')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal mengirim permintaan towing')),
+        );
     }
   }
 
@@ -237,7 +285,10 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
         );
       }
     } else {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal melanjutkan pembayaran')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal melanjutkan pembayaran')),
+        );
     }
   }
 
@@ -249,9 +300,16 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: AppColors.danger, size: 28),
+            Icon(
+              Icons.warning_amber_rounded,
+              color: AppColors.danger,
+              size: 28,
+            ),
             SizedBox(width: 8),
-            Text('Batalkan Order?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Text(
+              'Batalkan Order?',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
           ],
         ),
         content: const Text(
@@ -267,9 +325,14 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.danger,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
-            child: const Text('Ya, Batalkan', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Ya, Batalkan',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -332,10 +395,16 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
     setState(() => _actionLoading = false);
 
     if (ok) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service dihapus')));
+      if (mounted)
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Service dihapus')));
       await _refreshServices();
     } else {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal menghapus service')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal menghapus service')),
+        );
     }
   }
 
@@ -377,7 +446,7 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
                   InvoiceCustomerInfo(
                     clientName: client['name'] ?? '',
                     clientPhone: client['phone'] ?? '',
-                    damagePhoto: payload['damage_photo'] ?? null,
+                    damagePhoto: payload['damage_photo'],
                   ),
                   const SizedBox(height: 24),
                   InvoiceVehicleDetails(
@@ -407,7 +476,9 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.danger.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.danger.withOpacity(0.2)),
+                      border: Border.all(
+                        color: AppColors.danger.withOpacity(0.2),
+                      ),
                     ),
                     child: Material(
                       color: Colors.transparent,
@@ -417,7 +488,11 @@ class _EmergencyInvoiceScreenState extends State<EmergencyInvoiceScreen> {
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.cancel_outlined, color: AppColors.danger, size: 20),
+                            Icon(
+                              Icons.cancel_outlined,
+                              color: AppColors.danger,
+                              size: 20,
+                            ),
                             SizedBox(width: 8),
                             Text(
                               'Batalkan Order',

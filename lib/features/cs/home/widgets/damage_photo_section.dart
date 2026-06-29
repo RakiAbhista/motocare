@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 class DamagePhotoSection extends StatelessWidget {
   final List<String> imagePaths;
 
-  const DamagePhotoSection({
-    super.key,
-    required this.imagePaths,
-  });
+  const DamagePhotoSection({super.key, required this.imagePaths});
 
   @override
   Widget build(BuildContext context) {
@@ -16,10 +13,7 @@ class DamagePhotoSection extends StatelessWidget {
         /// TITLE
         const Text(
           'Foto Kerusakan Fisik',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
 
         const SizedBox(height: 16),
@@ -30,7 +24,7 @@ class DamagePhotoSection extends StatelessWidget {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: imagePaths.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
               return ClipRRect(
                 borderRadius: BorderRadius.circular(12),

@@ -9,11 +9,13 @@ import 'package:motocare/features/customer/emergency/screens/panggilan_darurat_s
 class MainWrapper extends StatefulWidget {
   final bool hasActiveBooking;
   final String? daruratType;
+  final int initialIndex;
 
   const MainWrapper({
     super.key,
     this.hasActiveBooking = false,
     this.daruratType,
+    this.initialIndex = 0,
   });
 
   @override
@@ -21,11 +23,30 @@ class MainWrapper extends StatefulWidget {
 }
 
 class _MainWrapperState extends State<MainWrapper> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
   final GlobalKey _berandaKey = GlobalKey();
   final GlobalKey _riwayatKey = GlobalKey();
   final GlobalKey _terdekatKey = GlobalKey();
   final GlobalKey _profilKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialIndex;
+    // After first frame, trigger refresh on the initially selected page
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshPage(_selectedIndex);
+    });
+  }
+
+  void _refreshPage(int index) {
+    try {
+      if (index == 0) (_berandaKey.currentState as dynamic)?.refresh();
+      if (index == 1) (_riwayatKey.currentState as dynamic)?.refresh();
+      if (index == 2) (_terdekatKey.currentState as dynamic)?.refresh();
+      if (index == 3) (_profilKey.currentState as dynamic)?.refresh();
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,77 +65,94 @@ class _MainWrapperState extends State<MainWrapper> {
         ],
       ),
 
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFFEF4444),
-        shape: const CircleBorder(),
-        elevation: 4.0,
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const PanggilanDaruratScreen()),
-          );
-        },
-        child: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 28),
-      ),
-
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        clipBehavior: Clip.antiAlias,
-        color: Colors.white,
-        elevation: 8.0,
-        child: SizedBox(
-          height: 60.0,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(icon: Icons.home, label: "Beranda", isActive: _selectedIndex == 0, index: 0),
-              _buildNavItem(icon: Icons.receipt_long, label: "Riwayat", isActive: _selectedIndex == 1, index: 1),
-
-              const SizedBox(width: 40),
-
-              _buildNavItem(icon: Icons.location_on, label: "Terdekat", isActive: _selectedIndex == 2, index: 2),
-              _buildNavItem(icon: Icons.person, label: "Profil", isActive: _selectedIndex == 3, index: 3),
-            ],
+      /// NAVBAR - Custom Container matching mechanic style
+      bottomNavigationBar: Container(
+        height: 90,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(25),
+            topRight: Radius.circular(25),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF1E293B).withOpacity(0.15),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _navItem(Icons.home_filled, 'Beranda', 0),
+            _navItem(Icons.receipt_long, 'Riwayat', 1),
+            _buildDaruratButton(),
+            _navItem(Icons.location_on, 'Terdekat', 2),
+            _navItem(Icons.person, 'Profil', 3),
+          ],
         ),
       ),
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    // After first frame, trigger refresh on the initially selected page
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      try {
-        if (_selectedIndex == 0) (_berandaKey.currentState as dynamic)?.refresh();
-        if (_selectedIndex == 1) (_riwayatKey.currentState as dynamic)?.refresh();
-        if (_selectedIndex == 2) (_terdekatKey.currentState as dynamic)?.refresh();
-        if (_selectedIndex == 3) (_profilKey.currentState as dynamic)?.refresh();
-      } catch (_) {}
-    });
+  Widget _buildDaruratButton() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const PanggilanDaruratScreen(),
+          ),
+        );
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEF4444),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFEF4444).withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.report_gmailerrorred_rounded,
+              color: Colors.white,
+              size: 26,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Darurat',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFEF4444),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    required bool isActive,
-    required int index,
-  }) {
+  Widget _navItem(IconData icon, String label, int index) {
+    final isSelected = _selectedIndex == index;
+    final color = isSelected ? AppColors.primary : const Color(0xFFC3C7CC);
     return GestureDetector(
       onTap: () {
         setState(() => _selectedIndex = index);
-        // call refresh on the selected page (if available)
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          try {
-            if (index == 0) ( _berandaKey.currentState as dynamic)?.refresh();
-            if (index == 1) ( _riwayatKey.currentState as dynamic)?.refresh();
-            if (index == 2) ( _terdekatKey.currentState as dynamic)?.refresh();
-            if (index == 3) ( _profilKey.currentState as dynamic)?.refresh();
-          } catch (_) {}
+          _refreshPage(index);
         });
       },
       behavior: HitTestBehavior.opaque,
@@ -122,18 +160,14 @@ class _MainWrapperState extends State<MainWrapper> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            size: 24,
-            color: isActive ? AppColors.primary : Colors.grey,
-          ),
+          Icon(icon, color: color, size: 28),
           const SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(
-              fontSize: 11,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-              color: isActive ? AppColors.primary : Colors.grey,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: color,
             ),
           ),
         ],

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/core/theme/app_theme.dart';
-import 'package:motocare/core/theme/app_background.dart';
-import 'package:motocare/features/customer/home/screens/notifikasi_screen.dart';
 import 'package:motocare/features/customer/kendaraan/screens/tambah_kendaraan_screen.dart';
 import 'package:motocare/features/customer/kendaraan/widgets/detail_motor_bottom_sheet.dart';
 import 'package:motocare/widgets/custom_card.dart';
-import 'package:motocare/features/customer/profil/widgets/profile_dialogs.dart';
+import 'package:motocare/core/services/auth_service.dart';
+import 'package:motocare/core/services/customer_home_service.dart';
+import 'package:motocare/features/auth/login/screens/login_screen.dart';
 
 class ProfilScreen extends StatefulWidget {
   const ProfilScreen({super.key});
@@ -16,160 +16,350 @@ class ProfilScreen extends StatefulWidget {
 }
 
 class _ProfilScreenState extends State<ProfilScreen> {
+  final _homeService = CustomerHomeService();
+  Map<String, dynamic>? _homeData;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   Future<void> refresh() async {
-    setState(() {});
+    await _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    final data = await _homeService.getHomeData();
+    if (mounted) {
+      if (data['success'] == true && data['data'] != null) {
+        setState(() {
+          _homeData = data['data'];
+          _isLoading = false;
+        });
+      } else {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BengkelBackground(
-        child: SafeArea(top: false, bottom: false,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                const _ProfileHeader(),
-                const SizedBox(height: 28),
-                Padding(
-                  padding: AppTheme.pagePaddingH,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const _PointsCard(),
-                      const SizedBox(height: 28),
-                      const _VehicleSection(),
-                      const SizedBox(height: 24),
-                      const _HelpAndSupport(),
-                    ],
+      backgroundColor: AppColors.background,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  _ProfileHeader(
+                    name: _homeData?['user_summary']?['name'] ?? 'Customer',
+                    email: _homeData?['user_summary']?['email'] ?? '',
+                    onEditProfile: () => _showEditPhoneDialog(context),
+                    onLogout: () => _showLogoutDialog(context),
                   ),
-                ),
-                const SizedBox(height: 100),
-              ],
+                  const SizedBox(height: 28),
+                  Padding(
+                    padding: AppTheme.pagePaddingH,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _PointsCard(
+                          points: _homeData?['user_summary']?['points'] ?? 0,
+                          vouchers: _homeData?['user_summary']?['active_vouchers_count'] ??
+                              _homeData?['user_summary']?['active_vouchers'] ?? 0,
+                        ),
+                        const SizedBox(height: 28),
+                        _VehicleSection(
+                          vehicles: List<Map<String, dynamic>>.from(
+                            _homeData?['vehicles'] ?? [],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 100),
+                ],
+              ),
+            ),
+    );
+  }
+
+  void _showEditPhoneDialog(BuildContext context) {
+    final TextEditingController phoneController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text("Ubah Nomor Telepon",
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          content: TextField(
+            controller: phoneController,
+            keyboardType: TextInputType.phone,
+            decoration: InputDecoration(
+              hintText: "Masukkan nomor telepon baru",
+              prefixIcon: const Icon(Icons.phone),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
             ),
           ),
-        ),
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text("Batal", style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final newPhone = phoneController.text.trim();
+                if (newPhone.isNotEmpty) {
+                  Navigator.pop(dialogContext);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Nomor telepon diperbarui ke $newPhone"),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+              ),
+              child: const Text("Simpan", style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    final pageContext = context;
+
+    showDialog(
+      context: pageContext,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text("Konfirmasi Keluar",
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          content: const Text(
+              "Apakah Anda yakin ingin keluar dari akun?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text("Batal", style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+
+                showDialog(
+                  context: pageContext,
+                  barrierDismissible: false,
+                  builder: (_) =>
+                      const Center(child: CircularProgressIndicator()),
+                );
+
+                try {
+                  await AuthService().logout();
+                } catch (_) {}
+
+                if (pageContext.mounted) {
+                  Navigator.of(pageContext).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+              ),
+              child: const Text("Keluar",
+                  style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
     );
   }
 }
 
 class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader();
+  final String name;
+  final String email;
+  final VoidCallback? onEditProfile;
+  final VoidCallback? onLogout;
+
+  const _ProfileHeader({
+    required this.name,
+    this.email = '',
+    this.onEditProfile,
+    this.onLogout,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 16, 20, 36),
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+    return Stack(
+      children: [
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 16, 20, 36),
+          decoration: const BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(35),
+              bottomRight: Radius.circular(35),
+            ),
+          ),
+          child: Column(
             children: [
+              const SizedBox(height: 30),
               Container(
-                padding: const EdgeInsets.all(8),
+                width: 100,
+                height: 100,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  border: Border.all(color: Colors.white, width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.25),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
-                child: GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const NotifikasiScreen()),
+                child: const ClipOval(
+                  child: Center(
+                    child: Icon(Icons.person, size: 60, color: AppColors.primary),
                   ),
-                  child: const Icon(Icons.notifications, color: Colors.white, size: 22),
                 ),
               ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
+              const SizedBox(height: 14),
+              Text(
+                name,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
                 ),
-                child: GestureDetector(
-                  onTap: () => showLogoutDialog(context),
-                  child: const Icon(Icons.logout, color: Colors.white, size: 22),
+              ),
+              if (email.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    email,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+
+        /// DROPDOWN MENU - TOP RIGHT (titik tiga)
+        Positioned(
+          top: MediaQuery.of(context).padding.top + 8,
+          right: 12,
+          child: PopupMenuButton<String>(
+            icon: const Icon(
+              Icons.more_vert,
+              color: Colors.white,
+              size: 28,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            color: Colors.white,
+            elevation: 8,
+            offset: const Offset(0, 45),
+            onSelected: (value) {
+              if (value == 'edit_profile') {
+                onEditProfile?.call();
+              } else if (value == 'logout') {
+                onLogout?.call();
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'edit_profile',
+                child: Row(
+                  children: const [
+                    Icon(Icons.edit, color: Colors.blue, size: 20),
+                    SizedBox(width: 10),
+                    Text(
+                      'Edit Profile',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: const [
+                    Icon(Icons.logout, color: Colors.red, size: 20),
+                    SizedBox(width: 10),
+                    Text(
+                      'Logout',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: const Icon(Icons.person, size: 60, color: Colors.grey),
-          ),
-          const SizedBox(height: 14),
-          const Text(
-            'John Doe',
-            style: AppTheme.headlineLarge,
-          ),
-          const SizedBox(height: 4),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              'john.doe@email.com',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.9),
-                fontSize: 13,
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
 class _PointsCard extends StatelessWidget {
-  const _PointsCard();
+  final int points;
+  final int vouchers;
+
+  const _PointsCard({this.points = 0, this.vouchers = 0});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primary.withValues(alpha: 0.08),
-            AppColors.primary.withValues(alpha: 0.02),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.12)),
+        color: AppColors.primary.withOpacity(0.05),
+        border: Border.all(color: AppColors.primary.withOpacity(0.12)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildPointItem(Icons.stars_rounded, '36', 'Poin'),
-            Container(height: 40, width: 1, color: AppColors.primary.withValues(alpha: 0.15)),
-            _buildPointItem(Icons.local_activity_rounded, '2', 'Voucher'),
+            _buildPointItem(Icons.stars_rounded, '$points', 'Poin'),
+            Container(height: 40, width: 1, color: AppColors.primary.withOpacity(0.15)),
+            _buildPointItem(Icons.local_activity_rounded, '$vouchers', 'Voucher'),
           ],
         ),
       ),
@@ -192,7 +382,7 @@ class _PointsCard extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            color: AppColors.primary.withValues(alpha: 0.7),
+            color: AppColors.primary.withOpacity(0.7),
             fontSize: 12,
           ),
         ),
@@ -202,7 +392,9 @@ class _PointsCard extends StatelessWidget {
 }
 
 class _VehicleSection extends StatelessWidget {
-  const _VehicleSection();
+  final List<Map<String, dynamic>> vehicles;
+
+  const _VehicleSection({required this.vehicles});
 
   @override
   Widget build(BuildContext context) {
@@ -217,17 +409,26 @@ class _VehicleSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        _VehicleListItem(
-          name: 'Honad Betarix',
-          plate: 'H1945 AGS',
-          onTap: () => DetailMotorBottomSheet.show(context),
-        ),
-        const SizedBox(height: 12),
-        _VehicleListItem(
-          name: 'Honad Betarix',
-          plate: 'H1945 AGS',
-          onTap: () => DetailMotorBottomSheet.show(context),
-        ),
+        if (vehicles.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(
+              child: Text('Belum ada kendaraan terdaftar',
+                  style: TextStyle(color: Colors.grey)),
+            ),
+          ),
+        ...vehicles.map((vehicle) {
+          final name = '${vehicle['brand'] ?? ''} ${vehicle['model'] ?? ''}'.trim();
+          final plate = vehicle['plate_number'] ?? '-';
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _VehicleListItem(
+              name: name.isNotEmpty ? name : 'Kendaraan',
+              plate: plate,
+              onTap: () => DetailMotorBottomSheet.show(context, vehicle: vehicle),
+            ),
+          );
+        }),
         const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -277,7 +478,7 @@ class _VehicleListItem extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppTheme.radiusSm),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.08),
+                  color: AppColors.primary.withOpacity(0.08),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -295,7 +496,7 @@ class _VehicleListItem extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.08),
+                    color: AppColors.primary.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(plate, style: AppTheme.bodySmall.copyWith(color: AppColors.primary)),
@@ -306,45 +507,12 @@ class _VehicleListItem extends StatelessWidget {
           OutlinedButton(
             onPressed: onTap,
             style: OutlinedButton.styleFrom(
-              side: BorderSide(color: AppColors.primary.withValues(alpha: 0.4)),
+              side: BorderSide(color: AppColors.primary.withOpacity(0.4)),
             ),
             child: const Text('Detail'),
           ),
           const SizedBox(width: 4),
         ],
-      ),
-    );
-  }
-}
-
-class _HelpAndSupport extends StatelessWidget {
-  const _HelpAndSupport();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
-        ),
-        child: RichText(
-          text: const TextSpan(
-            text: 'Butuh Bantuan? ',
-            style: AppTheme.bodySmall,
-            children: [
-              TextSpan(
-                text: 'Klik Disini!',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

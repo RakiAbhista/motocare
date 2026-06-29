@@ -102,8 +102,13 @@ class _ProfileContentState extends State<ProfileContent> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          /// HEADER SECTION
-          ProfileHeader(name: _nama),
+          /// HEADER SECTION (with dropdown for edit phone + logout)
+          ProfileHeader(
+            name: _nama,
+            phoneNumber: _phoneNumber,
+            onEditPhone: () => _showEditPhoneDialog(context),
+            onLogout: () => _showLogoutDialog(context),
+          ),
 
           const SizedBox(height: 24),
 
@@ -147,18 +152,7 @@ class _ProfileContentState extends State<ProfileContent> {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               children: [
-                /// EDIT PHONE
-                ProfileMenuCard(
-                  icon: Icons.phone_android_rounded,
-                  title: "Ubah Nomor Telepon",
-                  iconColor: Colors.blue,
-                  info: _phoneNumber.isNotEmpty ? _phoneNumber : '-',
-                  onTap: () => _showEditPhoneDialog(context),
-                ),
-
-                const SizedBox(height: 12),
-
-                /// WORK HISTORY
+                /// WORK HISTORY (kept as menu card)
                 ProfileMenuCard(
                   icon: Icons.history_rounded,
                   title: "Riwayat Pekerjaan",
@@ -172,17 +166,6 @@ class _ProfileContentState extends State<ProfileContent> {
                       ),
                     );
                   },
-                ),
-
-                const SizedBox(height: 12),
-
-                /// LOG OUT
-                ProfileMenuCard(
-                  icon: Icons.logout_rounded,
-                  title: "Keluar dari Akun",
-                  iconColor: Colors.red,
-                  info: "Akhiri sesi kerja saat ini",
-                  onTap: () => _showLogoutDialog(context),
                 ),
 
                 const SizedBox(height: 120),

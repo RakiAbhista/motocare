@@ -9,7 +9,7 @@ class NotificationCard extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
 
-   NotificationCard({
+  const NotificationCard({
     super.key,
     required this.title,
     required this.message,
@@ -35,7 +35,9 @@ class NotificationCard extends StatelessWidget {
           ),
         ],
         border: Border.all(
-          color: isUnread ? AppColors.primary.withOpacity(0.3) : Colors.transparent,
+          color: isUnread
+              ? AppColors.primary.withOpacity(0.3)
+              : Colors.transparent,
           width: 1,
         ),
       ),
@@ -49,11 +51,7 @@ class NotificationCard extends StatelessWidget {
               color: iconColor.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              color: iconColor,
-              size: 24,
-            ),
+            child: Icon(icon, color: iconColor, size: 24),
           ),
           const SizedBox(width: 16),
           // Content
@@ -82,7 +80,9 @@ class NotificationCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey[600],
-                        fontWeight: isUnread ? FontWeight.w600 : FontWeight.normal,
+                        fontWeight: isUnread
+                            ? FontWeight.w600
+                            : FontWeight.normal,
                       ),
                     ),
                   ],
@@ -111,7 +111,7 @@ class NotificationCard extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
             ),
-          ]
+          ],
         ],
       ),
     );

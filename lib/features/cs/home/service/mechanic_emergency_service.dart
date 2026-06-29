@@ -5,7 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:motocare/core/services/auth_service.dart';
 
 class MechanicEmergencyService {
-  static final MechanicEmergencyService _instance = MechanicEmergencyService._internal();
+  static final MechanicEmergencyService _instance =
+      MechanicEmergencyService._internal();
   factory MechanicEmergencyService() => _instance;
   MechanicEmergencyService._internal();
 
@@ -14,7 +15,8 @@ class MechanicEmergencyService {
   Map<String, String> _headers() {
     final token = AuthService().accessToken;
     final headers = {'Accept': 'application/json'};
-    if (token != null && token.isNotEmpty) headers['Authorization'] = 'Bearer $token';
+    if (token != null && token.isNotEmpty)
+      headers['Authorization'] = 'Bearer $token';
     return headers;
   }
 
@@ -26,10 +28,12 @@ class MechanicEmergencyService {
       print('🔵 [MechanicEmergencyService] GET $uri -> ${res.statusCode}');
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
-        print('🟢 [MechanicEmergencyService] getEmergencies success: ${body}');
+        print('🟢 [MechanicEmergencyService] getEmergencies success: $body');
         return body['data'] as List<dynamic>? ?? [];
       }
-      print('🔴 [MechanicEmergencyService] getEmergencies failed: ${res.statusCode} ${res.body}');
+      print(
+        '🔴 [MechanicEmergencyService] getEmergencies failed: ${res.statusCode} ${res.body}',
+      );
       return [];
     } catch (e) {
       print('🔴 [MechanicEmergencyService] getEmergencies exception: $e');
@@ -45,10 +49,12 @@ class MechanicEmergencyService {
       print('🔵 [MechanicEmergencyService] GET $uri -> ${res.statusCode}');
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
-        print('🟢 [MechanicEmergencyService] getHistory success: ${body}');
+        print('🟢 [MechanicEmergencyService] getHistory success: $body');
         return body['data'] as List<dynamic>? ?? [];
       }
-      print('🔴 [MechanicEmergencyService] getHistory failed: ${res.statusCode} ${res.body}');
+      print(
+        '🔴 [MechanicEmergencyService] getHistory failed: ${res.statusCode} ${res.body}',
+      );
       return [];
     } catch (e) {
       print('🔴 [MechanicEmergencyService] getHistory exception: $e');
@@ -64,10 +70,12 @@ class MechanicEmergencyService {
       print('🔵 [MechanicEmergencyService] GET $uri -> ${res.statusCode}');
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
-        print('🟢 [MechanicEmergencyService] getServices success: ${body}');
+        print('🟢 [MechanicEmergencyService] getServices success: $body');
         return body['data'] as List<dynamic>? ?? [];
       }
-      print('🔴 [MechanicEmergencyService] getServices failed: ${res.statusCode} ${res.body}');
+      print(
+        '🔴 [MechanicEmergencyService] getServices failed: ${res.statusCode} ${res.body}',
+      );
       return [];
     } catch (e) {
       print('🔴 [MechanicEmergencyService] getServices exception: $e');
@@ -83,10 +91,12 @@ class MechanicEmergencyService {
       print('🔵 [MechanicEmergencyService] GET $uri -> ${res.statusCode}');
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
-        print('🟢 [MechanicEmergencyService] showEmergency success: ${body}');
+        print('🟢 [MechanicEmergencyService] showEmergency success: $body');
         return body['data'] as Map<String, dynamic>?;
       }
-      print('🔴 [MechanicEmergencyService] showEmergency failed: ${res.statusCode} ${res.body}');
+      print(
+        '🔴 [MechanicEmergencyService] showEmergency failed: ${res.statusCode} ${res.body}',
+      );
       return null;
     } catch (e) {
       print('🔴 [MechanicEmergencyService] showEmergency exception: $e');
@@ -102,10 +112,12 @@ class MechanicEmergencyService {
       print('🔵 [MechanicEmergencyService] GET $uri -> ${res.statusCode}');
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
-        print('🟢 [MechanicEmergencyService] getTotal success: ${body}');
+        print('🟢 [MechanicEmergencyService] getTotal success: $body');
         return body as Map<String, dynamic>;
       }
-      print('🔴 [MechanicEmergencyService] getTotal failed: ${res.statusCode} ${res.body}');
+      print(
+        '🔴 [MechanicEmergencyService] getTotal failed: ${res.statusCode} ${res.body}',
+      );
       return null;
     } catch (e) {
       print('🔴 [MechanicEmergencyService] getTotal exception: $e');
@@ -120,10 +132,14 @@ class MechanicEmergencyService {
       final res = await http.post(uri, headers: _headers());
       print('🔵 [MechanicEmergencyService] POST $uri -> ${res.statusCode}');
       if (res.statusCode == 200) {
-        print('🟢 [MechanicEmergencyService] acceptEmergency success: ${res.body}');
+        print(
+          '🟢 [MechanicEmergencyService] acceptEmergency success: ${res.body}',
+        );
         return true;
       }
-      print('🔴 [MechanicEmergencyService] acceptEmergency failed: ${res.statusCode} ${res.body}');
+      print(
+        '🔴 [MechanicEmergencyService] acceptEmergency failed: ${res.statusCode} ${res.body}',
+      );
       return false;
     } catch (e) {
       print('🔴 [MechanicEmergencyService] acceptEmergency exception: $e');
@@ -141,7 +157,9 @@ class MechanicEmergencyService {
         print('🟢 [MechanicEmergencyService] arrived success: ${res.body}');
         return true;
       }
-      print('🔴 [MechanicEmergencyService] arrived failed: ${res.statusCode} ${res.body}');
+      print(
+        '🔴 [MechanicEmergencyService] arrived failed: ${res.statusCode} ${res.body}',
+      );
       return false;
     } catch (e) {
       print('🔴 [MechanicEmergencyService] arrived exception: $e');
@@ -156,10 +174,14 @@ class MechanicEmergencyService {
       final res = await http.post(uri, headers: _headers());
       print('🔵 [MechanicEmergencyService] POST $uri -> ${res.statusCode}');
       if (res.statusCode == 200) {
-        print('🟢 [MechanicEmergencyService] requestTowing success: ${res.body}');
+        print(
+          '🟢 [MechanicEmergencyService] requestTowing success: ${res.body}',
+        );
         return true;
       }
-      print('🔴 [MechanicEmergencyService] requestTowing failed: ${res.statusCode} ${res.body}');
+      print(
+        '🔴 [MechanicEmergencyService] requestTowing failed: ${res.statusCode} ${res.body}',
+      );
       return false;
     } catch (e) {
       print('🔴 [MechanicEmergencyService] requestTowing exception: $e');
@@ -167,21 +189,33 @@ class MechanicEmergencyService {
     }
   }
 
-  Future<bool> addService(int id, {int? serviceId, String? additionalService, double? price}) async {
+  Future<bool> addService(
+    int id, {
+    int? serviceId,
+    String? additionalService,
+    double? price,
+  }) async {
     final uri = Uri.parse('$_baseUrl/mechanic/emergencies/$id/add-service');
     final Map<String, dynamic> body = {};
     if (serviceId != null) body['service_id'] = serviceId;
-    if (additionalService != null) body['additional_service'] = additionalService;
+    if (additionalService != null)
+      body['additional_service'] = additionalService;
     if (price != null) body['price'] = price;
     try {
       print('🔵 [MechanicEmergencyService] POST $uri body: $body');
-      final res = await http.post(uri, headers: {..._headers(), 'Content-Type': 'application/json'}, body: jsonEncode(body));
+      final res = await http.post(
+        uri,
+        headers: {..._headers(), 'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
       print('🔵 [MechanicEmergencyService] POST $uri -> ${res.statusCode}');
       if (res.statusCode == 200) {
         print('🟢 [MechanicEmergencyService] addService success: ${res.body}');
         return true;
       }
-      print('🔴 [MechanicEmergencyService] addService failed: ${res.statusCode} ${res.body}');
+      print(
+        '🔴 [MechanicEmergencyService] addService failed: ${res.statusCode} ${res.body}',
+      );
       return false;
     } catch (e) {
       print('🔴 [MechanicEmergencyService] addService exception: $e');
@@ -196,10 +230,14 @@ class MechanicEmergencyService {
       final res = await http.post(uri, headers: _headers());
       print('🔵 [MechanicEmergencyService] POST $uri -> ${res.statusCode}');
       if (res.statusCode == 200) {
-        print('🟢 [MechanicEmergencyService] proceedToPayment success: ${res.body}');
+        print(
+          '🟢 [MechanicEmergencyService] proceedToPayment success: ${res.body}',
+        );
         return true;
       }
-      print('🔴 [MechanicEmergencyService] proceedToPayment failed: ${res.statusCode} ${res.body}');
+      print(
+        '🔴 [MechanicEmergencyService] proceedToPayment failed: ${res.statusCode} ${res.body}',
+      );
       return false;
     } catch (e) {
       print('🔴 [MechanicEmergencyService] proceedToPayment exception: $e');
@@ -207,25 +245,39 @@ class MechanicEmergencyService {
     }
   }
 
-  Future<bool> completePayment(int id, {File? paymentProof, String paymentType = 'transfer'}) async {
-    final uri = Uri.parse('$_baseUrl/mechanic/emergencies/$id/complete-payment');
+  Future<bool> completePayment(
+    int id, {
+    File? paymentProof,
+    String paymentType = 'transfer',
+  }) async {
+    final uri = Uri.parse(
+      '$_baseUrl/mechanic/emergencies/$id/complete-payment',
+    );
     final request = http.MultipartRequest('POST', uri);
     request.headers.addAll(_headers());
     request.fields['payment_type'] = paymentType;
     if (paymentProof != null && await paymentProof.exists()) {
-      request.files.add(await http.MultipartFile.fromPath('payment_proof', paymentProof.path));
+      request.files.add(
+        await http.MultipartFile.fromPath('payment_proof', paymentProof.path),
+      );
     }
 
     try {
       print('🔵 [MechanicEmergencyService] POST multipart $uri');
       final streamed = await request.send();
       final res = await http.Response.fromStream(streamed);
-      print('🔵 [MechanicEmergencyService] POST multipart $uri -> ${res.statusCode}');
+      print(
+        '🔵 [MechanicEmergencyService] POST multipart $uri -> ${res.statusCode}',
+      );
       if (res.statusCode == 200) {
-        print('🟢 [MechanicEmergencyService] completePayment success: ${res.body}');
+        print(
+          '🟢 [MechanicEmergencyService] completePayment success: ${res.body}',
+        );
         return true;
       }
-      print('🔴 [MechanicEmergencyService] completePayment failed: ${res.statusCode} ${res.body}');
+      print(
+        '🔴 [MechanicEmergencyService] completePayment failed: ${res.statusCode} ${res.body}',
+      );
       return false;
     } catch (e) {
       print('🔴 [MechanicEmergencyService] completePayment exception: $e');
@@ -240,10 +292,14 @@ class MechanicEmergencyService {
       final res = await http.post(uri, headers: _headers());
       print('🔵 [MechanicEmergencyService] POST $uri -> ${res.statusCode}');
       if (res.statusCode == 200) {
-        print('🟢 [MechanicEmergencyService] cancelEmergency success: ${res.body}');
+        print(
+          '🟢 [MechanicEmergencyService] cancelEmergency success: ${res.body}',
+        );
         return true;
       }
-      print('🔴 [MechanicEmergencyService] cancelEmergency failed: ${res.statusCode} ${res.body}');
+      print(
+        '🔴 [MechanicEmergencyService] cancelEmergency failed: ${res.statusCode} ${res.body}',
+      );
       return false;
     } catch (e) {
       print('🔴 [MechanicEmergencyService] cancelEmergency exception: $e');
@@ -252,7 +308,9 @@ class MechanicEmergencyService {
   }
 
   Future<bool> removeService(int emergencyId, int serviceId) async {
-    final uri = Uri.parse('$_baseUrl/mechanic/emergencies/$emergencyId/service/$serviceId');
+    final uri = Uri.parse(
+      '$_baseUrl/mechanic/emergencies/$emergencyId/service/$serviceId',
+    );
     try {
       print('🔵 [MechanicEmergencyService] DELETE $uri');
       final res = await http.delete(uri, headers: _headers());
@@ -261,7 +319,9 @@ class MechanicEmergencyService {
         print('🟢 [MechanicEmergencyService] removeService success');
         return true;
       }
-      print('🔴 [MechanicEmergencyService] removeService failed: ${res.statusCode} ${res.body}');
+      print(
+        '🔴 [MechanicEmergencyService] removeService failed: ${res.statusCode} ${res.body}',
+      );
       return false;
     } catch (e) {
       print('🔴 [MechanicEmergencyService] removeService exception: $e');
@@ -276,10 +336,14 @@ class MechanicEmergencyService {
       final res = await http.post(uri, headers: _headers());
       print('🔵 [MechanicEmergencyService] POST $uri -> ${res.statusCode}');
       if (res.statusCode == 200 || res.statusCode == 201) {
-        print('🟢 [MechanicEmergencyService] clearLocation success: ${res.body}');
+        print(
+          '🟢 [MechanicEmergencyService] clearLocation success: ${res.body}',
+        );
         return true;
       }
-      print('🔴 [MechanicEmergencyService] clearLocation failed: ${res.statusCode} ${res.body}');
+      print(
+        '🔴 [MechanicEmergencyService] clearLocation failed: ${res.statusCode} ${res.body}',
+      );
       return false;
     } catch (e) {
       print('🔴 [MechanicEmergencyService] clearLocation exception: $e');
