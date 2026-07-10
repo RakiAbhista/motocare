@@ -13,7 +13,8 @@ class AuthService {
   // final String baseUrl = 'http://192.168.122.1:8000/api/v1';
   // final String baseUrl = 'http://172.16.162.206:8000/api/v1';
   // final String baseUrl = 'http://192.168.1.7:8000/api/v1';
-  final String baseUrl = 'http://192.168.1.12:8000/api/v1';
+  final String baseUrl = 'https://api.rakiabhista.my.id/api/v1';
+  // final String baseUrl = 'https://api.rakiabhista.my.id/api/v1';
 
   String? _accessToken;
   String? _role;

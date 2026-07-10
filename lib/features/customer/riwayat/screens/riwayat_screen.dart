@@ -585,7 +585,10 @@ class _RiwayatListCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(title, style: AppTheme.titleMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Flexible(
+                        child: Text(title, style: AppTheme.titleMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
@@ -601,7 +604,9 @@ class _RiwayatListCard extends StatelessWidget {
                     children: [
                       Icon(Icons.location_on, size: 12, color: Colors.grey.shade400),
                       const SizedBox(width: 4),
-                      Text(location, style: AppTheme.bodySmall),
+                      Flexible(
+                        child: Text(location, style: AppTheme.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ),
                     ],
                   ),
                 ],

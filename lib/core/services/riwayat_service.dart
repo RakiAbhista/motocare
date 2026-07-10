@@ -1,9 +1,81 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'auth_service.dart';
 
 class RiwayatService {
   String get baseUrl => AuthService().baseUrl;
+
+  /// POST /customer/vehicles — Tambah kendaraan baru (multipart form-data)
+  Future<Map<String, dynamic>> addVehicle({
+    required String vehicleType,
+    required String brand,
+    required String model,
+    required String plateNumber,
+    required String manufacturingYear,
+    required File registrationDoc,
+  }) async {
+    try {
+      print('🔵 [RiwayatService] Adding vehicle...');
+      final token = AuthService().accessToken;
+
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/customer/vehicles'),
+      );
+
+      // Headers
+      request.headers.addAll({
+        'Accept': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      });
+
+      // Fields
+      request.fields['vehicle_type'] = vehicleType;
+      request.fields['brand'] = brand;
+      request.fields['model'] = model;
+      request.fields['plate_number'] = plateNumber;
+      request.fields['manufacturing_year'] = manufacturingYear;
+
+      // File
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'registration_doc',
+          registrationDoc.path,
+        ),
+      );
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print('🔵 [RiwayatService] Add vehicle status: ${response.statusCode}');
+      print('🔵 [RiwayatService] Add vehicle body: ${response.body}');
+
+      final body = jsonDecode(response.body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          'success': true,
+          'message': body['message'] ?? 'Kendaraan berhasil ditambahkan',
+          'data': body['data'],
+        };
+      } else {
+        // Extract validation errors if any
+        String errorMsg = body['message'] ?? 'Gagal menambahkan kendaraan';
+        if (body['errors'] != null) {
+          final errors = body['errors'] as Map<String, dynamic>;
+          final firstError = errors.values.first;
+          if (firstError is List && firstError.isNotEmpty) {
+            errorMsg = firstError.first.toString();
+          }
+        }
+        return {'success': false, 'message': errorMsg};
+      }
+    } catch (e) {
+      print('❌ [RiwayatService] addVehicle error: $e');
+      return {'success': false, 'message': 'Gagal terhubung ke server: $e'};
+    }
+  }
 
   Map<String, String> _getHeaders() {
     final token = AuthService().accessToken;

@@ -10,6 +10,7 @@ import 'package:motocare/features/mechanic/emergency/widgets/invoice/invoice_ser
 
 import 'package:motocare/features/cs/home/models/order_detail_model.dart';
 import 'package:motocare/features/cs/home/service/order_service.dart';
+import 'package:motocare/features/customer/booking/models/booking_models.dart';
 
 class DetailServiceScreen extends StatefulWidget {
   final int orderId;
@@ -134,8 +135,15 @@ class _DetailServiceScreenState extends State<DetailServiceScreen> {
                       setStateSB(() {
                         final q = v.toLowerCase();
                         filtered = services.where((s) {
-                          final name = (s['service_name'] ?? '').toString().toLowerCase();
-                          final id = s['service_id']?.toString() ?? s['id']?.toString() ?? '';
+                          String name = '';
+                          String id = '';
+                          if (s is ServiceModel) {
+                            name = s.serviceName.toLowerCase();
+                            id = s.id.toString();
+                          } else {
+                            name = (s['service_name'] ?? '').toString().toLowerCase();
+                            id = s['service_id']?.toString() ?? s['id']?.toString() ?? '';
+                          }
                           return name.contains(q) || id.contains(q);
                         }).toList();
                       });
@@ -148,9 +156,18 @@ class _DetailServiceScreenState extends State<DetailServiceScreen> {
                       itemCount: filtered.length,
                       itemBuilder: (_, i) {
                         final s = filtered[i];
-                        final sid = s['service_id'] ?? s['id'];
-                        final name = s['service_name'] ?? s['name'] ?? '';
-                        final base = s['base_price']?.toString() ?? s['price']?.toString() ?? '';
+                        dynamic sid;
+                        String name = '';
+                        String base = '';
+                        if (s is ServiceModel) {
+                          sid = s.id;
+                          name = s.serviceName;
+                          base = s.basePrice;
+                        } else {
+                          sid = s['service_id'] ?? s['id'];
+                          name = s['service_name'] ?? s['name'] ?? '';
+                          base = s['base_price']?.toString() ?? s['price']?.toString() ?? '';
+                        }
                         return ListTile(
                           title: Text(name),
                           subtitle: base.isNotEmpty ? Text('Rp $base') : null,

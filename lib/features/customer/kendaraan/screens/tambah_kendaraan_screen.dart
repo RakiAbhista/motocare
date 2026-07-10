@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:motocare/core/theme/app_colors.dart';
 import 'package:motocare/core/theme/app_theme.dart';
+import 'package:motocare/core/services/riwayat_service.dart';
 import 'package:motocare/widgets/custom_text_field.dart';
 
 class TambahKendaraanScreen extends StatefulWidget {
@@ -12,11 +16,16 @@ class TambahKendaraanScreen extends StatefulWidget {
 
 class _TambahKendaraanScreenState extends State<TambahKendaraanScreen> {
   bool isMotorSelected = true;
+  File? _selectedFile;
+  bool _isSubmitting = false;
 
   final merkController = TextEditingController();
   final tipeController = TextEditingController();
   final platController = TextEditingController();
   final tahunController = TextEditingController();
+
+  final RiwayatService _riwayatService = RiwayatService();
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void dispose() {
@@ -25,6 +34,158 @@ class _TambahKendaraanScreenState extends State<TambahKendaraanScreen> {
     platController.dispose();
     tahunController.dispose();
     super.dispose();
+  }
+
+  void _showPickOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Pilih Sumber Foto',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: AppColors.primary),
+                title: const Text('Ambil dari Kamera'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library, color: AppColors.primary),
+                title: const Text('Pilih dari Galeri'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: source,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        final file = File(pickedFile.path);
+        final fileSize = await file.length();
+
+        // Validasi ukuran file (maks 1MB)
+        if (fileSize > 1 * 1024 * 1024) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Ukuran file terlalu besar. Maksimal 1MB.'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          return;
+        }
+
+        setState(() {
+          _selectedFile = file;
+        });
+      }
+    } catch (e) {
+      print('❌ [TambahKendaraan] Error picking file: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memilih file: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _submitVehicle() async {
+    // Validasi form
+    if (merkController.text.trim().isEmpty ||
+        tipeController.text.trim().isEmpty ||
+        platController.text.trim().isEmpty ||
+        tahunController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Semua field wajib diisi.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (_selectedFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Silakan upload foto STNK terlebih dahulu.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final result = await _riwayatService.addVehicle(
+        vehicleType: isMotorSelected ? 'motor' : 'mobil',
+        brand: merkController.text.trim(),
+        model: tipeController.text.trim(),
+        plateNumber: platController.text.trim(),
+        manufacturingYear: tahunController.text.trim(),
+        registrationDoc: _selectedFile!,
+      );
+
+      if (mounted) {
+        if (result['success'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? 'Kendaraan berhasil ditambahkan!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context, true); // Return true to indicate success
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? 'Gagal menambahkan kendaraan.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Terjadi kesalahan: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 
   @override
@@ -48,7 +209,9 @@ class _TambahKendaraanScreenState extends State<TambahKendaraanScreen> {
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.12)),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                ),
               ),
               child: const Row(
                 children: [
@@ -108,10 +271,17 @@ class _TambahKendaraanScreenState extends State<TambahKendaraanScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Implement submit
-                },
-                child: const Text('Tambahkan Kendaraan'),
+                onPressed: _isSubmitting ? null : _submitVehicle,
+                child: _isSubmitting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Tambahkan Kendaraan'),
               ),
             ),
             const SizedBox(height: 40),
@@ -142,34 +312,72 @@ class _TambahKendaraanScreenState extends State<TambahKendaraanScreen> {
           ),
         ),
         const SizedBox(height: 4),
-        const Text(
-          '(PDF, Maks. 1MB)',
-          style: AppTheme.bodySmall,
-        ),
+        const Text('(Jpg/Png, Maks. 1MB)', style: AppTheme.bodySmall),
         const SizedBox(height: 8),
-          InkWell(
-            onTap: () {
-              // TODO: Implement file picker
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1.5),
-                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                color: AppColors.primary.withValues(alpha: 0.04),
+        InkWell(
+          onTap: _showPickOptions,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.3),
+                width: 1.5,
               ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.cloud_upload_outlined, color: AppColors.primary, size: 20),
-                  SizedBox(width: 8),
-                  Text('Tambahkan File', style: TextStyle(color: AppColors.primary, fontSize: 14, fontWeight: FontWeight.w500)),
-                  SizedBox(width: 8),
-                  Icon(Icons.arrow_upward, color: AppColors.primary, size: 16),
-                ],
-              ),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+              color: AppColors.primary.withValues(alpha: 0.04),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.cloud_upload_outlined,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Tambahkan File',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(width: 8),
+                Icon(Icons.arrow_upward, color: AppColors.primary, size: 16),
+              ],
             ),
           ),
+        ),
+        if (_selectedFile != null) ...[
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.green.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+              border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _selectedFile!.path.split('/').last.split('\\').last,
+                    style: const TextStyle(fontSize: 13, color: Colors.green),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => setState(() => _selectedFile = null),
+                  child: const Icon(Icons.close, color: Colors.red, size: 18),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -196,7 +404,9 @@ class _VehicleTypeSelector extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isMotorSelected ? AppColors.primaryLight : Colors.transparent,
+              color: isMotorSelected
+                  ? AppColors.primaryLight
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
               border: Border.all(
                 color: isMotorSelected ? AppColors.primary : AppColors.border,
@@ -228,7 +438,9 @@ class _VehicleTypeSelector extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: !isMotorSelected ? AppColors.primaryLight : Colors.transparent,
+              color: !isMotorSelected
+                  ? AppColors.primaryLight
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
               border: Border.all(
                 color: !isMotorSelected ? AppColors.primary : AppColors.border,
